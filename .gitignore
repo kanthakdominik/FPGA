@@ -1,0 +1,55 @@
+# Quartus — pliki generowane (projekt tworzy utworz_projekt.tcl)
+db/
+incremental_db/
+output_files/
+simulation/
+greybox_tmp/
+qdb/
+tmp-clearbox/
+*.qpf
+*.qsf
+*.qws
+*.rpt
+*.summary
+*.smsg
+*.done
+*.jdi
+*.sld
+*.pin
+*.qarlog
+.qsys_edit/
+c5_pin_model_dump.txt
+
+# Vivado
+.Xil/
+*.jou
+*.log
+*.str
+vivado_*.backup.*
+
+# Symulacja
+work/
+*.cf
+*.o
+*.vcd
+*.fst
+*.ghw
+*.vvp
+obj_dir/
+transcript
+vsim.wlf
+modelsim.ini
+sim_build/
+results.xml
+__pycache__/
+.pytest_cache/
+
+# Edytory i system
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Strona
+_site/
