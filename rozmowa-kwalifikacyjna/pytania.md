@@ -1260,7 +1260,139 @@ Sumuję słowa 16-bitowe nagłówka (z polem sumy wyzerowanym) w arytmetyce uzup
 
 ## 06 — SystemVerilog do projektowania
 
-_Pytania pojawią się razem z treścią modułu ([06-systemverilog-rtl](../modules/06-systemverilog-rtl/README.md))._
+### [06.01 — logic, always_comb, always_ff i always_latch](../modules/06-systemverilog-rtl/06.01-logic-always-comb-always-ff-i-always-latch.md)
+
+1. **Czym różni się `always_comb` od `always @*`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`always_comb` wyznacza listę wrażliwości automatycznie także z sygnałów czytanych w funkcjach, wykonuje się raz na początku symulacji, zabrania przypisywania jego zmiennych w innych blokach i pozwala narzędziom zgłosić błąd, gdy blok tworzy zatrzask. `always @*` jest tylko blokiem z automatyczną listą wrażliwości, bez tych sprawdzeń.
+</details>
+
+2. **Dlaczego w SystemVerilogu zaleca się `logic` zamiast `wire` i `reg`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo `logic` może być sterowany zarówno przez `assign`, jak i w bloku proceduralnym, co usuwa sztuczny podział Veriloga, a jednocześnie dopuszcza tylko jeden sterownik — przypadkowe podwójne sterowanie jest błędem kompilacji. `wire` zostaje dla sieci z wieloma sterownikami (magistrale trójstanowe).
+</details>
+
+### [06.02 — Typy użytkownika: enum, struct, union, typedef i tablice spakowane](../modules/06-systemverilog-rtl/06.02-typy-uzytkownika-enum-struct-union-typedef-i.md)
+
+1. **Czym różni się struktura spakowana od nierozpakowanej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Spakowana (`struct packed`) to wektor bitów z nazwanymi wycinkami: pola leżą obok siebie bez przerw, pierwsze pole to najstarsze bity, całość można rzutować na wektor, przesyłać przez porty i używać w arytmetyce. Nierozpakowana przypomina strukturę w C — pola są osobnymi zmiennymi, mogą mieć dowolne typy (także `real`, `string`), ale nie da się jej traktować jak wektora. W RTL używa się spakowanych.
+</details>
+
+2. **Po co `union packed`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Żeby te same bity widzieć na dwa sposoby: np. rejestr sterujący jako 32-bitowe słowo magistrali i jako pola bitowe, albo nagłówek pakietu jako słowa i jako pola protokołu. Wszystkie pola unii spakowanej mają tę samą szerokość, a zapis przez jedno pole jest od razu widoczny przez drugie — bez kodu konwersji.
+</details>
+
+### [06.03 — Pakiety i parametryzacja typami](../modules/06-systemverilog-rtl/06.03-pakiety-i-parametryzacja-typami.md)
+
+1. **Jak współdzielić typy i stałe między modułami w SystemVerilogu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przez pakiet (`package … endpackage`) z `typedef`, `localparam` i funkcjami `automatic`. Moduły importują go (`import pkg::*;` w module albo w nagłówku modułu) lub odwołują się z prefiksem `pkg::nazwa`. Pakiet kompiluje się przed modułami. Nie importuje się w przestrzeni `$unit`, bo wynik zależy od kolejności kompilacji.
+</details>
+
+2. **Do czego służy `parameter type`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Do pisania bloków niezależnych od typu danych — kolejek, linii opóźniających, rejestrów potokowych, multiplekserów — które działają tak samo dla bajtu, piksela czy całej struktury nagłówka. Szerokość typu odczytuje się `$bits(T)`. To odpowiednik `generic (type T)` w VHDL-2008 i szablonów w C++.
+</details>
+
+### [06.04 — Interfejsy i modporty](../modules/06-systemverilog-rtl/06.04-interfejsy-i-modporty.md)
+
+1. **Jak działa uzgadnianie valid/ready i jakie są jego reguły?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nadawca ustawia `valid`, gdy ma dane, odbiorca `ready`, gdy może je przyjąć; słowo przechodzi w takcie, w którym oba są równe 1. Nadawca po ustawieniu `valid` nie może go cofnąć ani zmienić danych przed przesłaniem i nie może czekać na `ready` z ustawieniem `valid`. Odbiorca może czekać na `valid`. Dzięki temu nie ma zakleszczeń, a każda strona może wstrzymać przepływ.
+</details>
+
+2. **Co to jest bufor skid i po co się go stosuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To rejestr potokowy dla magistrali valid/ready, w którym rejestrowany jest także sygnał `ready`. Ponieważ nadawca dowiaduje się o wstrzymaniu o takt później, w tym takcie może wysłać jeszcze jedno słowo — trafia ono do drugiego rejestru (bufora skid). Dzięki temu wszystkie sygnały między blokami są z rejestrów (krótkie ścieżki czasowe), a przepustowość zostaje pełna: jedno słowo na takt.
+</details>
+
+3. **Co dają interfejsy i modporty w SystemVerilogu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Grupują sygnały magistrali w jeden obiekt, więc porty modułów i instancje są krótkie, a pomyłka w połączeniu pojedynczego sygnału jest mało prawdopodobna. Modporty określają kierunki z perspektywy każdej strony i narzędzie sprawdza, czy moduł nie steruje sygnałem, który powinien tylko czytać. Interfejsy mogą zawierać parametry, funkcje i asercje protokołu.
+</details>
+
+### [06.05 — unique, priority i bezpieczne instrukcje case](../modules/06-systemverilog-rtl/06.05-unique-priority-i-bezpieczne-instrukcje-case.md)
+
+1. **Czym różnią się `unique case` i `priority case`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`unique` obiecuje, że w każdym wykonaniu pasuje dokładnie jedna gałąź (lub `default`) — syntezator może zbudować multiplekser bez priorytetu, a symulator zgłasza naruszenie, gdy pasuje kilka gałęzi albo żadna. `priority` obiecuje, że pasuje co najmniej jedna gałąź i kolejność ma znaczenie — priorytet zostaje, a symulator zgłasza przypadek bez dopasowania. Oba zastępują dyrektywy `full_case`/`parallel_case`, które działały tylko w syntezie.
+</details>
+
+2. **Jak działa arbiter karuzelowy i czym różni się od arbitra z priorytetem stałym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pamięta ostatnio obsłużonego klienta i przy następnym przydziale przeszukuje zgłoszenia od kolejnego numeru cyklicznie, więc obsłużony klient ma potem najniższy priorytet. Każdy czeka najwyżej N − 1 przydziałów. Arbiter z priorytetem stałym zawsze faworyzuje te same zgłoszenia — przy dużym obciążeniu klienci o niskim priorytecie mogą nie być obsłużeni nigdy.
+</details>
+
+### [06.06 — Asercje natychmiastowe w kodzie RTL](../modules/06-systemverilog-rtl/06.06-asercje-natychmiastowe-w-kodzie-rtl.md)
+
+1. **Czym różnią się asercje natychmiastowe od współbieżnych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Natychmiastowe (`assert (…)`) są instrukcjami proceduralnymi sprawdzanymi w chwili wykonania — jak `if` z komunikatem błędu; sprawdzają warunki w jednej chwili. Współbieżne (`assert property`) są taktowane zegarem i opisują sekwencje w czasie, np. „po żądaniu w ciągu 4 taktów przyjdzie odpowiedź”; działają niezależnie od bloków proceduralnych i można je dowodzić formalnie.
+</details>
+
+2. **Jakie asercje dodałbyś do kolejki FIFO?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Brak zapisu przy `full` i odczytu przy `empty` (chyba że projekt to dopuszcza), liczba elementów w zakresie 0…DEPTH, `full` i `empty` nigdy jednocześnie, brak `x` na danych wyjściowych przy `!empty`, a jako asercje współbieżne — że element zapisany zostanie odczytany w tej samej kolejności (z pomocą modelu referencyjnego) i że po resecie kolejka jest pusta.
+</details>
+
+### [06.07 — Co z SystemVeriloga obsługują narzędzia syntezy](../modules/06-systemverilog-rtl/06.07-co-z-systemveriloga-obsluguja-narzedzia-syntezy.md)
+
+1. **Których konstrukcji SystemVeriloga używasz w kodzie syntezowalnym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`logic`, `always_ff`/`always_comb`, `typedef enum` z typem bazowym, `struct packed`, pakiety z typami i funkcjami `automatic`, `unique`/`priority case` z czytaniem ostrzeżeń, `case inside`, interfejsy z modportami do magistral, parametry typu w blokach bibliotecznych — o ile obsługuje je łańcuch narzędzi projektu. Nie używam klas, losowania ani pokrycia w RTL. Przed użyciem mniej typowej konstrukcji sprawdzam ją małym przypadkiem testowym w syntezatorze docelowym.
+</details>
+
+2. **Jak połączyć moduł VHDL z modułem SystemVerilog w jednym projekcie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Narzędzia producentów kompilują oba języki do wspólnej biblioteki i pozwalają na instancję w obie strony — w VHDL przez deklarację komponentu (albo `entity work.nazwa` w niektórych narzędziach), w SV zwykłą instancją modułu. Porty na granicy muszą być prostych typów: bity i wektory. Struktury, rekordy, interfejsy i typy wyliczeniowe trzeba rozpakować na wektory w cienkiej warstwie opakowania.
+</details>
 
 ## 07 — Kodowanie pod syntezę — wzorce RTL
 
