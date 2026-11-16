@@ -48,8 +48,19 @@ begin
       else
         lfsr := shift_right(lfsr, 1);
       end if;
-      vt := lfsr(0) = '1' and model > 0;
-      vg := lfsr(1) = '1' and (model < MAX or vt);
+      -- faza 1: głównie pobieranie (dojście do 0), faza 2: głównie oddawanie (do MAX), faza 3: losowo
+      if k < 100 then
+        vt := (lfsr(0) or lfsr(2)) = '1';
+        vg := (lfsr(1) and lfsr(3)) = '1';
+      elsif k < 200 then
+        vt := (lfsr(0) and lfsr(2)) = '1';
+        vg := (lfsr(1) or lfsr(3)) = '1';
+      else
+        vt := lfsr(0) = '1';
+        vg := lfsr(1) = '1';
+      end if;
+      vt := vt and model > 0;
+      vg := vg and (model < MAX or vt);
       take <= '1' when vt else '0';
       give <= '1' when vg else '0';
       if vt and not vg then model := model - 1; end if;

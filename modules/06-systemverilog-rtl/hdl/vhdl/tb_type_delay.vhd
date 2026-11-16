@@ -54,8 +54,8 @@ begin
       end if;
       hist(k) := to_rgb(std_logic_vector(lfsr));
       d_rgb   <= hist(k);
-      prev8   := d_8;
-      d_8     <= std_logic_vector(lfsr(7 downto 0) xor lfsr(15 downto 8));
+      prev8   := std_logic_vector(lfsr(7 downto 0) xor lfsr(15 downto 8));  -- pojawi się po 1 takcie
+      d_8     <= prev8;
     end loop;
 
     if errors = 0 then

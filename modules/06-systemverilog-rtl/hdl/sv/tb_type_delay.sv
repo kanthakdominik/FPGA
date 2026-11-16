@@ -30,8 +30,8 @@ module tb_type_delay;
             lfsr  = lfsr[0] ? ((lfsr >> 1) ^ 24'hE10000) : (lfsr >> 1);
             d_rgb = rgb_t'(lfsr);                        // rzutowanie wektora na strukturę
             hist.push_back(d_rgb);
-            prev8 = d_8;
-            d_8   = lfsr[7:0] ^ lfsr[15:8];
+            prev8 = lfsr[7:0] ^ lfsr[15:8];          // wartość podana teraz pojawi się po 1 takcie
+            d_8   = prev8;
         end
 
         if (errors == 0) $display("PASS");

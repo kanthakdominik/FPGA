@@ -26,8 +26,9 @@ module tb_credit_counter;
             n_zero = n_zero + (model == 0);
             n_full = n_full + (model == MAX);
             lfsr = lfsr[0] ? ((lfsr >> 1) ^ 8'hB8) : (lfsr >> 1);
-            take = lfsr[0] && (model > 0);
-            give = lfsr[1] && (model < MAX || take);
+            // faza 1: głównie pobieranie (dojście do 0), faza 2: głównie oddawanie (do MAX), faza 3: losowo
+            take = (k < 100 ? (lfsr[0] | lfsr[2]) : k < 200 ? (lfsr[0] & lfsr[2]) : lfsr[0]) && (model > 0);
+            give = (k < 100 ? (lfsr[1] & lfsr[3]) : k < 200 ? (lfsr[1] | lfsr[3]) : lfsr[1]) && (model < MAX || take);
             if (take && !give) model = model - 1;
             if (give && !take) model = model + 1;
             @(negedge clk);
