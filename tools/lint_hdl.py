@@ -21,7 +21,7 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-OSTRZEZENIE = re.compile(r"^%(Warning|Error)(-\w+)?:", re.M)
+OSTRZEZENIE = re.compile(r"^%Warning-\w+:", re.M)
 
 
 def kolejnosc(pliki):

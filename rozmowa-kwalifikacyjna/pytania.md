@@ -1396,7 +1396,215 @@ Narzędzia producentów kompilują oba języki do wspólnej biblioteki i pozwala
 
 ## 07 — Kodowanie pod syntezę — wzorce RTL
 
-_Pytania pojawią się razem z treścią modułu ([07-kodowanie-pod-synteze](../modules/07-kodowanie-pod-synteze/README.md))._
+### [07.01 — Myślenie sprzętowe: kod HDL to schemat, nie program](../modules/07-kodowanie-pod-synteze/07.01-myslenie-sprzetowe-kod-hdl-to-schemat-nie.md)
+
+1. **Co powstaje w sprzęcie z pętli `for` w bloku kombinacyjnym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pętla jest rozwijana przy elaboracji: powstaje tyle kopii ciała pętli, ile obiegów, połączonych tak, jak przepływają przez nie zmienne. Liczba obiegów musi być znana przy elaboracji. Wszystkie kopie działają równocześnie w jednym takcie; jeśli każda iteracja zależy od poprzedniej, powstaje łańcuch, którego opóźnienie rośnie z liczbą obiegów.
+</details>
+
+2. **Masz policzyć maksimum z 64 wartości przy 200 MHz. Jak zaprojektujesz układ?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Drzewo porównań zamiast łańcucha — 6 poziomów zamiast 63. Jeśli 6 poziomów komparatorów nie zmieści się w 5 ns, dodaję rejestry potoku między poziomami (np. co dwa poziomy), godząc się na opóźnienie kilku taktów; przepustowość zostaje jedna wartość na takt. Jeśli dane przychodzą po jednej na takt, wystarczy jeden komparator i rejestr — maksimum bieżące, 64 takty. Wybór zależy od tego, jak dane przychodzą i jakiego opóźnienia wymaga system.
+</details>
+
+3. **Dlaczego kolejność instrukcji w procesie ma znaczenie, skoro „wszystko działa równolegle”?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Równolegle działają procesy i przypisania współbieżne. Wewnątrz jednego procesu kolejność określa, które przypisanie do tego samego sygnału jest ostatnie, a więc priorytet multiplekserów i to, czy zmienna jest czytana przed, czy po aktualizacji. Kolejność wpływa na kształt schematu, a nie na kolejność zdarzeń w czasie.
+</details>
+
+### [07.02 — Rejestry i reset: synchroniczny, asynchroniczny, bez resetu](../modules/07-kodowanie-pod-synteze/07.02-rejestry-i-reset-synchroniczny-asynchroniczny.md)
+
+1. **Reset synchroniczny czy asynchroniczny — co wybierasz w FPGA i dlaczego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zależy od wymagań, ale typowy wybór to reset asynchroniczny w ustawianiu i synchroniczny w zdejmowaniu (synchronizator resetu) — wyjścia przechodzą w stan bezpieczny bez zegara, a zdjęcie jest analizowane czasowo (*recovery/removal*). Reset czysto synchroniczny jest prostszy w analizie i odporny na zakłócenia, ale wymaga zegara. AMD zaleca reset synchroniczny i resetowanie jak najmniejszej liczby rejestrów; Intel dopuszcza asynchroniczny z synchronizowanym zdjęciem. Niezależnie od wyboru: resetuję tylko sterowanie, danych nie.
+</details>
+
+2. **Narysuj synchronizator resetu i wyjaśnij, po co dwa przerzutniki.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa przerzutniki szeregowo, oba z asynchronicznym resetem z wejścia, wejście pierwszego na stałe 1, wyjście drugiego (zanegowane) to reset dla logiki. Ustawienie — natychmiast w obu. Zdjęcie — jedynka przechodzi przez łańcuch na kolejnych zboczach. Pierwszy przerzutnik może się stać metastabilny, jeśli zdjęcie resetu wypadnie blisko zbocza; drugi daje mu cały okres zegara na ustalenie, więc reset zdejmowany jest czysto, synchronicznie z zegarem, w całej domenie w tym samym takcie.
+</details>
+
+3. **Dlaczego w FPGA nie resetuje się rejestrów danych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo to kosztuje i niczego nie daje: reset to dodatkowe obciążenie sieci o ogromnym rozgałęzieniu, utrudnia upakowanie (sygnały sterujące są wspólne dla LAB) i — najważniejsze — blokuje wnioskowanie bloków RAM, rejestrów przesuwnych w pamięci i rejestrów wewnątrz bloków DSP, które nie mają resetu albo mają go ograniczonego. Wartość danych bez towarzyszącego `valid` jest i tak ignorowana, a FPGA ustawia stan rejestrów przy konfiguracji.
+</details>
+
+### [07.03 — Niezamierzone zatrzaski i pętle kombinacyjne](../modules/07-kodowanie-pod-synteze/07.03-niezamierzone-zatrzaski-i-petle-kombinacyjne.md)
+
+1. **Kiedy z bloku kombinacyjnego powstaje zatrzask i jak temu zapobiec?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy istnieje ścieżka przez blok, w której wyjście nie dostaje wartości — `if` bez `else`, `case` bez `default`, wyjście przypisane tylko w części gałęzi. Semantyka mówi „zachowaj poprzednią wartość”, więc syntezator buduje zatrzask. Zapobiegam wartościami domyślnymi wszystkich wyjść na początku bloku, `default` w `case`, używam `always_comb`/`process (all)` i traktuję ostrzeżenia syntezy o zatrzaskach jak błędy.
+</details>
+
+2. **Dlaczego zatrzaski są w FPGA niepożądane?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Element logiczny FPGA ma przerzutnik; zatrzask realizuje się z LUT ze sprzężeniem zwrotnym albo przerzutnika w trybie zatrzasku. Analiza czasowa zatrzasków jest trudniejsza (przezroczystość przez pół okresu, *time borrowing*), narzędzia często traktują je jako pętle kombinacyjne, a sygnał zezwolenia zbudowany z logiki może mieć szpilki i otwierać zatrzask w przypadkowych chwilach. W efekcie zachowanie zależy od rozmieszczenia i opóźnień.
+</details>
+
+3. **Verilator zgłasza `UNOPTFLAT` dla wektora przeniesień w liczniku. Czy to błąd?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najczęściej nie: Verilator traktuje wektor jako jedną zmienną, więc `c[i+1] = f(c[i])` wygląda dla niego jak zależność zmiennej od samej siebie. Sprawdzam ścieżkę w komunikacie — jeśli bit zależy tylko od bitów o niższych indeksach, pętli nie ma i wystarczy atrybut `split_var` albo rozbicie wektora na osobne sygnały. Jeśli jakiś bit zależy od samego siebie przez logikę kombinacyjną — to prawdziwa pętla i trzeba ją przerwać rejestrem.
+</details>
+
+### [07.04 — Liczniki, dzielniki i clock enable](../modules/07-kodowanie-pod-synteze/07.04-liczniki-dzielniki-i-clock-enable.md)
+
+1. **Potrzebujesz zdarzenia co 1 ms przy zegarze 100 MHz. Jak to zrobisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Licznik modulo 100 000 (17 bitów) taktowany zegarem 100 MHz i rejestrowany impuls `tick` trwający jeden takt, gdy licznik osiąga 99 999. Logika, która ma działać co 1 ms, jest taktowana tym samym zegarem 100 MHz i zmienia stan tylko przy `tick = 1`. Nie tworzę zegara 1 kHz z bitu licznika — to nowa domena, zły *skew*, brak analizy czasowej.
+</details>
+
+2. **Czym różni się licznik synchroniczny od asynchronicznego (ripple counter) i dlaczego w FPGA używa się synchronicznego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W asynchronicznym każdy przerzutnik jest taktowany wyjściem poprzedniego — opóźnienia się sumują, bity zmieniają się w różnych chwilach, a każdy bit to osobna domena zegarowa. W synchronicznym wszystkie bity mają wspólny zegar, a logika następnego stanu wyznacza, które się zmieniają. W FPGA: zegary z logiki nie idą sieciami globalnymi, analiza czasowa ich nie obejmuje, a łańcuchy przeniesień i tak liczą szybko — więc tylko synchroniczne.
+</details>
+
+3. **Co to jest ograniczenie wielocyklowe i kiedy można je zastosować do logiki z clock enable?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Informacja dla analizy czasowej, że dana ścieżka ma na propagację N okresów zegara, a nie jeden (`set_multicycle_path -setup N` i odpowiednie `-hold N-1`). Dla logiki z zezwoleniem można je zastosować, gdy rejestr źródłowy i docelowy zmieniają się tylko przy tym samym impulsie, który pojawia się co N taktów. Trzeba uważać — ograniczenie nałożone na zbyt szeroką grupę ścieżek ukrywa prawdziwe naruszenia.
+</details>
+
+### [07.05 — Rejestry przesuwne, LFSR i linie opóźniające](../modules/07-kodowanie-pod-synteze/07.05-rejestry-przesuwne-lfsr-i-linie-opozniajace.md)
+
+1. **Jak zaimplementować w FPGA linię opóźniającą o 1024 takty dla danych 16-bitowych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jako bufor pierścieniowy w pamięci blokowej: licznik adresu modulo 1024, w każdym takcie odczyt i zapis pod ten sam adres — odczyt zwraca dane zapisane 1024 takty wcześniej (tryb „old data”). To 16 Kbit, czyli dwa bloki M9K w MAX 10, zamiast 16 384 przerzutników. Można to napisać jawnie albo opisać rejestr przesuwny bez resetu i pozwolić syntezatorowi go zamienić (Quartus: `altshift_taps`). Opóźnienie trzeba sprawdzić symulacją, bo pamięć z rejestrami może dodać takt.
+</details>
+
+2. **Czym różni się LFSR Galois od Fibonacciego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Fibonacci: na wejście rejestru trafia XOR kilku wybranych bitów — jedna bramka XOR o wielu wejściach na ścieżce sprzężenia. Galois: wypadający bit jest XOR-owany do kilku pozycji przy przesunięciu — wiele bramek XOR o dwóch wejściach, każda na innej pozycji, więc krótsza ścieżka. Dla tego samego wielomianu oba mają ten sam okres, ale generują ciąg w innej kolejności/fazie.
+</details>
+
+### [07.06 — Wnioskowanie pamięci RAM i ROM](../modules/07-kodowanie-pod-synteze/07.06-wnioskowanie-pamieci-ram-i-rom.md)
+
+1. **Napisz pamięć RAM, którą syntezator umieści w bloku pamięci. Jakie warunki musi spełnić kod?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tablica słów, zapis w bloku taktowanym pod jeden adres na port, odczyt w bloku taktowanym (rejestr danych wyjściowych lub adresu), bez resetu zawartości, z zachowaniem read-during-write, które blok obsługuje (zwykle stare dane przy przypisaniach nieblokujących). Liczba portów zgodna z blokiem (najwyżej dwa), szerokości i głębokości w zakresie konfiguracji bloku. Potem sprawdzam raport (*RAM Summary*), czy pamięć faktycznie trafiła do bloków.
+</details>
+
+2. **Co to jest read-during-write i dlaczego ma znaczenie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sytuacja, w której w jednym takcie zapisujemy i czytamy ten sam adres. Odczyt może zwrócić stare dane, nowe dane albo wartość nieokreśloną — zależnie od trybu bloku. Kod RTL opisuje jedno zachowanie; jeśli blok go nie obsługuje, syntezator dodaje logikę obejścia albo zgłasza ostrzeżenie. Przy instancji rdzenia w trybie „don't care” symulacja i sprzęt mogą się różnić. W projekcie trzeba albo unikać kolizji, albo jawnie określić i przetestować oczekiwane zachowanie.
+</details>
+
+3. **Dlaczego ROM zapisany jako `case` w bloku taktowanym może trafić do pamięci, a ten sam `case` w bloku kombinacyjnym — nie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Blok pamięci ma odczyt synchroniczny — rejestruje adres na zboczu. `case` w bloku taktowanym opisuje dokładnie to: wartość pojawia się po zboczu. `case` kombinacyjny opisuje odczyt natychmiastowy, którego blok nie potrafi; syntezator zbuduje funkcję logiczną w LUT (a jeśli dalej za nią jest rejestr, może przenieść go do pamięci — ale to już decyzja optymalizatora).
+</details>
+
+### [07.07 — Wnioskowanie mnożarek i bloków DSP](../modules/07-kodowanie-pod-synteze/07.07-wnioskowanie-mnozarek-i-blokow-dsp.md)
+
+1. **Jak napisać kod, żeby syntezator użył bloku DSP z rejestrami?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mnożenie operatorem `*` na argumentach mieszczących się w bloku, z jednakową znakowością; rejestry na wejściach i na wyjściu iloczynu w tym samym bloku taktowanym, bez resetu (albo z resetem, który blok obsługuje); dla MAC — akumulator bezpośrednio za rejestrem iloczynu, a w rodzinach z akumulatorem w bloku — w zapisie, który przewodnik producenta podaje jako wzorzec. Potem sprawdzam w raporcie liczbę bloków i to, czy rejestry zostały do nich wchłonięte.
+</details>
+
+2. **Ile bitów potrzebuje akumulator dla filtra FIR o 32 współczynnikach 16-bitowych i próbkach 12-bitowych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Iloczyn 16 × 12 bitów ze znakiem ma 28 bitów. Suma 32 iloczynów potrzebuje dodatkowych ⌈log₂32⌉ = 5 bitów — razem 33 bity w najgorszym przypadku. W praktyce można zmniejszyć, licząc rzeczywiste maksimum sumy |współczynników| × maksimum próbki, ale bez takiej analizy bezpiecznie jest przyjąć pełną szerokość.
+</details>
+
+### [07.08 — Parametryzacja i projekt wielokrotnego użytku](../modules/07-kodowanie-pod-synteze/07.08-parametryzacja-i-projekt-wielokrotnego-uzytku.md)
+
+1. **Jak zaprojektujesz sparametryzowany blok biblioteczny, żeby inny zespół mógł go bezpiecznie użyć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Parametry z wartościami domyślnymi i dokumentacją dozwolonych zakresów, wielkości pochodne liczone wewnątrz, sprawdzenie parametrów przy elaboracji (`$error`/`assert`), szerokości portów wyrażone parametrami, udokumentowane opóźnienie i zachowanie protokołu (np. valid/ready). Do tego testy samosprawdzające uruchamiane w CI dla kilku zestawów parametrów, w tym skrajnych, i lint bez ostrzeżeń. Nazwane bloki `generate`, żeby ścieżki hierarchii były stabilne.
+</details>
+
+2. **Ile bitów ma suma 100 liczb 12-bitowych bez znaku?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+12 + ⌈log₂100⌉ = 12 + 7 = 19 bitów. Sprawdzenie: 100 × 4095 = 409 500 < 2¹⁹ = 524 288.
+</details>
+
+### [07.09 — Styl kodu, lint i przeglądy: Verilator, Verible, VSG](../modules/07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)
+
+1. **Jak wprowadziłbyś lint w istniejącym projekcie z setkami ostrzeżeń?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw uruchomić go w trybie raportu w CI, żeby liczba ostrzeżeń była widoczna i nie rosła (blokować tylko nowe — porównanie z zapisaną listą). Potem przejrzeć ostrzeżenia według kategorii: najpierw groźne (zatrzaski, wielokrotne sterowanie, obcięte szerokości, `<=`/`=`), potem resztę. Prawdziwe błędy poprawić, celowe konstrukcje wyłączyć lokalnie z komentarzem. Moduł po module przełączać na tryb ścisły. Formatowanie wprowadzić jednym osobnym zatwierdzeniem, żeby nie mieszać go ze zmianami logiki.
+</details>
+
+2. **Verilator zgłasza `WIDTHEXPAND` dla `count == MAX - 1`. Czy to błąd?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Funkcjonalnie zwykle nie — stała 32-bitowa jest porównywana z rozszerzonym licznikiem i wynik jest poprawny, dopóki `MAX - 1` mieści się w szerokości licznika. Ale ostrzeżenie wskazuje na brak kontroli szerokości: jeśli `MAX` przekroczy zakres licznika, porównanie nigdy nie będzie prawdziwe, a kod tego nie zgłosi. Poprawka: stała o szerokości licznika (`localparam [W-1:0] LAST = MAX - 1`, w SV `W'(MAX - 1)`) i ewentualnie sprawdzenie parametru przy elaboracji.
+</details>
+
+3. **Co sprawdzasz w przeglądzie kodu RTL kolegi?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw, czy CI przeszło (testy, lint, synteza) — to załatwia formalności. Potem logikę: czy blok robi to, co mówi specyfikacja, zachowanie w przypadkach brzegowych (reset, przepełnienia, pełna/pusta kolejka, jednoczesne zdarzenia), przejścia między domenami zegara, reset, szerokości arytmetyki, wnioskowanie pamięci i DSP, opóźnienia i protokoły (valid/ready), a także czy testbench naprawdę sprawdza to, co twierdzi — z modelem niezależnym od kodu i sprawdzeniem pokrycia.
+</details>
 
 ## 08 — Automaty stanów i sterowanie
 

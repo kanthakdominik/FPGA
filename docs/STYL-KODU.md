@@ -79,6 +79,8 @@ Skrypt [tools/run_hdl_tests.py](../tools/run_hdl_tests.py) wyszukuje wszystkie p
 
 Moduły z `hdl/verilog/` są dodatkowo syntezowane w Yosysie ([tools/synteza_yosys.py](../tools/synteza_yosys.py)) — kod musi być syntezowalny, a moduł powinien nazywać się tak jak plik.
 
+Kod z `hdl/verilog/` i `hdl/sv/` przechodzi też przez lint Verilatora (`--lint-only -Wall`, [tools/lint_hdl.py](../tools/lint_hdl.py)). Od modułu 07 obowiązuje zero ostrzeżeń (CI w trybie ścisłym); ostrzeżenie celowe wyłącza się w kodzie komentarzem `/* verilator lint_off … */` w najmniejszym możliwym zakresie, z uzasadnieniem ([07.09](../modules/07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
+
 Lokalnie: `python3 tools/run_hdl_tests.py` (wszystko) albo `python3 tools/run_hdl_tests.py modules/07-kodowanie-pod-synteze` (jeden moduł). W Questa testbenche uruchamiają się bez zmian.
 
 Testbenche UVM (moduł 11) wymagają Questa i nie są uruchamiane w CI — mają własny skrypt `run.do`.
