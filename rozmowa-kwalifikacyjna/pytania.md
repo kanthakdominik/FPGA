@@ -1838,7 +1838,187 @@ Porównam wersje narzędzi i opcje uruchomienia (log CI), ścieżki i katalog ro
 
 ## 10 — Weryfikacja w SystemVerilogu
 
-_Pytania pojawią się razem z treścią modułu ([10-weryfikacja-systemverilog](../modules/10-weryfikacja-systemverilog/README.md))._
+### [10.01 — Programowanie obiektowe: klasy, dziedziczenie, polimorfizm](../modules/10-weryfikacja-systemverilog/10.01-programowanie-obiektowe-klasy-dziedziczenie.md)
+
+1. **Czym różni się kopia płytka od głębokiej w SystemVerilogu i kiedy ma to znaczenie w testbenchu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`new obj` tworzy kopię płytką: nowy obiekt z kopiami wartości pól, ale pola-uchwyty wskazują te same obiekty co w oryginale. Kopia głęboka wymaga własnej metody, która tworzy nowe obiekty dla pól-uchwytów. Ma to znaczenie przy przekazywaniu transakcji między komponentami (monitor → scoreboard, generator → driver): jeśli nadawca później zmienia obiekt, odbiorca widzi zmianę. Rozwiązanie: nowy obiekt dla każdej transakcji albo `clone()` przed wysłaniem.
+</details>
+
+2. **Do czego służą metody wirtualne w testbenchu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pozwalają, żeby kod napisany dla klasy bazowej (generator, scoreboard, środowisko) działał z potomkami bez zmian: wywołanie przez uchwyt bazowy uruchamia wersję z klasy obiektu. Typowe użycie: wariant transakcji z innymi ograniczeniami albo inny sposób drukowania, podstawiony przez test; w UVM — mechanizm *factory override*.
+</details>
+
+3. **Co zwraca `$cast` i kiedy rzutowanie w dół się nie uda?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wywołany jako funkcja zwraca 1 przy sukcesie i 0 przy porażce (jako zadanie — błąd wykonania). Rzutowanie z uchwytu bazowego na uchwyt potomka udaje się tylko wtedy, gdy wskazywany obiekt naprawdę jest tej klasy potomka (albo jej potomkiem).
+</details>
+
+### [10.02 — Losowanie z ograniczeniami (constrained random)](../modules/10-weryfikacja-systemverilog/10.02-losowanie-z-ograniczeniami-constrained-random.md)
+
+1. **Mając `rand bit sel; rand bit [7:0] v; constraint c { sel -> v == 0; }`, jak często `sel` będzie równe 1? Jak to zmienić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rozwiązań jest 257 (256 z `sel = 0`, jedno z `sel = 1`), a losowanie jest równomierne po rozwiązaniach, więc P(`sel` = 1) = 1/257. `solve sel before v` sprawia, że `sel` jest losowane najpierw z rozkładem ½ / ½; można też użyć `sel dist {0 := 1, 1 := 1}`.
+</details>
+
+2. **Czym różni się `rand` od `randc`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`rand` — każde losowanie niezależne, wartości mogą się powtarzać. `randc` — losowanie cykliczne: kolejne wywołania dają permutację wszystkich możliwych wartości bez powtórzeń, a dopiero po wyczerpaniu zaczyna się nowa permutacja. Przydatne np. do przejścia przez wszystkie adresy albo kody operacji w losowej kolejności.
+</details>
+
+3. **Co się dzieje, gdy ograniczenia są sprzeczne?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`randomize()` zwraca 0, zmienne losowane zachowują poprzednie wartości, `post_randomize()` nie jest wywoływane. Symulatory zwykle wypisują ostrzeżenie ze wskazaniem ograniczeń. Testbench powinien sprawdzić wynik i zgłosić błąd, a nie kontynuować na starych wartościach.
+</details>
+
+### [10.03 — Pokrycie funkcjonalne: covergroup, coverpoint, cross](../modules/10-weryfikacja-systemverilog/10.03-pokrycie-funkcjonalne-covergroup-coverpoint.md)
+
+1. **Czym różni się pokrycie funkcjonalne od pokrycia kodu? Czy 100 % pokrycia kodu wystarcza?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pokrycie kodu symulator liczy automatycznie z RTL (wiersze, gałęzie, wyrażenia, przełączenia, stany FSM); pokrycie funkcjonalne definiuje inżynier na podstawie specyfikacji (`covergroup`, `cover property`). 100 % pokrycia kodu nie wystarcza: nie wykrywa brakującej funkcji (kodu, którego nie ma, nie da się nie pokryć), nie mówi, czy wynik był sprawdzony, ani czy wystąpiły kombinacje i kolejności zdarzeń. Potrzebne są oba rodzaje.
+</details>
+
+2. **Masz 32-bitowy argument. Jak zdefiniujesz dla niego kosze?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie wszystkie wartości ani domyślne kosze automatyczne. Klasy ze specyfikacji: 0, 1, maksimum, wartości ze znakiem (najmniejsza ujemna, −1), potęgi dwójki lub pojedyncze bity, jeśli mają znaczenie, oraz zakresy „pozostałe małe/duże”. Do tego krzyżowanie z kodem operacji tylko tam, gdzie kombinacja ma znaczenie, i wykluczenia dla kombinacji nieosiągalnych.
+</details>
+
+3. **Pokrycie utknęło na 95 %. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdzam w raporcie, które kosze są puste. Dla każdego: czy jest osiągalny (jeśli nie — `ignore_bins`/`iff` z uzasadnieniem w planie weryfikacji), czy ograniczenia go nie wykluczają albo czynią bardzo rzadkim (zmiana wag, `solve…before`, nowa klasa transakcji), czy potrzebny jest test ukierunkowany. Samo wydłużanie losowania jest ostatnią opcją.
+</details>
+
+### [10.04 — Asercje SVA: sekwencje i właściwości](../modules/10-weryfikacja-systemverilog/10.04-asercje-sva-sekwencje-i-wlasciwosci.md)
+
+1. **Czym różni się `|->` od `|=>`? Zapisz regułę „po żądaniu `req` odpowiedź `ack` w ciągu 1–3 taktów”.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`A |-> B` — `B` sprawdzane od tego samego taktu, w którym zakończył się `A`; `A |=> B` — od następnego taktu, czyli `A |-> ##1 B`. Reguła: `assert property (@(posedge clk) disable iff (rst) req |-> ##[1:3] ack);`. Do tego `cover property (req ##[1:3] ack);` i najlepiej druga asercja, że `ack` nie pojawia się bez wcześniejszego `req`.
+</details>
+
+2. **Co to jest sukces pusty (vacuous success) i jak się przed nim bronić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Implikacja jest spełniona, gdy poprzednik nie zachodzi — asercja „przechodzi”, choć niczego nie sprawdziła. Obrona: `cover property` dla poprzednika (lub całego scenariusza) z wymaganiem, by był osiągnięty; przegląd raportów pokrycia asercji (symulatory raportują osobno sukcesy puste i niepuste).
+</details>
+
+3. **Kiedy użyjesz `assume` zamiast `assert`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy reguła opisuje zachowanie otoczenia układu (np. źródło trzyma `valid` i dane do przyjęcia, nie wysyła kodów zabronionych). W symulacji `assume` sprawdza testbench jak asercja, w weryfikacji formalnej ogranicza przestrzeń pobudzeń — bez założeń narzędzie formalne znajdzie „błędy” wywołane nielegalnym wejściem.
+</details>
+
+### [10.05 — Testbench warstwowy: driver, monitor, scoreboard](../modules/10-weryfikacja-systemverilog/10.05-testbench-warstwowy-driver-monitor-scoreboard.md)
+
+1. **Jakie komponenty ma typowy testbench warstwowy i za co każdy odpowiada?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Generator (sekwencer) tworzy transakcje według scenariusza; driver zamienia je na sygnały zgodnie z protokołem; monitor obserwuje sygnały i odtwarza transakcje (pasywnie, bez wiedzy drivera); scoreboard porównuje wyniki z modelem referencyjnym; kolektor pokrycia mierzy, co sprawdzono; środowisko tworzy i łączy komponenty, test konfiguruje scenariusz. W UVM odpowiadają im `uvm_sequence`/`uvm_sequencer`, `uvm_driver`, `uvm_monitor`, `uvm_scoreboard`, `uvm_subscriber`, `uvm_env`, `uvm_test`.
+</details>
+
+2. **Po co wirtualny interfejs?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Klasy powstają dynamicznie i nie mają portów, a interfejsy i moduły są statyczne. Wirtualny interfejs to uchwyt do egzemplarza interfejsu przekazywany do obiektu — klasa może sterować i obserwować sygnały, a ten sam kod klasy działa z dowolnym egzemplarzem (kilka portów, kilka układów).
+</details>
+
+3. **Jak sprawdzisz, że Twój testbench naprawdę wykrywa błędy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wstrzykuję błędy do układu (ręcznie przez parametr lub `define`, albo automatycznie narzędziem do mutacji, np. `mcy` z Yosysa) i sprawdzam, czy testy je wykrywają. Dodatkowo: pokrycie funkcjonalne i kodu, przegląd asercji `cover`, porównanie z niezależnym modelem.
+</details>
+
+### [10.06 — Komunikacja i współbieżność: mailbox, semafory, zdarzenia, fork-join](../modules/10-weryfikacja-systemverilog/10.06-komunikacja-i-wspolbieznosc-mailbox-semafory.md)
+
+1. **Czym różnią się `join`, `join_any` i `join_none`? Jak zakończyć pozostałe gałęzie po `join_any`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`join` czeka na wszystkie gałęzie, `join_any` na pierwszą (pozostałe działają dalej), `join_none` nie czeka wcale (gałęzie startują, gdy rodzic się zablokuje). Pozostałe gałęzie kończy `disable fork` — trzeba pamiętać, że dotyczy wszystkich potomków procesu, więc w razie potrzeby zawęża się go dodatkowym `fork…join` dookoła.
+</details>
+
+2. **Dlaczego `@ev` może się zawiesić, a `wait(ev.triggered)` nie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`@ev` czeka na wyzwolenie, które nastąpi po rozpoczęciu czekania. Jeśli inny proces wyzwolił zdarzenie wcześniej w tym samym kroku czasu, czekający go nie zobaczy. `ev.triggered` jest prawdziwe przez resztę kroku czasu, w którym nastąpiło wyzwolenie, więc `wait` przejdzie niezależnie od kolejności procesów.
+</details>
+
+3. **Kiedy użyjesz semafora, a kiedy skrzynki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Semafor — do wzajemnego wykluczania lub ograniczenia liczby równoczesnych dostępów do zasobu (wspólna magistrala, model pamięci, licznik kredytów); nie przenosi danych. Skrzynka — do przekazywania danych (transakcji) między procesami w kolejności FIFO, z opcjonalnym ograniczeniem pojemności jako przeciwciśnieniem.
+</details>
+
+### [10.07 — Plan weryfikacji i pokrycie kodu](../modules/10-weryfikacja-systemverilog/10.07-plan-weryfikacji-i-pokrycie-kodu.md)
+
+1. **Co powinien zawierać plan weryfikacji?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Listę funkcji ze specyfikacji (także trybów błędów, resetu, przypadków brzegowych) z przypisanym sposobem sprawdzenia (model/scoreboard, asercja, test ukierunkowany, weryfikacja formalna), miarą (kosze pokrycia, `cover`), priorytetem i stanem; opis środowiska i założeń o otoczeniu; listę testów regresji; kryteria zakończenia (zero błędów, pokrycie funkcjonalne, pokrycie kodu z wyjaśnionymi wyłączeniami, liczba ziaren); listę wyłączeń z uzasadnieniem.
+</details>
+
+2. **Masz 100 % pokrycia funkcjonalnego i 85 % pokrycia gałęzi. Co z tego wynika?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Model pokrycia funkcjonalnego nie obejmuje części zachowań, które istnieją w kodzie — albo plan o czymś zapomniał (trzeba dopisać kosze i testy), albo kod zawiera martwe lub nieosiągalne fragmenty (do usunięcia albo wyłączenia z uzasadnieniem). Trzeba przejrzeć niepokryte gałęzie jedna po drugiej.
+</details>
+
+3. **Czym różnią się pokrycie wyrażeń (condition) i gałęzi (branch)?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pokrycie gałęzi sprawdza, czy każda gałąź `if`/`case` została wybrana. Pokrycie wyrażeń sprawdza, czy każdy składnik złożonego warunku (np. `a && b || c`) choć raz samodzielnie zdecydował o wyniku — gałąź może być pokryta, choć `c` nigdy nie miało znaczenia.
+</details>
 
 ## 11 — UVM — Universal Verification Methodology
 

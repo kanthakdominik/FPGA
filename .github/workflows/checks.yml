@@ -59,6 +59,59 @@ jobs:
       - name: Moduł 09 — symulacja netlisty po syntezie
         run: make -C modules/09-symulacja-i-testbench/sim po_syntezie
 
+
+  weryfikacja:
+    name: Weryfikacja SystemVerilog (Verilator z OSS CAD Suite)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      # wydanie OSS CAD Suite z określonego dnia: Verilator >= 5.050 (losowanie z ograniczeniami, covergroup)
+      # i rozwiązywacz z3; zmiana daty = świadoma aktualizacja narzędzi
+      OSS_CAD_SUITE: "2026-11-16"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pamięć podręczna OSS CAD Suite
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: /opt/oss-cad-suite
+          key: oss-cad-suite-linux-x64-${{ env.OSS_CAD_SUITE }}
+      - name: Instalacja OSS CAD Suite
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$OSS_CAD_SUITE" -R YosysHQ/oss-cad-suite-build \
+            -p "oss-cad-suite-linux-x64-${OSS_CAD_SUITE//-/}.tgz" -D /tmp
+          sudo tar -xzf /tmp/oss-cad-suite-linux-x64-*.tgz -C /opt
+      - name: Wersje
+        run: |
+          echo /opt/oss-cad-suite/bin >> "$GITHUB_PATH"
+          /opt/oss-cad-suite/bin/verilator --version
+          /opt/oss-cad-suite/bin/z3 --version
+      - name: Moduł 10 — regresja testbenchy weryfikacyjnych
+        run: make -C modules/10-weryfikacja-systemverilog/sim regresja
+      - name: Moduł 10 — środowisko z pięcioma ziarnami
+        run: make -C modules/10-weryfikacja-systemverilog/sim ziarna
+      - name: Moduł 10 — pokrycie kodu i funkcjonalne
+        run: |
+          make -C modules/10-weryfikacja-systemverilog/sim pokrycie
+          {
+            echo "## Pokrycie — moduł 10 (tb_env)"
+            echo '```'
+            cat modules/10-weryfikacja-systemverilog/sim/build/pokrycie/podsumowanie.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Moduł 10 — raport pokrycia do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: pokrycie-tb_env
+          path: |
+            modules/10-weryfikacja-systemverilog/sim/build/pokrycie/podsumowanie.txt
+            modules/10-weryfikacja-systemverilog/sim/build/pokrycie/pokrycie.info
+            modules/10-weryfikacja-systemverilog/sim/build/pokrycie/coverage.dat
+            modules/10-weryfikacja-systemverilog/sim/build/pokrycie/adnotacje/
+
   linki:
     name: Linki wewnętrzne
     runs-on: ubuntu-24.04
