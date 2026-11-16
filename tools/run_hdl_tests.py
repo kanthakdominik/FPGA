@@ -83,6 +83,30 @@ def wynik(log):
 
 TESTY = {"vhdl": test_vhdl, "verilog": test_verilog, "sv": test_sv}
 
+# Moduły nadrzędne dla DECA (deca/<projekt>/deca_top.*) nie mają testbenchy, bo Quartusa nie ma w CI.
+# Sprawdzamy przynajmniej, czy kompilują się razem z kodem z hdl/ w otwartych narzędziach.
+TOP_DECA = {".vhd": "vhdl", ".v": "verilog", ".sv": "sv"}
+
+
+def sprawdz_top_deca(top, tmp):
+    rozsz = top.suffix
+    jezyk = TOP_DECA[rozsz]
+    hdl = top.parent.parent.parent / "hdl" / jezyk
+    zrodla = [str(f) for f in sorted(hdl.glob(f"*{rozsz}")) if not f.name.startswith("tb_")]
+    zrodla += [str(f) for f in sorted(top.parent.glob(f"*{rozsz}")) if f != top] + [str(top)]
+    if jezyk == "vhdl":
+        rc, log = uruchom(["ghdl", "-i", "--std=08", f"--workdir={tmp}", *zrodla], tmp)
+        if rc == 0:
+            rc, out = uruchom(["ghdl", "-m", "--std=08", f"--workdir={tmp}", top.stem], tmp)
+            log += out
+    elif jezyk == "verilog":
+        rc, log = uruchom(["iverilog", "-g2005", "-Wall", "-o", os.path.join(tmp, "a.out"),
+                           "-s", top.stem, *zrodla], tmp)
+    else:
+        rc, log = uruchom(["verilator", "--lint-only", "-Wall", "-Wno-fatal", "--top-module", top.stem,
+                           *zrodla], tmp)
+    return rc == 0, log
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -90,14 +114,15 @@ def main():
     ap.add_argument("--strict", action="store_true")
     a = ap.parse_args()
 
-    zadania = []
+    zadania, topy = [], []
     for s in a.sciezki:
+        topy += sorted(Path(s).resolve().glob("**/deca/*/deca_top.*"))
         for jezyk, (rozsz, _) in JEZYKI.items():
             for katalog in sorted(Path(s).resolve().glob(f"**/hdl/{jezyk}")):
                 for tb in sorted(katalog.glob(f"tb_*{rozsz}")):
                     zadania.append((jezyk, katalog, tb))
 
-    if not zadania:
+    if not zadania and not topy:
         print("Brak testbenchy do uruchomienia.")
         return 0
 
@@ -118,7 +143,21 @@ def main():
             bledy += 1
             print("      " + "\n      ".join(log.strip().splitlines()[-30:]))
 
-    print(f"\n{len(zadania)} testbenchy: {len(zadania) - bledy - pominiete} zaliczonych, "
+    for top in topy:
+        nazwa = top.relative_to(ROOT) if top.is_relative_to(ROOT) else top
+        narzedzie = JEZYKI[TOP_DECA[top.suffix]][1]
+        if shutil.which(narzedzie) is None:
+            print(f"SKIP  {nazwa} (brak {narzedzie})")
+            pominiete += 1
+            continue
+        with tempfile.TemporaryDirectory() as tmp:
+            ok, log = sprawdz_top_deca(top, tmp)
+        print(f"{'OK  ' if ok else 'FAIL'}  {nazwa} (kompilacja)")
+        if not ok:
+            bledy += 1
+            print("      " + "\n      ".join(log.strip().splitlines()[-30:]))
+
+    print(f"\n{len(zadania)} testbenchy i {len(topy)} modułów DECA: {len(zadania) + len(topy) - bledy - pominiete} zaliczonych, "
           f"{bledy} błędów, {pominiete} pominiętych")
     if bledy or (a.strict and pominiete):
         return 1
