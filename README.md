@@ -65,7 +65,7 @@ Zasady:
 | 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h | ✅ pełny |
 | 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢🛠️💼 | 8 | 14 h | ✅ pełny |
 | 02 | [Architektura układów FPGA](modules/02-architektura-fpga/README.md) | 🟢🛠️💼 | 10 | 12 h | ✅ pełny |
-| 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h | 🔲 szkielet |
+| 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h | ✅ pełny |
 
 ### II. Języki opisu sprzętu i wzorce RTL
 
@@ -140,6 +140,7 @@ Zasady:
 ## Sprawdzanie materiałów
 
 - **Testbenche** ze wszystkich modułów uruchamia [tools/run_hdl_tests.py](tools/run_hdl_tests.py): VHDL w GHDL, Verilog w Icarus Verilog, SystemVerilog w Verilatorze. Każdy testbench wypisuje `PASS` lub `FAIL`.
+- **Synteza** — każdy moduł Verilog jest syntezowany w Yosysie na LUT4 ([tools/synteza_yosys.py](tools/synteza_yosys.py)): błąd syntezy zatrzymuje CI, a liczby LUT, przerzutników i zatrzasków trafiają do logu.
 - **Linki** między plikami sprawdza [tools/check_links.py](tools/check_links.py).
 - **Moduły nadrzędne DECA** (`deca_top.*`) są kompilowane w tych samych narzędziach razem z kodem z `hdl/` — Quartusa w CI nie ma, ale literówki i błędy typów wychodzą od razu.
 - **Strona** budowana jest przez [tools/build_site.py](tools/build_site.py) i MkDocs Material w trybie `--strict` — błędny link zatrzymuje publikację.

@@ -1,6 +1,6 @@
 # 03 — Przepływ projektowy od RTL do bitstreamu
 
-> **Część I** · **Oznaczenia:** 🟢🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h · **Status:** 🔲 szkielet
+> **Część I** · **Oznaczenia:** 🟢🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h · **Status:** ✅ pełny
 
 ## Po co ten moduł
 
@@ -14,13 +14,13 @@ Każdy etap przepływu projektowego — synteza, rozmieszczanie, trasowanie, ana
 
 | # | Temat | Kod | DECA | Status |
 |---|-------|-----|------|--------|
-| 03.01 | [Etapy: opracowanie, synteza, mapowanie, rozmieszczanie, trasowanie, bitstream](03.01-etapy-opracowanie-synteza-mapowanie.md) | — | — | 🔲 |
-| 03.02 | [Synteza: co robi syntezator i jak czytać jego raport](03.02-synteza-co-robi-syntezator-i-jak-czytac-jego.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 03.03 | [Ograniczenia: piny, standardy I/O i zegary (QSF, SDC, XDC, PCF)](03.03-ograniczenia-piny-standardy-i-o-i-zegary-qsf.md) | — | 🛠️ | 🔲 |
-| 03.04 | [Raporty: zasoby, czasy i ostrzeżenia, których nie wolno ignorować](03.04-raporty-zasoby-czasy-i-ostrzezenia-ktorych-nie.md) | — | 🛠️ | 🔲 |
-| 03.05 | [Praca skryptowa: Tcl, tryb wsadowy i Makefile](03.05-praca-skryptowa-tcl-tryb-wsadowy-i-makefile.md) | — | 🛠️ | 🔲 |
-| 03.06 | [Otwarty przepływ: Yosys, nextpnr i narzędzia konfiguracyjne](03.06-otwarty-przeplyw-yosys-nextpnr-i-narzedzia.md) | — | — | 🔲 |
-| 03.07 | [Programowanie układu: JTAG, pliki .sof i .pof, pamięć konfiguracyjna](03.07-programowanie-ukladu-jtag-pliki-sof-i-pof.md) | — | 🛠️ | 🔲 |
+| 03.01 | [Etapy: opracowanie, synteza, mapowanie, rozmieszczanie, trasowanie, bitstream](03.01-etapy-opracowanie-synteza-mapowanie.md) | — | — | ✅ |
+| 03.02 | [Synteza: co robi syntezator i jak czytać jego raport](03.02-synteza-co-robi-syntezator-i-jak-czytac-jego.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 03.03 | [Ograniczenia: piny, standardy I/O i zegary (QSF, SDC, XDC, PCF)](03.03-ograniczenia-piny-standardy-i-o-i-zegary-qsf.md) | — | 🛠️ `blink`, `logika` | ✅ |
+| 03.04 | [Raporty: zasoby, czasy i ostrzeżenia, których nie wolno ignorować](03.04-raporty-zasoby-czasy-i-ostrzezenia-ktorych-nie.md) | — | 🛠️ `blink` | ✅ |
+| 03.05 | [Praca skryptowa: Tcl, tryb wsadowy i Makefile](03.05-praca-skryptowa-tcl-tryb-wsadowy-i-makefile.md) | — | 🛠️ `blink`, `logika` | ✅ |
+| 03.06 | [Otwarty przepływ: Yosys, nextpnr i narzędzia konfiguracyjne](03.06-otwarty-przeplyw-yosys-nextpnr-i-narzedzia.md) | — | — | ✅ |
+| 03.07 | [Programowanie układu: JTAG, pliki .sof i .pof, pamięć konfiguracyjna](03.07-programowanie-ukladu-jtag-pliki-sof-i-pof.md) | — | 🛠️ `blink` | ✅ |
 
 ## Po tym module potrafisz
 
@@ -33,7 +33,7 @@ Każdy etap przepływu projektowego — synteza, rozmieszczanie, trasowanie, ana
 ## Kod w module
 
 - `hdl/` — moduły i samosprawdzające się testbenche, osobno dla każdego języka (`vhdl/`, `verilog/`, `sv/`); uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)).
-- `deca/` — projekty dla płytki Arrow DECA: moduł nadrzędny w trzech językach, ograniczenia czasowe (`.sdc`) i skrypt `utworz_projekt.tcl`, który tworzy projekt Quartusa z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
+- Ćwiczenia na płytce DECA korzystają z projektów [blink](../00-srodowisko-pracy/deca/blink/) i [logika](../01-logika-cyfrowa/deca/logika/) oraz wspólnych skryptów z [plytka-deca/](../../plytka-deca/README.md): `deca_projekt.tcl`, `deca.mk`, `sprawdz_czasy.tcl`.
 
 ## Powtórka
 

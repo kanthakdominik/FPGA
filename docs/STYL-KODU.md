@@ -77,6 +77,8 @@ Skrypt [tools/run_hdl_tests.py](../tools/run_hdl_tests.py) wyszukuje wszystkie p
 | `hdl/verilog/` | Icarus Verilog | `iverilog -g2005 -o tb tb_x.v *.v && vvp tb` |
 | `hdl/sv/` | Verilator 5 | `verilator --binary --timing --top-module tb_x *.sv` |
 
+Moduły z `hdl/verilog/` są dodatkowo syntezowane w Yosysie ([tools/synteza_yosys.py](../tools/synteza_yosys.py)) — kod musi być syntezowalny, a moduł powinien nazywać się tak jak plik.
+
 Lokalnie: `python3 tools/run_hdl_tests.py` (wszystko) albo `python3 tools/run_hdl_tests.py modules/07-kodowanie-pod-synteze` (jeden moduł). W Questa testbenche uruchamiają się bez zmian.
 
 Testbenche UVM (moduł 11) wymagają Questa i nie są uruchamiane w CI — mają własny skrypt `run.do`.
