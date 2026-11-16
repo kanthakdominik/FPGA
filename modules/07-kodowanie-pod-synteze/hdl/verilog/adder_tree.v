@@ -15,7 +15,7 @@ module adder_tree #(
     localparam L  = $clog2(N);
     localparam OW = W + L;
 
-    wire [OW-1:0] node [0:2*N-2];              // węzły jak w kopcu: liście N-1 .. 2N-2, korzeń 0
+    wire [OW-1:0] node [0:2*N-2] /* verilator split_var */;  // węzły jak w kopcu: liście N-1 .. 2N-2, korzeń 0
 
     genvar i;
     generate

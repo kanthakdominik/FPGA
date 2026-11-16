@@ -9,14 +9,14 @@ module adder_tree #(
     input  logic [N-1:0][W-1:0]        x,
     output logic [W+$clog2(N)-1:0]     sum
 );
-    localparam int L       = $clog2(N);
-    localparam int OW      = W + L;
-    localparam int LATENCY = PIPELINED ? L : 0;  // do użycia w module nadrzędnym i testach
+    localparam int L  = $clog2(N);
+    localparam int OW = W + L;
 
-    if (N < 2 || (N & (N - 1)) != 0)
+    if (N < 2 || (N & (N - 1)) != 0) begin : g_check
         $error("adder_tree: N = %0d nie jest potega dwojki", N);
+    end
 
-    logic [OW-1:0] node [2*N-1];               // węzły jak w kopcu: liście N-1 .. 2N-2, korzeń 0
+    logic [OW-1:0] node [2*N-1] /* verilator split_var */;  // węzły jak w kopcu: liście N-1 .. 2N-2, korzeń 0
 
     for (genvar i = 0; i < N; i++) begin : g_leaf
         assign node[N-1+i] = OW'(x[i]);

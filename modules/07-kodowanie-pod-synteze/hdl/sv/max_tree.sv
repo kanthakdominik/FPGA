@@ -7,10 +7,11 @@ module max_tree #(
     input  logic [N-1:0][W-1:0] x,
     output logic [W-1:0]        y
 );
-    if (N < 2 || (N & (N - 1)) != 0)
+    if (N < 2 || (N & (N - 1)) != 0) begin : g_check
         $error("max_tree: N = %0d nie jest potega dwojki", N);
+    end
 
-    logic [W-1:0] node [2*N-1];
+    logic [W-1:0] node [2*N-1] /* verilator split_var */;    // bez split_var: pozorna pętla UNOPTFLAT
 
     for (genvar i = 0; i < N; i++) begin : g_leaf
         assign node[N-1+i] = x[i];

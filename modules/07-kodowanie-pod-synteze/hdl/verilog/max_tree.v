@@ -9,7 +9,7 @@ module max_tree #(
     input  wire [N*W-1:0] x,
     output wire [W-1:0]   y
 );
-    wire [W-1:0] node [0:2*N-2];
+    wire [W-1:0] node [0:2*N-2] /* verilator split_var */;   // bez split_var: pozorna pętla UNOPTFLAT
 
     genvar i;
     generate

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Lint kodu Verilog i SystemVerilog Verilatorem (--lint-only -Wall) — moduły z katalogów hdl/verilog/ i hdl/sv/.
 
-Każdy moduł (plik bez przedrostka tb_) jest sprawdzany jako moduł nadrzędny, razem z pozostałymi plikami
-z katalogu (pakiety, interfejsy, podmoduły). Pliki .v są czytane jako Verilog-2005, pliki .sv jako SystemVerilog.
+Wszystkie moduły katalogu (pliki bez przedrostka tb_) są sprawdzane jednym wywołaniem; moduły, których nikt
+nie instancjonuje, są dla Verilatora modułami nadrzędnymi (stąd -Wno-MULTITOP). Pliki .v są czytane jako Verilog-2005, pliki .sv jako SystemVerilog.
 Testbenche są pomijane — w nich lint ma mniejsze znaczenie.
 
 Ostrzeżenia, które świadomie dopuszczamy w kodzie, wyłącza się w pliku komentarzem
@@ -21,7 +21,6 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-MODUL = re.compile(r"^\s*module\s+(\w+)", re.M)
 OSTRZEZENIE = re.compile(r"^%(Warning|Error)(-\w+)?:", re.M)
 
 
@@ -53,20 +52,18 @@ def main():
             continue
         print(f"\n{katalog.relative_to(ROOT)}")
         jezyk = ["--default-language", "1364-2005"] if rozsz == ".v" else ["--default-language", "1800-2017"]
-        for plik in pliki:
-            for top in MODUL.findall(plik.read_text(encoding="utf-8")):
-                cmd = ["verilator", "--lint-only", "-Wall", *jezyk, "--top-module", top, *map(str, pliki)]
-                r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-                log = (r.stdout + r.stderr).strip()
-                n = len(OSTRZEZENIE.findall(log))
-                if r.returncode == 0 and n == 0:
-                    print(f"  OK    {top}")
-                else:
-                    problemy += 1
-                    print(f"  UWAGA {top}: {n} komunikatów")
-                    print("        " + log[-3000:].replace("\n", "\n        "))
+        cmd = ["verilator", "--lint-only", "-Wall", "-Wno-MULTITOP", *jezyk, *map(str, pliki)]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        log = (r.stdout + r.stderr).strip().replace(str(ROOT) + "/", "")
+        n = len(OSTRZEZENIE.findall(log))
+        if r.returncode == 0 and n == 0:
+            print(f"  OK    {len(pliki)} plików bez ostrzeżeń")
+        else:
+            problemy += n or 1
+            print(f"  UWAGA {n} komunikatów")
+            print("        " + log[-4000:].replace("\n", "\n        "))
 
-    print(f"\nModułów z ostrzeżeniami: {problemy}")
+    print(f"\nKomunikatów lintu: {problemy}")
     return 1 if (a.strict and problemy) else 0
 
 

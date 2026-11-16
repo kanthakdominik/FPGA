@@ -11,7 +11,9 @@ module bcd_counter #(
     output wire [4*DIGITS-1:0]   bcd,          // cyfra i: bcd[4*i +: 4], cyfra 0 najmłodsza
     output wire                  carry
 );
-    wire [DIGITS:0] c;                         // c[i] — zezwolenie dla cyfry i
+    // c[i] — zezwolenie dla cyfry i. split_var: Verilator rozdziela wektor na bity; bez tego zgłasza
+    // UNOPTFLAT (pozorną pętlę: c zależy od c), bo traktuje cały wektor jako jeden sygnał.
+    wire [DIGITS:0] c /* verilator split_var */;
     assign c[0] = en;
 
     genvar i;
