@@ -11,8 +11,8 @@ jobs:
     name: Testbenche HDL (GHDL, Icarus, Verilator)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Instalacja symulatorów
@@ -29,8 +29,8 @@ jobs:
     name: Linki wewnętrzne
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Sprawdzenie linków między plikami .md

@@ -37,6 +37,7 @@ Tematy odwołują się do konkretnych rozdziałów i sekcji poniższych materia�
 | [MAX 10 FPGA Device Overview](https://www.intel.com/content/www/us/en/docs/programmable/683658/) | Rodzina MAX 10: zasoby, warianty, obudowy | 02 |
 | [MAX 10 FPGA Device Datasheet](https://www.intel.com/content/www/us/en/docs/programmable/683794/) | Parametry elektryczne i czasowe | 02, 14, 22 |
 | [MAX 10 FPGA Configuration User Guide](https://www.intel.com/content/www/us/en/docs/programmable/683865/) | Konfiguracja, podwójny obraz, pamięć UFM, Unique Chip ID | 02, 03, 18, 29 |
+| [MAX 10 Embedded Multipliers User Guide](https://www.intel.com/content/www/us/en/docs/programmable/683467/) | Bloki mnożarek 18 × 18 / 9 × 9: liczba w układach, tryby, wnioskowanie z HDL | 01, 19 |
 | [MAX 10 Analog to Digital Converter User Guide](https://www.intel.com/content/www/us/en/docs/programmable/683596/) | Wbudowane przetworniki ADC i czujnik temperatury | 20 |
 | [MAX 10 FPGA Handbook (PDF)](https://www.intel.com/programmable/technical-pdfs/max10-handbook.pdf) | Wszystkie przewodniki MAX 10 w jednym pliku: architektura, I/O, zegary i PLL, pamięci, mnożarki, zasilanie, JTAG | 02, 15, 18, 22 |
 | [Quartus Prime Standard Edition — Design Recommendations](https://www.intel.com/content/www/us/en/docs/programmable/683323/) | Zalecane style kodowania HDL, wnioskowanie pamięci i DSP, metastabilność | 07, 15, 18 |

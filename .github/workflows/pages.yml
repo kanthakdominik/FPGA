@@ -20,8 +20,8 @@ jobs:
     name: Budowa strony
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - name: Instalacja MkDocs Material
@@ -30,7 +30,7 @@ jobs:
         run: |
           python tools/build_site.py
           mkdocs build --strict -f _site/mkdocs.yml
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: _site/public
 

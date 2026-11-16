@@ -63,7 +63,7 @@ Zasady:
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
 | 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h | ✅ pełny |
-| 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢💼 | 8 | 14 h | 🔲 szkielet |
+| 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢🛠️💼 | 8 | 14 h | ✅ pełny |
 | 02 | [Architektura układów FPGA](modules/02-architektura-fpga/README.md) | 🟢💼 | 10 | 12 h | 🔲 szkielet |
 | 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h | 🔲 szkielet |
 
