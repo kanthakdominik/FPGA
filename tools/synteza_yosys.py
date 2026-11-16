@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Syntezuje w Yosysie każdy moduł Verilog z katalogów hdl/verilog/ i wypisuje zużycie zasobów.
 
-Synteza ogólna na LUT o 4 wejściach (jak w MAX 10): `synth -flatten -top <moduł> -lut 4; check -assert; stat`.
+Synteza ogólna na LUT o 4 wejściach (jak w MAX 10): `synth -flatten -top <moduł> -lut 4; check -assert; stat; ltp -noff`.
 Sprawdza, że kod jest syntezowalny (bez wielokrotnego sterowania, niepodłączonych wejść komórek itp.),
-i daje orientacyjną liczbę LUT i przerzutników dla sekcji „Co powstaje po syntezie”.
+i daje orientacyjną liczbę LUT i przerzutników dla sekcji „Co powstaje po syntezie”. `ltp -noff` podaje
+najdłuższą ścieżkę kombinacyjną (liczbę komórek między przerzutnikami lub portami) — miarę głębokości logiki.
 
 Moduły są syntezowane z domyślnymi parametrami. Testbenche (tb_*.v) są pomijane.
 
@@ -21,6 +22,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODUL = re.compile(r"^\s*module\s+(\w+)", re.M)
 KOMORKA = re.compile(r"^\s+(\$\S+)\s+(\d+)\s*$", re.M)
+LTP = re.compile(r"Longest topological path in \S+ \(length=(\d+)\)")
 
 
 def podsumowanie(stat):
@@ -68,7 +70,7 @@ def main():
         for plik in pliki:
             for top in MODUL.findall(plik.read_text(encoding="utf-8")):
                 skrypt = (f"read_verilog {' '.join(str(f) for f in pliki)}; "
-                          f"synth -flatten -top {top} -lut 4; check -assert; stat")
+                          f"synth -flatten -top {top} -lut 4; check -assert; stat; ltp -noff")
                 r = subprocess.run(["yosys", "-p", skrypt], capture_output=True, text=True, timeout=300)
                 if r.returncode != 0:
                     bledy += 1
@@ -76,7 +78,9 @@ def main():
                     print("        " + (r.stdout + r.stderr).strip()[-2000:].replace("\n", "\n        "))
                 else:
                     stat = r.stdout.rsplit("Printing statistics", 1)[-1]
-                    print(f"  OK    {top:24s} {podsumowanie(stat)}")
+                    ltp = LTP.findall(r.stdout)
+                    glebokosc = f"   głębokość: {ltp[-1]}" if ltp else ""
+                    print(f"  OK    {top:24s} {podsumowanie(stat.split('Longest topological')[0])}{glebokosc}")
 
     print(f"\nBłędów syntezy: {bledy}")
     return 1 if bledy else 0
