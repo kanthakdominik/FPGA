@@ -34,9 +34,9 @@ Pole **Kod** mówi, w jakich językach jest kod tematu: trzy języki HDL, sam Sy
 | **Co powstaje po syntezie** | Schemat RTL lub technologiczny, zużycie zasobów (LE, M9K, mnożarki), uwagi z raportu | Wyniki z Quartusa dla MAX 10; tam, gdzie to ciekawe, porównanie z Yosysem |
 | **Weryfikacja** | Opis testbencha: co sprawdza i jak, polecenie uruchomienia | Testbench samosprawdzający, wypisuje `PASS` lub `FAIL` ([zasady](STYL-KODU.md#testbenche)) |
 | **Na płytce DECA** | Moduł nadrzędny, użyte piny i peryferia, jak sprawdzić działanie | Projekt w `deca/`, wspólne piny z [plytka-deca/](../plytka-deca/README.md) |
-| **Reguły i liczby do zapamiętania** | Tabela: reguła lub wartość · kiedy obowiązuje · źródło | Ta sekcja trafia w całości do `SCIAGA.md` |
+| **Reguły i liczby do zapamiętania** | Tabela: reguła lub wartość · kiedy obowiązuje | Sekcję przenosi do `SCIAGA.md` skrypt `tools/zbierz.py` |
 | **Typowe pułapki** | 3–6 punktów: błąd, objaw, dlaczego tak się dzieje, jak naprawić | ⚠️ przy błędach, które przechodzą symulację, a psują sprzęt |
-| **Pytania rekrutacyjne** | 3–8 pytań w stylu rozmowy technicznej | Odpowiedź pod `<details>`: tyle, ile da się powiedzieć na głos w minutę. Kopiuj do [rozmowa-kwalifikacyjna/pytania.md](../rozmowa-kwalifikacyjna/pytania.md) |
+| **Pytania rekrutacyjne** | 3–8 pytań w stylu rozmowy technicznej | Odpowiedź pod `<details>`: tyle, ile da się powiedzieć na głos w minutę. `tools/zbierz.py` zbiera je do [rozmowa-kwalifikacyjna/pytania.md](../rozmowa-kwalifikacyjna/pytania.md) |
 | **Zadania** | Zadania obliczeniowe, „znajdź błąd w kodzie”, zadania projektowe | Odpowiedzi pod `<details>`; zadania projektowe z kryterium zaliczenia |
 | **Źródła** | Konkretne rozdziały, strony, sekcje dokumentacji | Wyłącznie anglojęzyczne, z [RESOURCES.md](../RESOURCES.md) |
 
@@ -67,10 +67,35 @@ begin
 Pełny plik: [hdl/vhdl/licznik.vhd](hdl/vhdl/licznik.vhd) · testbench: [tb_licznik.vhd](hdl/vhdl/tb_licznik.vhd)
 ````
 
+## Kod na stronie kursu
+
+Strona (GitHub Pages) może wstawić całe pliki kodu w miejsce znacznika — na GitHubie znacznik jest niewidoczny, więc pod nim zawsze zostaw zwykły odnośnik:
+
+```markdown
+<!-- plik: hdl/vhdl/blink.vhd -->
+Pełny plik: [hdl/vhdl/blink.vhd](hdl/vhdl/blink.vhd)
+
+<!-- zakladki: deca/blink/deca_top.vhd | deca/blink/deca_top.v | deca/blink/deca_top.sv -->
+Pliki: [deca_top.vhd](deca/blink/deca_top.vhd) · [deca_top.v](deca/blink/deca_top.v) · [deca_top.sv](deca/blink/deca_top.sv)
+```
+
+- `plik:` — zwijany blok z całym plikiem (pod fragmentem omawianym w tekście),
+- `zakladki:` — ten sam układ w kilku językach, przełączany zakładkami VHDL / Verilog / SystemVerilog.
+
+Ścieżki są względne do pliku tematu. Znacznik do nieistniejącego pliku zatrzymuje budowę strony.
+
+## Po wypełnieniu tematu
+
+```bash
+python3 tools/zbierz.py           # ściąga modułu i zbiór pytań rekrutacyjnych
+python3 tools/run_hdl_tests.py    # testbenche
+python3 tools/check_links.py      # linki
+```
+
 ## Status tematu i modułu
 
 - 🔲 szkielet — tylko nagłówki.
 - 🟡 w trakcie — część sekcji wypełniona.
 - ✅ pełny — wszystkie sekcje, kod w trzech językach (jeśli dotyczy) z przechodzącymi testbenchami, projekt na DECA (jeśli dotyczy), pytania z odpowiedziami, źródła.
 
-Po wypełnieniu tematu zmień status w nagłówku pliku i w tabeli tematów w `README.md` modułu, wpisz „Reguły i liczby” do `SCIAGA.md`, a gdy cały moduł jest gotowy — zmień status w mapie modułów w głównym `README.md`.
+Po wypełnieniu tematu zmień status w nagłówku pliku i w tabeli tematów w `README.md` modułu i uruchom `tools/zbierz.py` (ściąga i pytania aktualizują się same). Gdy cały moduł jest gotowy — zmień status w mapie modułów w głównym `README.md`.

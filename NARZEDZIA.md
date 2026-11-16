@@ -8,7 +8,7 @@ Instalację krok po kroku opisują tematy [00.03](modules/00-srodowisko-pracy/00
 
 | Narzędzie | Do czego | Uwagi |
 |-----------|----------|-------|
-| **Quartus Prime Lite Edition** | Synteza, implementacja i programowanie MAX 10; w zestawie Timing Analyzer, Signal Tap, Platform Designer, Power Analyzer | Bez licencji. Przy instalacji wystarczy obsługa rodziny MAX 10. Ok. 14 GB na dysku |
+| **Quartus Prime Lite Edition** | Synteza, implementacja i programowanie MAX 10; w zestawie Timing Analyzer, Signal Tap, Platform Designer, Power Analyzer | Bez licencji. Przy instalacji wystarczy obsługa rodziny MAX 10. Kilkanaście GB na dysku — instalacja w [00.03](modules/00-srodowisko-pracy/00.03-instalacja-quartus-prime-lite-i-questa-starter.md) |
 | **Questa — Altera FPGA Starter Edition** | Symulator VHDL, Verilog i SystemVerilog (także klasy i UVM, z ograniczeniem wydajności) | Wymaga darmowej licencji z Self Service Licensing Center, ważnej 12 miesięcy |
 | **Sterownik USB-Blaster II** | Programowanie DECA przez wbudowany programator | Instalowany razem z Quartusem; na Linuksie trzeba dodać regułę udev |
 | **Ashling RiscFree IDE** | Oprogramowanie w C dla procesora Nios V (moduł 27) | Pobierane osobno ze strony Altery |

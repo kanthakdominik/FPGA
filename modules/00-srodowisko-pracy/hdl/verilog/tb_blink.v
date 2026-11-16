@@ -48,6 +48,14 @@ module tb_blink;
         $finish;
     end
 
+    // zapis przebiegów: iverilog -DDUMP … / verilator --trace -DDUMP … (moduł 00.05)
+`ifdef DUMP
+    initial begin
+        $dumpfile("tb_blink.vcd");
+        $dumpvars(0, tb_blink);
+    end
+`endif
+
     // watchdog
     initial begin
         #100000;

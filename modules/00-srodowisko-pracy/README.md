@@ -1,6 +1,6 @@
 # 00 — Środowisko pracy i pierwszy projekt
 
-> **Część I** · **Oznaczenia:** 🟢🛠️ · **Ścieżki:** RTL, weryfikacja, DECA · **Szacowany czas:** ok. 8 h · **Status:** 🔲 szkielet
+> **Część I** · **Oznaczenia:** 🟢🛠️ · **Ścieżki:** RTL, weryfikacja, DECA · **Szacowany czas:** ok. 8 h · **Status:** ✅ pełny
 
 ## Po co ten moduł
 
@@ -14,13 +14,13 @@ Nic — od tego modułu zaczynasz.
 
 | # | Temat | Kod | DECA | Status |
 |---|-------|-----|------|--------|
-| 00.01 | [Czym jest FPGA i gdzie się go używa](00.01-czym-jest-fpga-i-gdzie-sie-go-uzywa.md) | — | — | 🔲 |
-| 00.02 | [FPGA, mikrokontroler, procesor, GPU i ASIC — kiedy co](00.02-fpga-mikrokontroler-procesor-gpu-i-asic-kiedy-co.md) | — | — | 🔲 |
-| 00.03 | [Instalacja: Quartus Prime Lite i Questa Starter](00.03-instalacja-quartus-prime-lite-i-questa-starter.md) | — | — | 🔲 |
-| 00.04 | [Instalacja: GHDL, Icarus Verilog, Verilator i OSS CAD Suite](00.04-instalacja-ghdl-icarus-verilog-verilator-i-oss.md) | — | — | 🔲 |
-| 00.05 | [Edytor i podgląd przebiegów: VS Code, TerosHDL, GTKWave, Surfer](00.05-edytor-i-podglad-przebiegow-vs-code-teroshdl.md) | — | — | 🔲 |
-| 00.06 | [Pierwszy projekt: migająca dioda w trzech językach](00.06-pierwszy-projekt-migajaca-dioda-w-trzech.md) | VHDL · Verilog · SystemVerilog | 🛠️ | 🟡 |
-| 00.07 | [Struktura repozytorium projektu FPGA i Git](00.07-struktura-repozytorium-projektu-fpga-i-git.md) | — | — | 🔲 |
+| 00.01 | [Czym jest FPGA i gdzie się go używa](00.01-czym-jest-fpga-i-gdzie-sie-go-uzywa.md) | — | — | ✅ |
+| 00.02 | [FPGA, mikrokontroler, procesor, GPU i ASIC — kiedy co](00.02-fpga-mikrokontroler-procesor-gpu-i-asic-kiedy-co.md) | — | — | ✅ |
+| 00.03 | [Instalacja: Quartus Prime Lite i Questa Starter](00.03-instalacja-quartus-prime-lite-i-questa-starter.md) | — | 🛠️ | ✅ |
+| 00.04 | [Instalacja: GHDL, Icarus Verilog, Verilator i OSS CAD Suite](00.04-instalacja-ghdl-icarus-verilog-verilator-i-oss.md) | — | — | ✅ |
+| 00.05 | [Edytor i podgląd przebiegów: VS Code, TerosHDL, GTKWave, Surfer](00.05-edytor-i-podglad-przebiegow-vs-code-teroshdl.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 00.06 | [Pierwszy projekt: migająca dioda w trzech językach](00.06-pierwszy-projekt-migajaca-dioda-w-trzech.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| 00.07 | [Struktura repozytorium projektu FPGA i Git](00.07-struktura-repozytorium-projektu-fpga-i-git.md) | — | — | ✅ |
 
 ## Po tym module potrafisz
 

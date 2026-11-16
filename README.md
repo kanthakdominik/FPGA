@@ -2,6 +2,8 @@
 
 Otwarta baza wiedzy o projektowaniu układów FPGA, prowadząca od podstaw logiki cyfrowej do **poziomu zawodowego inżyniera FPGA**: projektowania RTL, weryfikacji (SystemVerilog, UVM, cocotb, metody formalne), analizy czasowej, przejść między domenami zegarowymi, interfejsów, systemów z procesorem i przygotowania do rozmowy kwalifikacyjnej.
 
+**Strona kursu:** [kanthakdominik.github.io/FPGA](https://kanthakdominik.github.io/FPGA/) — ta sama treść z menu, wyszukiwarką i kodem w trzech językach przełączanym zakładkami.
+
 Repozytorium jest pomyślane jako darmowy materiał dla każdego: studenta elektroniki lub informatyki, programisty, który chce przejść do sprzętu, i inżyniera, który chce uporządkować praktykę.
 
 Zasady:
@@ -60,7 +62,7 @@ Zasady:
 
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
-| 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h | 🔲 szkielet |
+| 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h | ✅ pełny |
 | 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢💼 | 8 | 14 h | 🔲 szkielet |
 | 02 | [Architektura układów FPGA](modules/02-architektura-fpga/README.md) | 🟢💼 | 10 | 12 h | 🔲 szkielet |
 | 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h | 🔲 szkielet |
@@ -133,13 +135,15 @@ Zasady:
 | [plytka-deca/](plytka-deca/README.md) | Płytka Arrow DECA i układ MAX 10: zasoby, zegary, peryferia, piny, programowanie, cechy specyficzne dla MAX 10 |
 | [rozmowa-kwalifikacyjna/](rozmowa-kwalifikacyjna/README.md) | Jak wygląda rekrutacja na stanowisko FPGA, zbiór pytań, zadania projektowe na tablicę, pułapki |
 | [docs/](docs/SZABLON-TEMATU.md) | Szablon tematu i [styl kodu](docs/STYL-KODU.md) — zasady dla autorów |
-| [tools/](tools/run_hdl_tests.py) | Skrypty: uruchamianie testbenchy, sprawdzanie linków |
+| [tools/](tools/run_hdl_tests.py) | Skrypty: testbenche (`run_hdl_tests.py`), linki (`check_links.py`), ściągi i zbiór pytań (`zbierz.py`), strona (`build_site.py`) |
 
 ## Sprawdzanie materiałów
 
 - **Testbenche** ze wszystkich modułów uruchamia [tools/run_hdl_tests.py](tools/run_hdl_tests.py): VHDL w GHDL, Verilog w Icarus Verilog, SystemVerilog w Verilatorze. Każdy testbench wypisuje `PASS` lub `FAIL`.
 - **Linki** między plikami sprawdza [tools/check_links.py](tools/check_links.py).
-- Oba sprawdzenia wykonuje GitHub Actions przy każdym pushu ([konfiguracja](.github/workflows/checks.yml)) — wynik w zakładce *Actions*.
+- **Moduły nadrzędne DECA** (`deca_top.*`) są kompilowane w tych samych narzędziach razem z kodem z `hdl/` — Quartusa w CI nie ma, ale literówki i błędy typów wychodzą od razu.
+- **Strona** budowana jest przez [tools/build_site.py](tools/build_site.py) i MkDocs Material w trybie `--strict` — błędny link zatrzymuje publikację.
+- Wszystkie sprawdzenia wykonuje GitHub Actions przy każdym pushu ([konfiguracja](.github/workflows/checks.yml)) — wynik w zakładce *Actions*.
 - Projekty na DECA nie są kompilowane w CI (Quartus jest za duży); przy problemie z kompilacją zgłoś to w Issues.
 
 ## Zasady pracy, które naprawdę działają

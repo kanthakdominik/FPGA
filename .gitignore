@@ -53,3 +53,9 @@ Thumbs.db
 
 # Strona
 _site/
+
+# Quartus — dodatkowe pliki generowane
+*.qdf
+*.cdf
+*.sopcinfo
+hc_output/
