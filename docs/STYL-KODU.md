@@ -17,7 +17,8 @@ modules/07-kodowanie-pod-synteze/
     └── licznik/
         ├── deca_top.vhd  deca_top.v  deca_top.sv
         ├── licznik.sdc
-        └── utworz_projekt.tcl
+        ├── utworz_projekt.tcl
+        └── Makefile
 ```
 
 - Jeden moduł (entity) w pliku; nazwa pliku = nazwa modułu.
@@ -88,8 +89,9 @@ Testbenche UVM (moduł 11) wymagają Questa i nie są uruchamiane w CI — mają
   cd modules/07-kodowanie-pod-synteze/deca/licznik
   quartus_sh -t utworz_projekt.tcl verilog   # albo vhdl / sv
   quartus_sh --flow compile licznik
-  quartus_pgm -c "DECA" -m jtag -o "p;output_files/licznik.sof"
+  quartus_pgm -c 1 -m jtag -o "p;output_files/licznik.sof"
   ```
 
 - Skrypt projektu ma kilka linii: wywołuje wspólną procedurę `deca_utworz_projekt` z [plytka-deca/deca_projekt.tcl](../plytka-deca/deca_projekt.tcl), podając nazwę projektu, moduły z `hdl/` i potrzebne piny. Procedura wybiera wariant językowy, dołącza pliki SDC i przypisania z [deca_piny.tcl](../plytka-deca/deca_piny.tcl).
+- `Makefile` projektu ma dwie linie (`PROJEKT := licznik` i dołączenie [plytka-deca/deca.mk](../plytka-deca/deca.mk)), a daje polecenia `make`, `make JEZYK=vhdl`, `make sram`, `make flash`, `make czas`, `make czysc` ([03.05](../modules/03-przeplyw-projektowy/03.05-praca-skryptowa-tcl-tryb-wsadowy-i-makefile.md)).
 - Katalogi `db/`, `incremental_db/`, `output_files/` i pliki generowane są w `.gitignore`.

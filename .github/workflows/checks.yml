@@ -25,6 +25,19 @@ jobs:
       - name: Uruchomienie testbenchy
         run: python3 tools/run_hdl_tests.py --strict
 
+  synteza:
+    name: Synteza Verilog (Yosys)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Instalacja Yosysa
+        run: sudo apt-get update && sudo apt-get install -y yosys && yosys -V
+      - name: Synteza wszystkich modułów na LUT4
+        run: python3 tools/synteza_yosys.py --strict
+
   linki:
     name: Linki wewnętrzne
     runs-on: ubuntu-24.04
