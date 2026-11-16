@@ -19,7 +19,8 @@ module traffic_fsm #(
 );
     localparam SW = (ENC == 1) ? 6 : 3;
 
-    // kod stanu o indeksie i w wybranym kodowaniu
+    // kod stanu o indeksie i w wybranym kodowaniu; v ma 32 bity, używane są tylko najmłodsze SW
+    /* verilator lint_off UNUSEDSIGNAL */
     function [SW-1:0] code;
         input integer i;
         integer v;
@@ -30,6 +31,7 @@ module traffic_fsm #(
             code = v[SW-1:0];
         end
     endfunction
+    /* verilator lint_on UNUSEDSIGNAL */
 
     localparam [SW-1:0] NS_G = code(0), NS_Y = code(1), R1 = code(2),
                         EW_G = code(3), EW_Y = code(4), R2 = code(5);

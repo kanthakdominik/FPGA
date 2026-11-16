@@ -1608,7 +1608,113 @@ Najpierw, czy CI przeszło (testy, lint, synteza) — to załatwia formalności.
 
 ## 08 — Automaty stanów i sterowanie
 
-_Pytania pojawią się razem z treścią modułu ([08-automaty-stanow](../modules/08-automaty-stanow/README.md))._
+### [08.01 — Automat Moore'a i Mealy'ego w HDL — style kodowania](../modules/08-automaty-stanow/08.01-automat-moore-a-i-mealy-ego-w-hdl-style.md)
+
+1. **Czym różni się automat Moore'a od Mealy'ego? Który wybierzesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Moore — wyjścia zależą tylko od stanu, Mealy — od stanu i wejść. Mealy reaguje w tym samym takcie i zwykle ma mniej stanów, ale ma kombinacyjną ścieżkę z wejścia na wyjście (dłuższa ścieżka czasowa w odbiorcy, możliwe szpilki). Domyślnie wybieram Moore'a albo Mealy'ego z rejestrowanymi wyjściami; czystego Mealy'ego tam, gdzie potrzebna jest reakcja w tym samym takcie, np. `ready` w handshake'u, i tylko wewnątrz jednej domeny zegara.
+</details>
+
+2. **Jak zapisać automat, żeby jego wyjścia były wolne od szpilek i nie opóźnione o takt?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wyjścia jako rejestry liczone z następnego stanu (`y <= f(state_next)`) albo — przy kodowaniu one-hot / z wyjściami wbudowanymi w kod stanu — bezpośrednio z bitów rejestru stanu. Wtedy wyjście zmienia się na tym samym zboczu co stan i nie ma po drodze logiki kombinacyjnej.
+</details>
+
+### [08.02 — Kodowanie stanów: binarne, one-hot, Graya](../modules/08-automaty-stanow/08.02-kodowanie-stanow-binarne-one-hot-graya.md)
+
+1. **Dlaczego w FPGA często używa się kodowania one-hot?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+FPGA ma dużo przerzutników (jeden w każdym elemencie logicznym) i LUT o kilku wejściach. W one-hot sprawdzenie stanu to jeden bit, a logika następnego stanu każdego bitu zależy zwykle od kilku sygnałów — mieści się w jednym lub dwóch LUT, więc automat jest szybki. Kosztem jest więcej przerzutników i wiele kodów nielegalnych; bezpieczne wykrywanie ich wszystkich jest drogie.
+</details>
+
+2. **Jak wymusić w Quartusie własne kodowanie stanów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Atrybutem `syn_encoding` na rejestrze stanu (Verilog) lub typie wyliczeniowym (VHDL): `"user"` — kody z kodu źródłowego, w VHDL lista kodów dla wartości typu, np. `"11 01 10 00"`; albo styl (`"one-hot"`, `"sequential"`, `"compact"`), ewentualnie z dopiskiem `"safe"`. Globalnie — opcją *State Machine Processing*. Wynik sprawdzam w raporcie *State Machines*.
+</details>
+
+### [08.03 — Bezpieczne automaty: stany nielegalne i odzyskiwanie](../modules/08-automaty-stanow/08.03-bezpieczne-automaty-stany-nielegalne-i.md)
+
+1. **Co to jest bezpieczny automat stanów i jak go zrealizować w Quartusie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Automat, który ze stanu nielegalnego (kodu rejestru spoza listy stanów) przechodzi w określony sposób do stanu bezpiecznego, zwykle stanu resetu. W Quartusie: atrybut `syn_encoding = "safe"` na rejestrze lub typie stanu albo opcja *Safe State Machine* — syntezator dodaje logikę odzyskiwania do stanu resetu. Własna gałąź `default` w kodzie nie wystarcza, bo optymalizacja rozpoznanego automatu ją usuwa. Niezależnie od tego synchronizuję wszystkie wejścia asynchroniczne.
+</details>
+
+2. **Które kodowanie stanów wybierzesz dla automatu w układzie narażonym na promieniowanie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kodowanie, w którym pojedyncze przekłamanie daje kod nielegalny — one-hot albo binarne z bitem parzystości (odległość Hamminga ≥ 2) — z jawną detekcją i reakcją (powrót do stanu bezpiecznego, zgłoszenie błędu). Gdy przekłamanie nie może przerwać pracy — potrójna redundancja rejestru stanu z głosowaniem (TMR) albo kod korekcyjny. Kodowanie binarne bez ochrony odpada: przekłamanie często daje inny legalny stan, którego nie da się wykryć.
+</details>
+
+### [08.04 — Eliminacja drgań styków i wykrywanie zboczy](../modules/08-automaty-stanow/08.04-eliminacja-drgan-stykow-i-wykrywanie-zboczy.md)
+
+1. **Jak obsłużysz przycisk mechaniczny w układzie FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Synchronizator z dwóch przerzutników, potem filtr drgań — licznik albo automat, który przyjmuje nowy poziom dopiero po kilku–kilkunastu milisekundach stabilności — i detektor zbocza dający impuls jednego taktu do dalszej logiki. Wszystko w jednej domenie zegara; do długich czasów — licznik albo wspólny impuls zezwolenia. W testbenchu sprawdzam drgania krótsze i dłuższe od czasu filtra.
+</details>
+
+2. **Dlaczego impuls zbocza zamiast poziomu do sterowania licznikiem naciśnięć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Poziom trwa tyle, ile naciśnięcie — miliony taktów; licznik zwiększany „gdy level = 1” liczyłby takty, a nie naciśnięcia. Impuls trwa dokładnie jeden takt na zdarzenie, więc logika reagująca na niego wykonuje się raz.
+</details>
+
+### [08.05 — Handshake valid/ready i przepływ danych](../modules/08-automaty-stanow/08.05-handshake-valid-ready-i-przeplyw-danych.md)
+
+1. **Wyjaśnij handshake valid/ready. Kiedy dane zostają przesłane i jakie są reguły dla obu stron?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przesłanie następuje na zboczu, na którym `valid` i `ready` są równe 1. Źródło ustawia `valid`, gdy ma dane, niezależnie od `ready`, i trzyma `valid` z niezmienionymi danymi aż do przesłania. Odbiorca ustawia `ready`, gdy może przyjąć dane; może czekać na `valid` i zmieniać `ready` w dowolnym takcie. Dzięki tym regułom nie ma zakleszczenia i nie ma pętli kombinacyjnej `valid ↔ ready`.
+</details>
+
+2. **Jak uzyskać pełną przepustowość w bloku z rejestrem wyjściowym i dlaczego trzeba uważać na `ready`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Blok przyjmuje nowe dane, gdy rejestr wyjściowy jest pusty albo jest odbierany w tym samym takcie: `in_ready = !out_valid || out_ready`. Daje to jedno przesłanie na takt, ale `in_ready` zależy kombinacyjnie od `out_ready` — przy łańcuchu wielu bloków ścieżka `ready` przechodzi przez wszystkie i wydłuża ścieżkę krytyczną. Przerywa się ją buforem skid: dodatkowy rejestr pozwala zarejestrować `ready` bez utraty przepustowości.
+</details>
+
+### [08.06 — Ścieżka danych i sterowanie (FSMD) — prosty procesor sekwencyjny](../modules/08-automaty-stanow/08.06-sciezka-danych-i-sterowanie-fsmd-prosty.md)
+
+1. **Co to jest FSMD i jak podzieliłbyś projekt dzielarki sekwencyjnej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Automat stanów sterujący ścieżką danych. Dla dzielarki sekwencyjnej (odejmowanie z przesunięciem): ścieżka danych — rejestr reszty, rejestr ilorazu, dzielnik, licznik bitów, odejmowanie i przesuwnik; status — znak różnicy i „licznik = 0”; sterowanie — stany IDLE (czekanie na `start`), LOAD, ITERATE (N razy: odejmij, jeśli nie ujemne — zapisz i ustaw bit ilorazu, przesuń), DONE (`done = 1`). Sterowanie generuje sygnały zapisu rejestrów i wyboru w multiplekserach.
+</details>
+
+2. **Jak zweryfikowałbyś prosty procesor?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Model referencyjny na poziomie listy instrukcji (interpreter albo symulator ISA, np. Spike dla RISC-V) i porównanie strumienia zdarzeń: zapisy rejestrów, dostępy do pamięci, wyjścia — w kolejności, niezależnie od liczby taktów. Testy: krótkie programy na każdą instrukcję z przypadkami brzegowymi (przepełnienie, zero, skok na siebie), programy losowe, a na koniec gotowe zestawy testów architektury. Do tego asercje protokołów i pokrycie: każda instrukcja, każdy warunek skoku w obie strony.
+</details>
 
 ## 09 — Symulacja i testbenche
 

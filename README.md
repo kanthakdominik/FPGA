@@ -75,7 +75,7 @@ Zasady:
 | 05 | [Verilog](modules/05-verilog/README.md) | 🧩🛠️💼 | 7 | 18 h | ✅ pełny |
 | 06 | [SystemVerilog do projektowania](modules/06-systemverilog-rtl/README.md) | 🧩💼 | 7 | 16 h | ✅ pełny |
 | 07 | [Kodowanie pod syntezę — wzorce RTL](modules/07-kodowanie-pod-synteze/README.md) | 🧩🛠️💼 | 9 | 20 h | ✅ pełny |
-| 08 | [Automaty stanów i sterowanie](modules/08-automaty-stanow/README.md) | 🧩🛠️💼 | 6 | 14 h | 🔲 szkielet |
+| 08 | [Automaty stanów i sterowanie](modules/08-automaty-stanow/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
 
 ### III. Weryfikacja
 

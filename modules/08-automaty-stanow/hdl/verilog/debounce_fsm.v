@@ -15,7 +15,8 @@ module debounce_fsm #(
     output reg  fall = 1'b0
 );
     localparam CW = $clog2(N);
-    localparam [CW-1:0] LAST = N - 1;
+    localparam integer  LAST_I = N - 1;
+    localparam [CW-1:0] LAST = LAST_I[CW-1:0];  // wybór bitów stałej całkowitej — bez ostrzeżeń o szerokości
     localparam [CW-1:0] ONE  = 1;
     localparam [1:0] ST_LOW = 2'd0, ST_WAIT_HIGH = 2'd1, ST_HIGH = 2'd2, ST_WAIT_LOW = 2'd3;
 

@@ -74,7 +74,7 @@ module tiny_cpu #(
                     case (op)
                         OP_LDI, OP_ALU: rf_we   = 1'b1;
                         OP_JNZ:         pc_load = (rd_val != 8'd0);
-                        default:                                   // OP_SYS
+                        OP_SYS:
                             case (rd)
                                 2'd0:    out_load   = 1'b1;        // OUT
                                 2'd1:    pc_load    = 1'b1;        // JMP
