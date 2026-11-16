@@ -1718,7 +1718,123 @@ Model referencyjny na poziomie listy instrukcji (interpreter albo symulator ISA,
 
 ## 09 — Symulacja i testbenche
 
-_Pytania pojawią się razem z treścią modułu ([09-symulacja-i-testbench](../modules/09-symulacja-i-testbench/README.md))._
+### [09.01 — Jak działa symulator: zdarzenia, delta cykle, regiony planowania](../modules/09-symulacja-i-testbench/09.01-jak-dziala-symulator-zdarzenia-delta-cykle.md)
+
+1. **Co to jest delta cykl i po co jest?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Krok symulacji o zerowym czasie. W jednym delta cyklu symulator aktualizuje sygnały zaplanowane w poprzednim, a potem wykonuje procesy wrażliwe na te zmiany; procesy czytają bieżące wartości i planują nowe na następny delta cykl. Dzięki temu procesy wykonywane kolejno zachowują się tak, jakby działały równocześnie: wszystkie przerzutniki widzą stan sprzed zbocza, niezależnie od kolejności, w jakiej symulator je wykonuje.
+</details>
+
+2. **Dlaczego w Verilogu w blokach taktowanych używa się przypisań nieblokujących?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Prawa strona `<=` jest liczona w regionie active, a lewa aktualizowana dopiero w regionie NBA, po wykonaniu wszystkich bloków. Każdy blok taktowany czyta więc wartości sprzed zbocza — jak przerzutniki w sprzęcie — i wynik nie zależy od kolejności wykonania bloków. Przypisania blokujące w kilku blokach taktowanych dają wyścig: wynik zależy od kolejności, a synteza buduje i tak przerzutniki, więc symulacja nie zgadza się ze sprzętem.
+</details>
+
+3. **W projekcie VHDL ktoś napisał `clk_int <= clk;` i taktuje część rejestrów `clk_int`. Co może pójść źle?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`clk_int` zmienia się delta cykl po `clk`. Rejestry taktowane `clk_int` próbkują dane z rejestrów taktowanych `clk` już po ich aktualizacji — w symulacji dane „przeskakują” stopień potoku, choć w sprzęcie (gdzie to ten sam zegar) tak nie jest. Symulacja RTL nie odpowiada sprzętowi. Poprawka: jeden sygnał zegara dla wszystkich rejestrów.
+</details>
+
+### [09.02 — Pierwszy testbench: zegar, reset i pobudzenia](../modules/09-symulacja-i-testbench/09.02-pierwszy-testbench-zegar-reset-i-pobudzenia.md)
+
+1. **Jak napiszesz testbench dla prostego układu synchronicznego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Moduł bez portów z generatorem zegara, resetem przez kilka taktów, instancją układu i blokiem pobudzeń. Dane zmieniam na zboczu opadającym albo z opóźnieniem po narastającym, żeby uniknąć wyścigu z układem. Powtarzalne sekwencje zamykam w zadaniach/procedurach. Każde wyjście sprawdzam automatycznie z wartością oczekiwaną, zliczam błędy i kończę symulację jednoznacznym komunikatem. Potem dodaję model referencyjny i losowe pobudzenia.
+</details>
+
+2. **Po co zatrzymywać zegar w testbenchu VHDL, skoro jest `std.env.finish`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`std.env.finish` istnieje od VHDL-2008. W starszych standardach symulacja kończy się, gdy nie ma już zaplanowanych zdarzeń — a zegar generuje je w nieskończoność. Zatrzymanie zegara warunkiem `when not done` daje naturalny koniec niezależnie od standardu i symulatora; w tej bazie robi się oba.
+</details>
+
+### [09.03 — Testbench samosprawdzający: model referencyjny i porównanie](../modules/09-symulacja-i-testbench/09.03-testbench-samosprawdzajacy-model-referencyjny-i.md)
+
+1. **Z jakich części składa się testbench samosprawdzający?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Generator pobudzeń (ukierunkowanych i losowych, z kontrolowanym rozkładem i ziarnem), sterownik podający je zgodnie z protokołem, monitor zbierający wyjścia, model referencyjny liczący wynik oczekiwany, tablica wyników porównująca oba strumienie, pomiar pokrycia i podsumowanie z jednoznacznym wynikiem. W UVM i OSVVM te części mają formalne nazwy i klasy, ale idea jest ta sama.
+</details>
+
+2. **Twój test losowy przechodzi od miesięcy. Skąd wiesz, że coś sprawdza?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z pomiaru pokrycia: listy zaplanowanych przypadków (wartości skrajne, przepełnienia, wszystkie stany automatu, kombinacje sygnałów sterujących) i liczników, ile razy test w nie trafił. Do tego liczba sprawdzeń w podsumowaniu i test „mutacyjny”: celowo wprowadzony błąd w układzie musi zostać wykryty. Bez tego „PASS” może znaczyć tylko, że test nic nie porównuje.
+</details>
+
+### [09.04 — Przebiegi: VCD, FST, GTKWave, Surfer i Questa](../modules/09-symulacja-i-testbench/09.04-przebiegi-vcd-fst-gtkwave-surfer-i-questa.md)
+
+1. **Symulacja trwa godzinę i produkuje 50 GB VCD. Co zrobisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przejdę na format skompresowany (FST, WLF), ograniczę zakres hierarchii (`$dumpvars(1, …)` dla wybranych modułów), włączę zapis tylko w oknie czasu wokół problemu (`$dumpon`/`$dumpoff` sterowane warunkiem albo numerem taktu z testbencha) i wykorzystam powtarzalność — ziarno i numer taktu błędu z pierwszego przebiegu, zapis tylko w drugim. Najlepiej, żeby błąd wskazywała asercja lub tablica wyników z dokładnym czasem.
+</details>
+
+### [09.05 — Wektory testowe z plików](../modules/09-symulacja-i-testbench/09.05-wektory-testowe-z-plikow.md)
+
+1. **Masz model algorytmu filtru w Pythonie. Jak zweryfikujesz implementację w HDL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rozszerzam model o wierne odwzorowanie arytmetyki stałoprzecinkowej (szerokości, zaokrąglenia, nasycenia), generuję nim wektory: wejścia i oczekiwane wyjścia takt po takcie (albo strumień próbek, jeśli opóźnienie układu jest znane), zapisuję do pliku i czytam w testbenchu. Scenariusze: impuls, skok, sinusy różnych częstotliwości, wartości skrajne, szum losowy. W kolejnym kroku — cocotb, czyli model w Pythonie podłączony bezpośrednio do symulatora, bez plików pośrednich.
+</details>
+
+### [09.06 — Symulacja po syntezie i z opóźnieniami](../modules/09-symulacja-i-testbench/09.06-symulacja-po-syntezie-i-z-opoznieniami.md)
+
+1. **Po co symulacja po syntezie, skoro jest symulacja RTL i analiza czasowa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdza, czy synteza zinterpretowała kod tak samo jak symulator: wykrywa rozbieżności wynikające z wyścigów, niepełnych list wrażliwości, inicjalizacji, dyrektyw syntezy, usuniętej logiki i błędów narzędzi. Analiza czasowa sprawdza czasy, ale zakłada, że funkcja netlisty jest poprawna. W praktyce uruchamia się ją dla wybranych testów, nie dla całej regresji, bo jest wolniejsza.
+</details>
+
+2. **Dlaczego producenci FPGA odchodzą od symulacji czasowej netlisty?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jest bardzo wolna, sprawdza tylko scenariusze pokryte testem i daje wyniki zależne od modelu opóźnień, a statyczna analiza czasowa sprawdza wszystkie ścieżki we wszystkich narożnikach procesowo-napięciowo-temperaturowych w ciągu minut. Przy synchronicznym projekcie z poprawnymi ograniczeniami i zsynchronizowanymi przejściami między domenami symulacja czasowa nie wnosi nic, czego nie da się sprawdzić statycznie — dlatego nowsze rodziny (Cyclone V i nowsze, MAX 10) jej w Quartusie nie obsługują.
+</details>
+
+### [09.07 — Regresja i automatyzacja: skrypty, Makefile, CI](../modules/09-symulacja-i-testbench/09.07-regresja-i-automatyzacja-skrypty-makefile-ci.md)
+
+1. **Jak zorganizowałbyś regresję dla projektu FPGA w zespole?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Testbenche samosprawdzające z jednoznacznym wynikiem, uruchamiane jednym poleceniem (Makefile, VUnit, cocotb) lokalnie i w CI przy każdym pull requeście: lint, symulacja wszystkich testów krótkich, synteza (open source albo na maszynie z narzędziami producenta), raport z tabelą wyników i artefaktami (logi, przebiegi błędnych testów). Długie testy — wiele ziaren, pokrycie, symulacja po syntezie, pełna implementacja z analizą czasową — w przebiegu nocnym. Wyniki pokrycia zbierane w czasie, żeby widzieć, co nie jest testowane.
+</details>
+
+2. **Test przechodzi lokalnie, a w CI nie. Od czego zaczniesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Porównam wersje narzędzi i opcje uruchomienia (log CI), ścieżki i katalog roboczy (pliki danych, pliki względne), ziarno losowania i zależność od kolejności testów, różnice platformy (koniec wierszy, wielkość liter w nazwach plików) i limity czasu. Odtworzę przebieg lokalnie tym samym poleceniem co w CI — najlepiej w tym samym obrazie systemu lub kontenerze.
+</details>
 
 ## 10 — Weryfikacja w SystemVerilogu
 

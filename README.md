@@ -81,7 +81,7 @@ Zasady:
 
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
-| 09 | [Symulacja i testbenche](modules/09-symulacja-i-testbench/README.md) | 🔍💼 | 7 | 16 h | 🔲 szkielet |
+| 09 | [Symulacja i testbenche](modules/09-symulacja-i-testbench/README.md) | 🔍💼 | 7 | 16 h | ✅ pełny |
 | 10 | [Weryfikacja w SystemVerilogu](modules/10-weryfikacja-systemverilog/README.md) | 🔍💼 | 7 | 24 h | 🔲 szkielet |
 | 11 | [UVM — Universal Verification Methodology](modules/11-uvm/README.md) | 🔍💼 | 8 | 24 h | 🔲 szkielet |
 | 12 | [Weryfikacja z otwartymi narzędziami](modules/12-weryfikacja-open-source/README.md) | 🔍 | 6 | 16 h | 🔲 szkielet |

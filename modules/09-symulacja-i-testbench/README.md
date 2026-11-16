@@ -1,6 +1,6 @@
 # 09 — Symulacja i testbenche
 
-> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 16 h · **Status:** 🔲 szkielet
+> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
 
 ## Po co ten moduł
 
@@ -14,13 +14,13 @@ Jak działa symulator i jak pisać testbenche, które same sprawdzają wynik. Ka
 
 | # | Temat | Kod | DECA | Status |
 |---|-------|-----|------|--------|
-| 09.01 | [Jak działa symulator: zdarzenia, delta cykle, regiony planowania](09.01-jak-dziala-symulator-zdarzenia-delta-cykle.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.02 | [Pierwszy testbench: zegar, reset i pobudzenia](09.02-pierwszy-testbench-zegar-reset-i-pobudzenia.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.03 | [Testbench samosprawdzający: model referencyjny i porównanie](09.03-testbench-samosprawdzajacy-model-referencyjny-i.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.04 | [Przebiegi: VCD, FST, GTKWave, Surfer i Questa](09.04-przebiegi-vcd-fst-gtkwave-surfer-i-questa.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.05 | [Wektory testowe z plików](09.05-wektory-testowe-z-plikow.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.06 | [Symulacja po syntezie i z opóźnieniami](09.06-symulacja-po-syntezie-i-z-opoznieniami.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
-| 09.07 | [Regresja i automatyzacja: skrypty, Makefile, CI](09.07-regresja-i-automatyzacja-skrypty-makefile-ci.md) | VHDL · Verilog · SystemVerilog | — | 🔲 |
+| 09.01 | [Jak działa symulator: zdarzenia, delta cykle, regiony planowania](09.01-jak-dziala-symulator-zdarzenia-delta-cykle.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.02 | [Pierwszy testbench: zegar, reset i pobudzenia](09.02-pierwszy-testbench-zegar-reset-i-pobudzenia.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.03 | [Testbench samosprawdzający: model referencyjny i porównanie](09.03-testbench-samosprawdzajacy-model-referencyjny-i.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.04 | [Przebiegi: VCD, FST, GTKWave, Surfer i Questa](09.04-przebiegi-vcd-fst-gtkwave-surfer-i-questa.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.05 | [Wektory testowe z plików](09.05-wektory-testowe-z-plikow.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.06 | [Symulacja po syntezie i z opóźnieniami](09.06-symulacja-po-syntezie-i-z-opoznieniami.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| 09.07 | [Regresja i automatyzacja: skrypty, Makefile, CI](09.07-regresja-i-automatyzacja-skrypty-makefile-ci.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
 
 ## Po tym module potrafisz
 
@@ -33,6 +33,9 @@ Jak działa symulator i jak pisać testbenche, które same sprawdzają wynik. Ka
 ## Kod w module
 
 - `hdl/` — moduły i samosprawdzające się testbenche, osobno dla każdego języka (`vhdl/`, `verilog/`, `sv/`); uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)).
+- `hdl/dane/` — złoty model w Pythonie [gen_mavg4.py](hdl/dane/gen_mavg4.py) i wygenerowany nim plik wektorów [mavg4_wektory.txt](hdl/dane/mavg4_wektory.txt) ([09.05](09.05-wektory-testowe-z-plikow.md)).
+- [sim/Makefile](sim/Makefile) — uruchamianie z linii poleceń: jeden test w wybranym języku, przebiegi (`FALE=1`), regresja modułu (`make regresja`), symulacja netlisty po syntezie Yosysem (`make po_syntezie`) ([09.07](09.07-regresja-i-automatyzacja-skrypty-makefile-ci.md)).
+- Lint: kod Verilog i SystemVerilog modułu przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
