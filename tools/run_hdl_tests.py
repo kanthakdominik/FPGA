@@ -64,7 +64,7 @@ def test_verilog(katalog, tb, tmp):
 
 def test_sv(katalog, tb, tmp):
     zrodla = [str(f) for f in sorted(katalog.glob("*.sv")) if not f.name.startswith("tb_")]
-    rc, log = uruchom(["verilator", "--binary", "--timing", "-Wno-fatal", "-Wno-lint", "-Wno-style",
+    rc, log = uruchom(["verilator", "--binary", "--timing", "--timescale", "1ns/1ps", "-Wno-fatal", "-Wno-lint", "-Wno-style",
                        "--top-module", tb.stem, "-Mdir", tmp, *zrodla, str(tb)], tmp)
     if rc != 0:
         return False, log

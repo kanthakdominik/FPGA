@@ -19,8 +19,10 @@ module tb_blink;
         int   cycles;
         logic prev;
 
+        // pobudzenia zmieniamy na opadającym zboczu — bez wyścigu z układem badanym
         repeat (2) @(posedge clk);
-        rst <= 1'b0;
+        @(negedge clk);
+        rst = 1'b0;
         #1;
         if (led !== 1'b0) errors++;
         // pomiar odstępu między pięcioma kolejnymi zmianami stanu

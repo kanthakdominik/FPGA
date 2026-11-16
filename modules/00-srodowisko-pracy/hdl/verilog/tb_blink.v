@@ -22,9 +22,11 @@ module tb_blink;
 
     initial begin
         errors = 0;
+        // pobudzenia zmieniamy na opadającym zboczu — bez wyścigu z układem badanym
         @(posedge clk);
         @(posedge clk);
-        rst <= 1'b0;
+        @(negedge clk);
+        rst = 1'b0;
         #1;
         if (led !== 1'b0) errors = errors + 1;
         // pomiar odstępu między pięcioma kolejnymi zmianami stanu

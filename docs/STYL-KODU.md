@@ -66,6 +66,7 @@ Każdy testbench jest **samosprawdzający** i działa bez interakcji:
 2. Porównuje wyniki z oczekiwanymi (model referencyjny, tablica wartości albo plik).
 3. Na końcu wypisuje dokładnie jedną linię `PASS` albo `FAIL: <powód>` i kończy symulację.
 4. Ma ograniczenie czasu (watchdog), żeby zawieszony test nie blokował CI.
+5. Zmienia pobudzenia na **opadającym** zboczu zegara (albo z opóźnieniem po zboczu narastającym), a nie w tej samej chwili, w której układ badany próbkuje wejścia. Inaczej wynik zależy od kolejności zdarzeń w symulatorze — ten sam testbench przechodzi w Icarusie, a nie przechodzi w Verilatorze.
 
 Skrypt [tools/run_hdl_tests.py](../tools/run_hdl_tests.py) wyszukuje wszystkie pliki `tb_*` i uruchamia je odpowiednim symulatorem:
 

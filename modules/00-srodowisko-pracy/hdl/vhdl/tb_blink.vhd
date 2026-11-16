@@ -29,9 +29,12 @@ begin
     variable errors : natural := 0;
     variable l      : line;
   begin
+    -- pobudzenia zmieniamy na opadającym zboczu — bez wyścigu z układem badanym
     wait until rising_edge(clk);
     wait until rising_edge(clk);
+    wait until falling_edge(clk);
     rst <= '0';
+    wait for 1 ns;
     if led /= '0' then
       errors := errors + 1;
     end if;
