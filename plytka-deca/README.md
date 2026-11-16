@@ -10,6 +10,7 @@ DECA to płytka ewaluacyjna firmy Arrow z układem Altera MAX 10, zaprojektowana
 |--------|-----------|
 | [piny.md](piny.md) | Pełna mapa pinów: banki I/O, wszystkie sygnały, standardy dla Quartusa, uwagi o stanach aktywnych |
 | [deca_piny.tcl](deca_piny.tcl) | Te same przypisania jako skrypt Tcl: `deca_ustawienia_ukladu`, `deca_pin`, `deca_grupa` |
+| [deca_projekt.tcl](deca_projekt.tcl) | Wspólna procedura `deca_utworz_projekt` używana przez skrypty projektów w modułach |
 | [zrodla.md](zrodla.md) | Instrukcja, schemat, BOM, projekty społeczności, otwarty kontroler DDR3 |
 
 ## Układ FPGA

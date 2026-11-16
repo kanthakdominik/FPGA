@@ -91,5 +91,5 @@ Testbenche UVM (moduł 11) wymagają Questa i nie są uruchamiane w CI — mają
   quartus_pgm -c "DECA" -m jtag -o "p;output_files/licznik.sof"
   ```
 
-- Skrypt dołącza wspólne przypisania pinów z [plytka-deca/deca_piny.tcl](../plytka-deca/README.md) i wybiera wariant językowy modułu nadrzędnego.
+- Skrypt projektu ma kilka linii: wywołuje wspólną procedurę `deca_utworz_projekt` z [plytka-deca/deca_projekt.tcl](../plytka-deca/deca_projekt.tcl), podając nazwę projektu, moduły z `hdl/` i potrzebne piny. Procedura wybiera wariant językowy, dołącza pliki SDC i przypisania z [deca_piny.tcl](../plytka-deca/deca_piny.tcl).
 - Katalogi `db/`, `incremental_db/`, `output_files/` i pliki generowane są w `.gitignore`.

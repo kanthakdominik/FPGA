@@ -55,7 +55,7 @@ def test_vhdl(katalog, tb, tmp):
 def test_verilog(katalog, tb, tmp):
     zrodla = [str(f) for f in sorted(katalog.glob("*.v")) if not f.name.startswith("tb_")]
     exe = os.path.join(tmp, "sim.vvp")
-    rc, log = uruchom(["iverilog", "-g2005", "-Wall", "-o", exe, *zrodla, str(tb)], tmp)
+    rc, log = uruchom(["iverilog", "-g2005", "-Wall", "-s", tb.stem, "-o", exe, *zrodla, str(tb)], tmp)
     if rc != 0:
         return False, log
     rc, out = uruchom(["vvp", "-n", exe], tmp)
