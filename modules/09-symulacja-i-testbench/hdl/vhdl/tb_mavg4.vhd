@@ -33,6 +33,7 @@ begin
     variable cov_max, cov_hold     : natural  := 0;
     variable l                     : line;
     variable seed1, seed2          : positive := 71;
+    variable burst, burst_x        : integer  := 0;           -- seria wartości skrajnych
 
     impure function rnd(n : positive) return natural is      -- liczba losowa 0 .. n - 1
       variable r : real;
@@ -47,11 +48,21 @@ begin
     for n in 0 to 2999 loop
       -- pobudzenia
       rst      <= '1' when n = 1500 else '0';                  -- jeden reset w trakcie pracy
-      in_valid <= '1' when rnd(4) /= 0 else '0';
-      if rnd(8) = 0 then
-        vx := 127 when rnd(2) = 1 else -128;
+      if burst = 0 and rnd(64) = 0 then                        -- czasem seria 4..6 jednakowych wartości skrajnych -
+        burst   := 4 + rnd(3);                                 -- bez niej średnia nigdy nie osiąga -128 ani 127
+        burst_x := 127 when rnd(2) = 1 else -128;
+      end if;
+      if burst > 0 then
+        in_valid <= '1';
+        vx       := burst_x;
+        burst    := burst - 1;
       else
-        vx := rnd(256) - 128;
+        in_valid <= '1' when rnd(4) /= 0 else '0';
+        if rnd(8) = 0 then
+          vx := 127 when rnd(2) = 1 else -128;
+        else
+          vx := rnd(256) - 128;
+        end if;
       end if;
       x <= to_signed(vx, 8);
       wait until falling_edge(clk);

@@ -23,6 +23,8 @@ module tb_mavg4;
 
     // --- tablica wyników i pokrycie
     integer checked = 0, errors = 0, cov_floor = 0, cov_min = 0, cov_max = 0, cov_hold = 0, n, seed = 71;
+    integer burst = 0;                         // pozostała długość serii wartości skrajnych
+    reg signed [7:0] burst_x;
 
     // --- model referencyjny
     integer m1 = 0, m2 = 0, m3 = 0, m_y = 0, m_valid = 0;
@@ -49,8 +51,16 @@ module tb_mavg4;
         @(negedge clk) rst = 1'b0;
         for (n = 0; n < 3000; n = n + 1) begin
             rst      = (n == 1500);            // jeden reset w trakcie pracy
-            in_valid = (($random(seed) & 3) != 0);
-            x        = (($random(seed) & 7) == 0) ? ((($random(seed) & 1) != 0) ? 8'h7F : 8'h80) : $random(seed);
+            if (burst == 0 && ($random(seed) & 63) == 0) begin   // czasem seria 4..6 jednakowych wartości skrajnych —
+                burst   = 4 + (($random(seed) & 32'h7fffffff) % 3);  // bez niej średnia nigdy nie osiąga -128 ani 127
+                burst_x = (($random(seed) & 1) != 0) ? 8'h7F : 8'h80;
+            end
+            if (burst > 0) begin
+                in_valid = 1'b1; x = burst_x; burst = burst - 1;
+            end else begin
+                in_valid = (($random(seed) & 3) != 0);
+                x        = (($random(seed) & 7) == 0) ? ((($random(seed) & 1) != 0) ? 8'h7F : 8'h80) : $random(seed);
+            end
             @(negedge clk);
             model_edge;
             checked = checked + 1;

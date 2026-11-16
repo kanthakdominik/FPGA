@@ -87,7 +87,7 @@ begin
       end if;
       expect(v_seen = n and s_seen = n - 1 and s = n, "sygnal/zmienna, zbocze " & integer'image(n));
       expect(q = n and q2 = n, "zegar pochodny: q=" & integer'image(q) & " q2=" & integer'image(q2)
-             & " — oczekiwano q2 = q (wyscig delta)");
+             & " - oczekiwano q2 = q (wyscig delta)");
     end loop;
 
     if errors = 0 then

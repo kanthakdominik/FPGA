@@ -67,7 +67,7 @@ begin
     writeline(output, msg);
     if vectors < 400 then
       errors := errors + 1;
-      report "za malo wektorow — plik niepelny?" severity warning;
+      report "za malo wektorow - plik niepelny?" severity warning;
     end if;
     if errors = 0 then
       write(msg, string'("PASS"));

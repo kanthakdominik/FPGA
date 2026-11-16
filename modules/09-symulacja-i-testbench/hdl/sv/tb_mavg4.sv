@@ -23,6 +23,8 @@ module tb_mavg4;
     int m1 = 0, m2 = 0, m3 = 0, m_y = 0;
     bit m_valid = 0;
     int checked = 0, errors = 0, cov_floor = 0, cov_min = 0, cov_max = 0, cov_hold = 0;
+    int burst = 0;                             // pozostała długość serii wartości skrajnych
+    logic signed [7:0] burst_x;
 
     function automatic void model_edge();      // stan modelu po zboczu
         if (rst) begin
@@ -43,8 +45,16 @@ module tb_mavg4;
         @(negedge clk) rst = 1'b0;
         for (int n = 0; n < 3000; n++) begin
             rst      = (n == 1500);            // jeden reset w trakcie pracy
-            in_valid = ($urandom_range(3) != 0);
-            x        = ($urandom_range(7) == 0) ? ($urandom_range(1) ? 8'sd127 : 8'h80) : 8'($urandom);
+            if (burst == 0 && $urandom_range(63) == 0) begin  // czasem seria 4..6 jednakowych wartości skrajnych —
+                burst   = 4 + $urandom_range(2);               // bez niej średnia nigdy nie osiąga -128 ani 127
+                burst_x = $urandom_range(1) ? 8'sd127 : 8'h80;
+            end
+            if (burst > 0) begin
+                in_valid = 1'b1; x = burst_x; burst--;
+            end else begin
+                in_valid = ($urandom_range(3) != 0);
+                x        = ($urandom_range(7) == 0) ? ($urandom_range(1) ? 8'sd127 : 8'h80) : 8'($urandom);
+            end
             @(negedge clk);
             model_edge();
             checked++;
