@@ -72,7 +72,7 @@ Zasady:
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
 | 04 | [VHDL](modules/04-vhdl/README.md) | 🧩💼 | 9 | 24 h | ✅ pełny |
-| 05 | [Verilog](modules/05-verilog/README.md) | 🧩💼 | 7 | 18 h | 🔲 szkielet |
+| 05 | [Verilog](modules/05-verilog/README.md) | 🧩🛠️💼 | 7 | 18 h | ✅ pełny |
 | 06 | [SystemVerilog do projektowania](modules/06-systemverilog-rtl/README.md) | 🧩💼 | 7 | 16 h | 🔲 szkielet |
 | 07 | [Kodowanie pod syntezę — wzorce RTL](modules/07-kodowanie-pod-synteze/README.md) | 🧩🛠️💼 | 9 | 20 h | 🔲 szkielet |
 | 08 | [Automaty stanów i sterowanie](modules/08-automaty-stanow/README.md) | 🧩🛠️💼 | 6 | 14 h | 🔲 szkielet |

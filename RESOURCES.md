@@ -65,6 +65,7 @@ Tematy odwołują się do konkretnych rozdziałów i sekcji poniższych materia�
 
 | Źródło | Zakres | Moduły |
 |--------|--------|--------|
+| [Sutherland HDL — papers](https://sutherland-hdl.com/papers.html) | Artykuły S. Sutherlanda o Verilogu-2001 i SystemVerilogu | 05, 06 |
 | [Sunburst Design — artykuły C. Cummingsa](http://www.sunburst-design.com/papers/) | *Nonblocking Assignments in Verilog Synthesis*, *Clock Domain Crossing Design & Verification Techniques*, *Simulation and Synthesis Techniques for Asynchronous FIFO Design*, *Synchronous Resets? Asynchronous Resets?*, *Coding And Scripting Techniques For FSM Designs* | 05, 08, 15 |
 
 ## Narzędzia — dokumentacja
@@ -86,6 +87,8 @@ Tematy odwołują się do konkretnych rozdziałów i sekcji poniższych materia�
 | S. Harris, D. Harris, *Digital Design and Computer Architecture, RISC-V Edition* | Logika cyfrowa, HDL, procesor RISC-V jednocyklowy, wielocyklowy i potokowy | 01, 27 |
 | S. Sutherland, *RTL Modeling with SystemVerilog for Simulation and Synthesis* | Syntezowalny SystemVerilog — podręcznik referencyjny | 06, 07 |
 | P. J. Ashenden, *The Designer's Guide to VHDL* | Kompletny podręcznik VHDL | 04 |
+| S. Palnitkar, *Verilog HDL: A Guide to Digital Design and Synthesis* | Klasyczny podręcznik Veriloga | 05 |
+| S. Sutherland, D. Mills, *Verilog and SystemVerilog Gotchas* | 101 typowych błędów w Verilogu i SV z wyjaśnieniami | 05, 06 |
 | R. Jasinski, *Effective Coding with VHDL* | Styl, czytelność i dobre praktyki VHDL; model symulacji | 04, 07 |
 | R. Merrick, *Getting Started with FPGAs* | Wprowadzenie dla początkujących, Verilog i VHDL równolegle | 00, 07 |
 | S. Kilts, *Advanced FPGA Design* | Architektura, timing, CDC, optymalizacja | 15, 16 |

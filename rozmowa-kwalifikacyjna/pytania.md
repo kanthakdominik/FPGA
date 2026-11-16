@@ -1101,7 +1101,162 @@ Bo zmiana typu nie zmienia bitów, tylko ich interpretację: jeśli najstarszy b
 
 ## 05 — Verilog
 
-_Pytania pojawią się razem z treścią modułu ([05-verilog](../modules/05-verilog/README.md))._
+### [05.01 — Moduły, porty, wire i reg](../modules/05-verilog/05.01-moduly-porty-wire-i-reg.md)
+
+1. **Czym różni się `wire` od `reg`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`wire` to sieć — nie przechowuje wartości, jest sterowana przez `assign`, port albo wyjście instancji i może mieć wielu sterowników. `reg` to zmienna przypisywana w blokach proceduralnych (`always`, `initial`) i przechowująca wartość do następnego przypisania w symulacji. `reg` nie oznacza rejestru — w `always @*` daje logikę kombinacyjną, w `always @(posedge clk)` rejestr. W SystemVerilogu oba zastępuje `logic`.
+</details>
+
+2. **Czym różni się `==` od `===`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`==` porównuje wartości logiczne; jeśli w którymkolwiek argumencie jest `x` lub `z`, wynik to `x`. `===` porównuje dosłownie, łącznie z `x` i `z`, i zawsze daje 0 albo 1. `===` jest niesyntezowalny i używa się go w testbenchach.
+</details>
+
+### [05.02 — Operatory, liczby, rozmiar i znak](../modules/05-verilog/05.02-operatory-liczby-rozmiar-i-znak.md)
+
+1. **Jaki będzie wynik: `wire [3:0] a = 4'd12, b = 4'd5; wire [3:0] s = a + b; wire [4:0] t = a + b;`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`s` = 1 (17 mod 16), bo wyrażenie liczy się na 4 bitach — szerokości lewej strony i argumentów. `t` = 17, bo lewa strona ma 5 bitów i argumenty są poszerzane przed dodawaniem.
+</details>
+
+2. **Jak sprawdzić jedną linijką, czy liczba jest potęgą dwójki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`(x != 0) && ((x & (x - 1)) == 0)`. Odjęcie 1 zamienia najmłodszą jedynkę na 0 i wszystkie zera pod nią na jedynki; AND z oryginałem zeruje najmłodszą jedynkę. Jeśli wynik jest zerem, jedynka była tylko jedna.
+</details>
+
+3. **Kiedy wyrażenie w Verilogu jest liczone ze znakiem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tylko gdy wszystkie argumenty są ze znakiem (znak lewej strony przypisania nie ma wpływu). Wystarczy jeden argument bez znaku, wycinek albo konkatenacja i całe wyrażenie jest bez znaku. Liczby bez rozmiaru są ze znakiem, stałe z rozmiarem bez litery `s` — bez znaku.
+</details>
+
+### [05.03 — assign i always: logika kombinacyjna i sekwencyjna](../modules/05-verilog/05.03-assign-i-always-logika-kombinacyjna-i.md)
+
+1. **Jak zrobisz eliminację drgań przycisku w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw synchronizator dwuprzerzutnikowy, bo przycisk jest asynchroniczny. Potem licznik, który liczy takty, w których zsynchronizowane wejście różni się od zapamiętanego stanu, i zeruje się przy każdej zgodności. Gdy różnica trwa ustalony czas (np. 10 ms), stan wyjścia zmienia się i generowany jest impuls jednego taktu. Alternatywa: próbkowanie wejścia rzadko (np. co 5 ms, z zezwoleniem z prescalera) i porównanie kilku próbek.
+</details>
+
+2. **Kiedy użyjesz `assign`, a kiedy `always @*`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`assign` dla prostych wyrażeń i multiplekserów `?:` — jest krótszy i nie może utworzyć zatrzasku. `always @*` (w SV `always_comb`), gdy logika wymaga `if`/`case`, kilku kroków obliczeń albo jeden blok liczy kilka powiązanych sygnałów. W bloku `always @*` trzeba przypisać każde wyjście w każdej ścieżce.
+</details>
+
+### [05.04 — Przypisania blokujące i nieblokujące — reguły Cummingsa](../modules/05-verilog/05.04-przypisania-blokujace-i-nieblokujace-reguly.md)
+
+1. **Kiedy używasz przypisań blokujących, a kiedy nieblokujących?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nieblokujące (`<=`) w blokach taktowanych i zatrzaskach — wszystkie rejestry czytają wartości sprzed zbocza, wynik nie zależy od kolejności bloków i odpowiada sprzętowi. Blokujące (`=`) w blokach kombinacyjnych — kolejne linie widzą nowe wartości, blok wykonuje się raz. Nie mieszam obu w jednym bloku i nie przypisuję jednej zmiennej w kilku blokach.
+</details>
+
+2. **Co zrobi ten kod i dlaczego?**
+
+```verilog
+always @(posedge clk) begin
+    a = b;
+    b = a;
+end
+```
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie zamieni wartości: po `a = b` zmienna `a` ma już wartość `b`, więc `b = a` przypisuje `b` jej własną wartość. Oba rejestry będą miały wartość `b`. Z `a <= b; b <= a;` obie prawe strony są liczone przed zapisem i wartości się zamieniają — tak jak w sprzęcie z dwoma przerzutnikami połączonymi na krzyż.
+</details>
+
+3. **Co to jest wyścig w symulacji Verilog?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sytuacja, w której wynik zależy od kolejności wykonywania procesów w tej samej chwili czasu, a ta kolejność nie jest określona przez standard. Typowa przyczyna: przypisania blokujące w blokach taktowanych, które czytają nawzajem swoje wyniki, albo testbench zmieniający wejścia na tym samym zboczu, na którym układ je próbkuje. Objaw: różne wyniki w różnych symulatorach lub po zmianie kolejności plików.
+</details>
+
+### [05.05 — Parametry, localparam, generate i instancjonowanie](../modules/05-verilog/05.05-parametry-localparam-generate-i-instancjonowanie.md)
+
+1. **Czym różni się `parameter` od `localparam`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`parameter` może zostać zmieniony przy instancji (`#(.W(16))`) — to interfejs konfiguracyjny modułu. `localparam` jest stałą wewnętrzną, zwykle wyliczaną z parametrów (np. szerokość licznika z `$clog2`), i nie da się go nadpisać z zewnątrz. Stałe, których użytkownik nie powinien zmieniać, deklaruje się jako `localparam`.
+</details>
+
+2. **Jak przekazać tablicę N słów W-bitowych przez port w Verilogu-2001 i w SystemVerilogu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W Verilogu-2001 trzeba spłaszczyć ją do wektora `[N*W-1:0]` i wybierać słowa wycinkiem `x[i*W +: W]`. W SystemVerilogu można zadeklarować port jako tablicę spakowaną `logic [N-1:0][W-1:0]` (ten sam układ bitów) albo rozpakowaną `logic [W-1:0] x [N]`, i odwoływać się `x[i]`.
+</details>
+
+### [05.06 — Funkcje, zadania i dyrektywy kompilatora](../modules/05-verilog/05.06-funkcje-zadania-i-dyrektywy-kompilatora.md)
+
+1. **Czym różni się `function` od `task` w Verilogu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Funkcja zwraca jedną wartość, wywołuje się ją w wyrażeniu i nie może zawierać kontroli czasu (`#`, `@`, `wait`) — jest syntezowalna jako logika kombinacyjna. Zadanie zwraca wyniki przez argumenty `output`/`inout`, jest instrukcją i może czekać na zdarzenia — używa się go głównie w testbenchach do sekwencji pobudzeń.
+</details>
+
+2. **Jak zaimplementujesz CRC w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jako rejestr z logiką XOR liczącą nowy stan z bieżącego stanu i danych. Dla jednego bitu na takt — LFSR sterowany danymi. Dla bajtu lub słowa na takt — rozwinięta pętla (funkcja w HDL), którą syntezator zamienia na sieć XOR. Parametry wariantu (wielomian, wartość początkowa, odbicia, XOR końcowy) biorę z katalogu i sprawdzam układ na wartości kontrolnej dla „123456789”.
+</details>
+
+### [05.07 — Pułapki Verilogu: niejawne sieci, obcinanie, znak i wyścigi](../modules/05-verilog/05.07-pulapki-verilogu-niejawne-sieci-obcinanie-znak.md)
+
+1. **Co to są niejawne sieci i jak się przed nimi chronić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Verilog automatycznie deklaruje jednobitowy `wire` dla niezadeklarowanego identyfikatora użytego w połączeniu portu lub `assign`. Literówka w nazwie sygnału tworzy wtedy nowy, niepodłączony przewód bez błędu kompilacji. Ochrona: `` `default_nettype none `` na początku każdego pliku (wtedy to błąd) i lint z ostrzeżeniem o niejawnych sieciach.
+</details>
+
+2. **Dlaczego nie używa się `casex`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo `casex` traktuje `x` i `z` jako wartości obojętne także w wyrażeniu wyboru, nie tylko we wzorcach. Sygnał z `x` (np. niezainicjalizowany rejestr) dopasuje się do pierwszej gałęzi, a symulacja pokaże poprawne działanie, którego sprzęt nie gwarantuje. Zamiast tego `casez` (ostrożnie) albo `case inside` w SystemVerilogu.
+</details>
+
+3. **Jak policzyć sumę kontrolną nagłówka IPv4 w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sumuję słowa 16-bitowe nagłówka (z polem sumy wyzerowanym) w arytmetyce uzupełnienia do jedynki: akumulator 17-bitowy, przeniesienie dodawane z powrotem do bitu 0 (w każdym kroku albo na końcu, zwijając kilka razy). Wynik to negacja bitowa sumy. Przy odbiorze suma wszystkich słów łącznie z polem sumy daje `0xFFFF`, jeśli nagłówek jest poprawny.
+</details>
 
 ## 06 — SystemVerilog do projektowania
 
