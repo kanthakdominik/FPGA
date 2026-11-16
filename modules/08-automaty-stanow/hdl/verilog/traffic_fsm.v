@@ -13,8 +13,8 @@ module traffic_fsm #(
     input  wire                              rst,
     input  wire                              tick,
     input  wire [((ENC == 1) ? 6 : 3) - 1:0] upset,
-    output reg  [2:0]                        ns,     // {czerwone, żółte, zielone}, 1 = świeci
-    output reg  [2:0]                        ew,
+    output reg  [2:0]                        light_ns,     // {czerwone, żółte, zielone}, 1 = świeci
+    output reg  [2:0]                        light_ew,
     output reg                               err
 );
     localparam SW = (ENC == 1) ? 6 : 3;
@@ -42,16 +42,16 @@ module traffic_fsm #(
     reg          legal;
 
     always @* begin
-        ns    = 3'b100;
-        ew    = 3'b100;
+        light_ns    = 3'b100;
+        light_ew    = 3'b100;
         last  = 2'd0;
         legal = 1'b1;
         case (state)
-            NS_G:    begin ns = 3'b001; last = 2'd3; end
-            NS_Y:    begin ns = 3'b010; last = 2'd1; end
+            NS_G:    begin light_ns = 3'b001; last = 2'd3; end
+            NS_Y:    begin light_ns = 3'b010; last = 2'd1; end
             R1:      ;
-            EW_G:    begin ew = 3'b001; last = 2'd3; end
-            EW_Y:    begin ew = 3'b010; last = 2'd1; end
+            EW_G:    begin light_ew = 3'b001; last = 2'd3; end
+            EW_Y:    begin light_ew = 3'b010; last = 2'd1; end
             R2:      ;
             default: legal = 1'b0;             // stan nielegalny: wszystko czerwone
         endcase
@@ -63,7 +63,7 @@ module traffic_fsm #(
             state_next = R2;                   // odzyskanie: stan bezpieczny
             timer_next = 2'd0;
         end else if (tick) begin
-            if (timer == last) begin
+            if (timer >= last) begin           // >= zamiast ==: odporne na timer > last po przekłamaniu
                 timer_next = 2'd0;
                 case (state)
                     NS_G:    state_next = NS_Y;

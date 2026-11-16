@@ -14,9 +14,9 @@ module tb_traffic_fsm;
 
     always #5 clk = ~clk;
 
-    traffic_fsm #(.ENC(0)) u_bin  (.clk(clk), .rst(rst), .tick(tick), .upset(up0), .ns(ns0), .ew(ew0), .err(err0));
-    traffic_fsm #(.ENC(1)) u_hot  (.clk(clk), .rst(rst), .tick(tick), .upset(up1), .ns(ns1), .ew(ew1), .err(err1));
-    traffic_fsm #(.ENC(2)) u_gray (.clk(clk), .rst(rst), .tick(tick), .upset(up2), .ns(ns2), .ew(ew2), .err(err2));
+    traffic_fsm #(.ENC(0)) u_bin  (.clk(clk), .rst(rst), .tick(tick), .upset(up0), .light_ns(ns0), .light_ew(ew0), .err(err0));
+    traffic_fsm #(.ENC(1)) u_hot  (.clk(clk), .rst(rst), .tick(tick), .upset(up1), .light_ns(ns1), .light_ew(ew1), .err(err1));
+    traffic_fsm #(.ENC(2)) u_gray (.clk(clk), .rst(rst), .tick(tick), .upset(up2), .light_ns(ns2), .light_ew(ew2), .err(err2));
 
     integer idx [0:2];                         // indeks stanu modelu, -1 = nielegalny
     integer tmr [0:2];
@@ -77,7 +77,7 @@ module tb_traffic_fsm;
         begin
             if (idx[k] == -1) begin
                 nidx = 5; ntmr = 0;
-            end else if (tick && tmr[k] == last_of(idx[k])) begin
+            end else if (tick && tmr[k] >= last_of(idx[k])) begin
                 nidx = (idx[k] + 1) % 6; ntmr = 0;
             end else begin
                 nidx = idx[k]; ntmr = tmr[k] + (tick ? 1 : 0);

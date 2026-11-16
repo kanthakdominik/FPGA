@@ -19,17 +19,17 @@ architecture sim of tb_traffic_fsm is
   signal tick     : std_logic := '0';
   signal up0, up2 : std_logic_vector(2 downto 0) := "000";
   signal up1      : std_logic_vector(5 downto 0) := "000000";
-  signal ns, ew   : slv3_arr;
+  signal lns, lew   : slv3_arr;
   signal err      : std_logic_vector(0 to 2);
 begin
   clk <= not clk after 5 ns when not done;
 
   u_bin  : entity work.traffic_fsm generic map (ENC => 0)
-    port map (clk => clk, rst => rst, tick => tick, upset => up0, ns => ns(0), ew => ew(0), err => err(0));
+    port map (clk => clk, rst => rst, tick => tick, upset => up0, light_ns => lns(0), light_ew => lew(0), err => err(0));
   u_hot  : entity work.traffic_fsm generic map (ENC => 1)
-    port map (clk => clk, rst => rst, tick => tick, upset => up1, ns => ns(1), ew => ew(1), err => err(1));
+    port map (clk => clk, rst => rst, tick => tick, upset => up1, light_ns => lns(1), light_ew => lew(1), err => err(1));
   u_gray : entity work.traffic_fsm generic map (ENC => 2)
-    port map (clk => clk, rst => rst, tick => tick, upset => up2, ns => ns(2), ew => ew(2), err => err(2));
+    port map (clk => clk, rst => rst, tick => tick, upset => up2, light_ns => lns(2), light_ew => lew(2), err => err(2));
 
   stim : process
     type int_arr is array (0 to 2) of integer;
@@ -97,10 +97,10 @@ begin
     begin
       if idx(k) = 0 then e_ns := "001"; elsif idx(k) = 1 then e_ns := "010"; end if;
       if idx(k) = 3 then e_ew := "001"; elsif idx(k) = 4 then e_ew := "010"; end if;
-      if ns(k) /= e_ns or ew(k) /= e_ew or (err(k) = '1') /= (idx(k) = -1) then
+      if lns(k) /= e_ns or lew(k) /= e_ew or (err(k) = '1') /= (idx(k) = -1) then
         errors := errors + 1;
-        report "takt " & integer'image(n) & ", kodowanie " & integer'image(k) & ": ns=" & to_string(ns(k))
-             & " ew=" & to_string(ew(k)) & ", model stan " & integer'image(idx(k)) severity warning;
+        report "takt " & integer'image(n) & ", kodowanie " & integer'image(k) & ": ns=" & to_string(lns(k))
+             & " ew=" & to_string(lew(k)) & ", model stan " & integer'image(idx(k)) severity warning;
       end if;
     end procedure check;
 
@@ -109,7 +109,7 @@ begin
     begin
       if idx(k) = -1 then
         nidx := 5;  ntmr := 0;
-      elsif tk = '1' and tmr(k) = last_of(idx(k)) then
+      elsif tk = '1' and tmr(k) >= last_of(idx(k)) then
         nidx := (idx(k) + 1) mod 6;  ntmr := 0;
       elsif tk = '1' then
         nidx := idx(k);  ntmr := tmr(k) + 1;

@@ -18,8 +18,8 @@ entity traffic_fsm is
     rst   : in  std_logic;
     tick  : in  std_logic;
     upset : in  std_logic_vector(state_width(ENC) - 1 downto 0);
-    ns    : out std_logic_vector(2 downto 0);                  -- (czerwone, żółte, zielone), '1' = świeci
-    ew    : out std_logic_vector(2 downto 0);
+    light_ns    : out std_logic_vector(2 downto 0);                  -- (czerwone, żółte, zielone), '1' = świeci
+    light_ew    : out std_logic_vector(2 downto 0);
     err   : out std_logic
   );
 end entity traffic_fsm;
@@ -42,18 +42,18 @@ begin
     variable last  : unsigned(1 downto 0);
     variable legal : boolean;
   begin
-    ns    <= "100";
-    ew    <= "100";
+    light_ns    <= "100";
+    light_ew    <= "100";
     last  := "00";
     legal := true;
     if state = NS_G then
-      ns <= "001";  last := "11";
+      light_ns <= "001";  last := "11";
     elsif state = NS_Y then
-      ns <= "010";  last := "01";
+      light_ns <= "010";  last := "01";
     elsif state = EW_G then
-      ew <= "001";  last := "11";
+      light_ew <= "001";  last := "11";
     elsif state = EW_Y then
-      ew <= "010";  last := "01";
+      light_ew <= "010";  last := "01";
     elsif state /= R1 and state /= R2 then
       legal := false;                                          -- stan nielegalny: wszystko czerwone
     end if;
@@ -65,7 +65,7 @@ begin
       state_next <= R2;                                        -- odzyskanie: stan bezpieczny
       timer_next <= "00";
     elsif tick = '1' then
-      if timer = last then
+      if timer >= last then                                    -- >= zamiast =: odporne na timer > last po przekłamaniu
         timer_next <= "00";
         if    state = NS_G then state_next <= NS_Y;
         elsif state = NS_Y then state_next <= R1;
