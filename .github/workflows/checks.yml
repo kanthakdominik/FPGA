@@ -24,10 +24,8 @@ jobs:
           verilator --version
       - name: Uruchomienie testbenchy
         run: python3 tools/run_hdl_tests.py --strict
-      - name: Lint Verilatorem (-Wall) — moduł 07 bez ostrzeżeń
-        run: python3 tools/lint_hdl.py modules/07-kodowanie-pod-synteze --strict
-      - name: Lint Verilatorem (-Wall) — pozostałe moduły, tylko raport
-        run: python3 tools/lint_hdl.py
+      - name: Lint Verilatorem (-Wall) — moduły od 07 bez ostrzeżeń, starsze tylko raport
+        run: python3 tools/lint_hdl.py --strict-od 7
 
   synteza:
     name: Synteza Verilog (Yosys)

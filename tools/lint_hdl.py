@@ -9,9 +9,10 @@ Ostrzeżenia, które świadomie dopuszczamy w kodzie, wyłącza się w pliku kom
 /* verilator lint_off <KOD> */ … /* verilator lint_on <KOD> */ z uzasadnieniem obok.
 
 Użycie:
-    python3 tools/lint_hdl.py [ścieżka ...] [--strict]
-    --strict  każde ostrzeżenie jest błędem (CI: moduły, których kod ma być „czysty”)
-Bez --strict skrypt tylko raportuje i kończy się kodem 0.
+    python3 tools/lint_hdl.py [ścieżka ...] [--strict] [--strict-od NN]
+    --strict        każde ostrzeżenie jest błędem
+    --strict-od NN  ostrzeżenie jest błędem w modułach o numerze >= NN, w starszych tylko raport (CI: --strict-od 7)
+Bez tych opcji skrypt tylko raportuje i kończy się kodem 0.
 """
 import argparse
 import re
@@ -33,11 +34,12 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules")])
     p.add_argument("--strict", action="store_true")
+    p.add_argument("--strict-od", type=int, default=None)
     a = p.parse_args()
 
     if not shutil.which("verilator"):
         print("Brak programu verilator")
-        return 1 if a.strict else 0
+        return 1 if (a.strict or a.strict_od is not None) else 0
 
     katalogi = []
     for s in a.sciezki:
@@ -45,6 +47,7 @@ def main():
             katalogi += sorted(Path(s).resolve().glob(f"**/hdl/{jezyk}"))
 
     problemy = 0
+    bledy = 0
     for katalog in katalogi:
         rozsz = ".v" if katalog.name == "verilog" else ".sv"
         pliki = [f for f in kolejnosc(katalog.glob(f"*{rozsz}")) if not f.name.startswith("tb_")]
@@ -60,11 +63,15 @@ def main():
             print(f"  OK    {len(pliki)} plików bez ostrzeżeń")
         else:
             problemy += n or 1
-            print(f"  UWAGA {n} komunikatów")
+            numer = re.match(r"(\d+)-", katalog.parent.parent.name)
+            scisle = a.strict or (a.strict_od is not None and numer and int(numer.group(1)) >= a.strict_od)
+            if scisle:
+                bledy += n or 1
+            print(f"  {'BŁĄD ' if scisle else 'UWAGA'} {n} komunikatów")
             print("        " + log[-4000:].replace("\n", "\n        "))
 
-    print(f"\nKomunikatów lintu: {problemy}")
-    return 1 if (a.strict and problemy) else 0
+    print(f"\nKomunikatów lintu: {problemy}, w tym w trybie ścisłym: {bledy}")
+    return 1 if bledy else 0
 
 
 if __name__ == "__main__":

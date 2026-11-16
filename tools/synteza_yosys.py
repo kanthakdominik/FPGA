@@ -7,6 +7,8 @@ i daje orientacyjną liczbę LUT i przerzutników dla sekcji „Co powstaje po s
 najdłuższą ścieżkę kombinacyjną (liczbę komórek między przerzutnikami lub portami) — miarę głębokości logiki.
 
 Moduły są syntezowane z domyślnymi parametrami. Testbenche (tb_*.v) są pomijane.
+Dodatkowe zestawy parametrów można podać w pliku modułu komentarzem (każdy wariant to osobna synteza):
+    // yosys-warianty: ENC=1; ENC=2
 
 Użycie:
     python3 tools/synteza_yosys.py [ścieżka ...] [--strict]
@@ -22,6 +24,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 MODUL = re.compile(r"^\s*module\s+(\w+)", re.M)
 KOMORKA = re.compile(r"^\s+(\$\S+)\s+(\d+)\s*$", re.M)
+WARIANTY = re.compile(r"^\s*//\s*yosys-warianty:\s*(.+)$", re.M)
 LTP = re.compile(r"Longest topological path in \S+ \(length=(\d+)\)")
 
 
@@ -68,19 +71,26 @@ def main():
             continue
         print(f"\n{katalog.relative_to(ROOT)}")
         for plik in pliki:
-            for top in MODUL.findall(plik.read_text(encoding="utf-8")):
-                skrypt = (f"read_verilog {' '.join(str(f) for f in pliki)}; "
+            tekst = plik.read_text(encoding="utf-8")
+            warianty = [""]
+            for linia in WARIANTY.findall(tekst):
+                warianty += [w.strip() for w in linia.split(";") if w.strip()]
+            for top, wariant in [(t, w) for t in MODUL.findall(tekst) for w in warianty]:
+                chparam = "".join(f"chparam -set {k} {v} {top}; "
+                                  for k, v in (x.split("=", 1) for x in wariant.split()))
+                skrypt = (f"read_verilog {' '.join(str(f) for f in pliki)}; {chparam}"
                           f"synth -flatten -top {top} -lut 4; check -assert; stat; ltp -noff")
+                nazwa = f"{top}[{wariant}]" if wariant else top
                 r = subprocess.run(["yosys", "-p", skrypt], capture_output=True, text=True, timeout=300)
                 if r.returncode != 0:
                     bledy += 1
-                    print(f"  FAIL  {top}")
+                    print(f"  FAIL  {nazwa}")
                     print("        " + (r.stdout + r.stderr).strip()[-2000:].replace("\n", "\n        "))
                 else:
                     stat = r.stdout.rsplit("Printing statistics", 1)[-1]
                     ltp = LTP.findall(r.stdout)
                     glebokosc = f"   głębokość: {ltp[-1]}" if ltp else ""
-                    print(f"  OK    {top:24s} {podsumowanie(stat.split('Longest topological')[0])}{glebokosc}")
+                    print(f"  OK    {nazwa:24s} {podsumowanie(stat.split('Longest topological')[0])}{glebokosc}")
 
     print(f"\nBłędów syntezy: {bledy}")
     return 1 if bledy else 0
