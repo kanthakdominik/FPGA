@@ -26,6 +26,23 @@ jobs:
         run: python3 tools/run_hdl_tests.py --strict
       - name: Lint Verilatorem (-Wall) — moduły od 07 bez ostrzeżeń, starsze tylko raport
         run: python3 tools/lint_hdl.py --strict-od 7
+      - name: Moduł 09 — wektory testowe zgodne z generatorem
+        run: python3 modules/09-symulacja-i-testbench/hdl/dane/gen_mavg4.py --sprawdz
+      - name: Moduł 09 — regresja z Makefile i zapis przebiegów
+        run: |
+          make -C modules/09-symulacja-i-testbench/sim regresja
+          for j in verilog vhdl sv; do make -s -C modules/09-symulacja-i-testbench/sim FALE=1 JEZYK=$j > /dev/null; done
+          ls -l modules/09-symulacja-i-testbench/sim/build/tb_mavg4.vcd \
+                modules/09-symulacja-i-testbench/sim/build/tb_mavg4.ghw \
+                modules/09-symulacja-i-testbench/sim/build/tb_mavg4.fst
+      - name: Moduł 09 — przebiegi do pobrania
+        uses: actions/upload-artifact@v4
+        with:
+          name: przebiegi-tb_mavg4
+          path: |
+            modules/09-symulacja-i-testbench/sim/build/tb_mavg4.vcd
+            modules/09-symulacja-i-testbench/sim/build/tb_mavg4.ghw
+            modules/09-symulacja-i-testbench/sim/build/tb_mavg4.fst
 
   synteza:
     name: Synteza Verilog (Yosys)
@@ -36,9 +53,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalacja Yosysa
-        run: sudo apt-get update && sudo apt-get install -y yosys && yosys -V
+        run: sudo apt-get update && sudo apt-get install -y yosys iverilog && yosys -V
       - name: Synteza wszystkich modułów na LUT4
         run: python3 tools/synteza_yosys.py --strict
+      - name: Moduł 09 — symulacja netlisty po syntezie
+        run: make -C modules/09-symulacja-i-testbench/sim po_syntezie
 
   linki:
     name: Linki wewnętrzne

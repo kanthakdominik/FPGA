@@ -8,6 +8,10 @@ Układ katalogów (docs/STYL-KODU.md):
 
 Testbench zalicza się, gdy wypisze linię zaczynającą się od "PASS" i żadnej od "FAIL".
 
+Pliki z katalogu modules/<moduł>/hdl/dane/ (wektory testowe, zawartość pamięci; bez skryptów *.py)
+są kopiowane do katalogu roboczego symulacji — testbench otwiera je po samej nazwie.
+W GitHub Actions (zmienna GITHUB_STEP_SUMMARY) skrypt dopisuje tabelę wyników do podsumowania zadania.
+
 Użycie:
     python3 tools/run_hdl_tests.py [ścieżka ...] [--strict]
     --strict  brak symulatora jest błędem (używane w CI)
@@ -19,6 +23,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -113,6 +118,30 @@ def sprawdz_top_deca(top, tmp):
     return rc == 0, log
 
 
+def zapisz_podsumowanie(podsumowanie, wyniki):
+    """Tabela wyników w podsumowaniu zadania GitHub Actions (Markdown), jeśli skrypt działa w CI."""
+    plik = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not plik:
+        return
+    moduly = {}
+    for nazwa, jezyk, ok, czas in wyniki:
+        modul = Path(nazwa).parts[1] if len(Path(nazwa).parts) > 1 else nazwa
+        m = moduly.setdefault(modul, {"vhdl": [0, 0], "verilog": [0, 0], "sv": [0, 0], "czas": 0.0})
+        m[jezyk][0] += ok
+        m[jezyk][1] += 1
+        m["czas"] += czas
+    linie = ["## Testbenche HDL", "", podsumowanie, "",
+             "| Moduł | VHDL | Verilog | SystemVerilog | Czas [s] |", "|---|---|---|---|---|"]
+    for modul, m in sorted(moduly.items()):
+        komorki = [f"{m[j][0]}/{m[j][1]}" + ("" if m[j][0] == m[j][1] else " ❌") for j in ("vhdl", "verilog", "sv")]
+        linie.append(f"| {modul} | " + " | ".join(komorki) + f" | {m['czas']:.0f} |")
+    nieudane = [n for n, _, ok, _ in wyniki if not ok]
+    if nieudane:
+        linie += ["", "**Nieudane:**", ""] + [f"- `{n}`" for n in nieudane]
+    with open(plik, "a", encoding="utf-8") as f:
+        f.write("\n".join(linie) + "\n")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules")])
@@ -132,18 +161,27 @@ def main():
         return 0
 
     bledy, pominiete = 0, 0
+    wyniki = []
     for jezyk, katalog, tb in zadania:
         nazwa = tb.relative_to(ROOT) if tb.is_relative_to(ROOT) else tb
         if shutil.which(JEZYKI[jezyk][1]) is None:
             print(f"SKIP  {nazwa} (brak {JEZYKI[jezyk][1]})")
             pominiete += 1
             continue
+        start = time.monotonic()
         with tempfile.TemporaryDirectory() as tmp:
+            dane = katalog.parent / "dane"
+            if dane.is_dir():
+                for f in dane.iterdir():
+                    if f.is_file() and f.suffix != ".py":
+                        shutil.copy(f, tmp)
             try:
                 ok, log = TESTY[jezyk](katalog, tb, tmp)
             except subprocess.TimeoutExpired:
                 ok, log = False, f"przekroczony czas {TIMEOUT} s"
+        czas = time.monotonic() - start
         print(f"{'PASS' if ok else 'FAIL'}  {nazwa}")
+        wyniki.append((str(nazwa), jezyk, ok, czas))
         if not ok:
             bledy += 1
             print("      " + "\n      ".join(log.strip().splitlines()[-30:]))
@@ -162,8 +200,10 @@ def main():
             bledy += 1
             print("      " + "\n      ".join(log.strip().splitlines()[-30:]))
 
-    print(f"\n{len(zadania)} testbenchy i {len(topy)} modułów DECA: {len(zadania) + len(topy) - bledy - pominiete} zaliczonych, "
-          f"{bledy} błędów, {pominiete} pominiętych")
+    podsumowanie = (f"{len(zadania)} testbenchy i {len(topy)} modułów DECA: "
+                    f"{len(zadania) + len(topy) - bledy - pominiete} zaliczonych, {bledy} błędów, {pominiete} pominiętych")
+    print("\n" + podsumowanie)
+    zapisz_podsumowanie(podsumowanie, wyniki)
     if bledy or (a.strict and pominiete):
         return 1
     return 0
