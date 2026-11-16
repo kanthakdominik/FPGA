@@ -14,6 +14,8 @@ Tematy odwołują się do konkretnych rozdziałów i sekcji poniższych materia�
 | [Project F](https://projectf.io/) — W. Green | Grafika i wideo na FPGA w SystemVerilogu: taktowanie wideo, sprite'y, linie, bufor ramki | 24 |
 | [fpga4fun](https://www.fpga4fun.com/) | Krótkie projekty: PWM, UART, I²C, HDMI, SPI, generatory | 20, 24 |
 | [Free Range VHDL](https://github.com/fabriziotappero/Free-Range-VHDL-book) — B. Mealy, F. Tappero | Darmowa książka o VHDL od zera | 04 |
+| [SynthWorks — papers](https://synthworks.com/papers/) — J. Lewis | Artykuły o VHDL-2008/2019 i OSVVM | 04, 11 |
+| [VHDLwhiz](https://vhdlwhiz.com/) | Krótkie artykuły i przykłady VHDL | 04 |
 | [Doulos KnowHow](https://www.doulos.com/knowhow/) | Krótkie poradniki VHDL, SystemVerilog, UVM, Tcl od firmy szkoleniowej | 04, 06, 10, 11 |
 | [ChipVerify](https://www.chipverify.com/) | Przewodnik po Verilogu, SystemVerilogu i UVM z przykładami | 05, 06, 10, 11 |
 | [Verification Academy](https://verificationacademy.com/) — Siemens | Kursy wideo i *UVM Cookbook*: UVM, pokrycie, asercje, metody formalne (darmowa rejestracja) | 10, 11, 13 |
@@ -84,6 +86,7 @@ Tematy odwołują się do konkretnych rozdziałów i sekcji poniższych materia�
 | S. Harris, D. Harris, *Digital Design and Computer Architecture, RISC-V Edition* | Logika cyfrowa, HDL, procesor RISC-V jednocyklowy, wielocyklowy i potokowy | 01, 27 |
 | S. Sutherland, *RTL Modeling with SystemVerilog for Simulation and Synthesis* | Syntezowalny SystemVerilog — podręcznik referencyjny | 06, 07 |
 | P. J. Ashenden, *The Designer's Guide to VHDL* | Kompletny podręcznik VHDL | 04 |
+| R. Jasinski, *Effective Coding with VHDL* | Styl, czytelność i dobre praktyki VHDL; model symulacji | 04, 07 |
 | R. Merrick, *Getting Started with FPGAs* | Wprowadzenie dla początkujących, Verilog i VHDL równolegle | 00, 07 |
 | S. Kilts, *Advanced FPGA Design* | Architektura, timing, CDC, optymalizacja | 15, 16 |
 | C. Spear, G. Tumbush, *SystemVerilog for Verification* | Weryfikacja w SystemVerilogu: OOP, losowanie, pokrycie | 10 |

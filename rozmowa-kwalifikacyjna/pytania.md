@@ -894,7 +894,210 @@ To szeregowy interfejs testowy (IEEE 1149.1) z sygnałami TCK, TMS, TDI, TDO i a
 
 ## 04 — VHDL
 
-_Pytania pojawią się razem z treścią modułu ([04-vhdl](../modules/04-vhdl/README.md))._
+### [04.01 — Struktura projektu: biblioteki, entity i architecture](../modules/04-vhdl/04.01-struktura-projektu-biblioteki-entity-i.md)
+
+1. **Czym różni się entity od architecture i po co jednej entity kilka architektur?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Entity opisuje interfejs — nazwę, parametry i porty; architecture — implementację. Kilka architektur pozwala mieć dla tego samego interfejsu np. wersję behawioralną do szybkiej symulacji i strukturalną do syntezy, albo warianty o różnej wydajności. Wybór robi się przy instancji (`entity work.x(arch)`) albo konfiguracją.
+</details>
+
+2. **Dlaczego nie powinno się używać `std_logic_unsigned`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To niestandardowy pakiet (Synopsys), który definiuje arytmetykę bezpośrednio na `std_logic_vector`, traktując go jako liczbę bez znaku. Łamie to silne typowanie (nie wiadomo, czy wektor jest liczbą ze znakiem), różne narzędzia mają różne wersje, a w połączeniu z `numeric_std` powstają niejednoznaczności. Standardem jest `ieee.numeric_std` z typami `unsigned` i `signed`.
+</details>
+
+3. **Jak w VHDL wygląda odpowiednik parametru modułu Verilog?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`generic` w entity, np. `generic (W : positive := 8);`, ustawiany przy instancji przez `generic map (W => 16)`. Generic może mieć dowolny typ (liczba, boolean, string, w VHDL-2008 także typ i funkcja) i może określać typy portów.
+</details>
+
+### [04.02 — Typy: std_logic, wektory, numeric_std, integer, typy wyliczeniowe i rekordy](../modules/04-vhdl/04.02-typy-std-logic-wektory-numeric-std-integer-typy.md)
+
+1. **Jaka jest różnica między `std_logic` a `std_ulogic`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Oba mają te same 9 wartości. `std_ulogic` jest nierozstrzygany — sygnał tego typu może mieć tylko jeden sterownik, a drugi to błąd kompilacji. `std_logic` jest podtypem rozstrzyganym: wiele sterowników jest dozwolonych, a wynik wylicza funkcja rozstrzygająca (np. `'0'` i `'1'` daje `'X'`). W kodzie syntezowalnym `std_ulogic` wykrywa przypadkowe wielokrotne sterowanie już przy kompilacji.
+</details>
+
+2. **Jak dodać dwie liczby `std_logic_vector` ze znakiem z zachowaniem przeniesienia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`sum <= resize(signed(a), N + 1) + resize(signed(b), N + 1);` — zmiana typu na `signed`, poszerzenie z powieleniem bitu znaku, dodawanie na N + 1 bitach. Wynik z powrotem: `std_logic_vector(sum)`.
+</details>
+
+3. **Ile bitów zajmie `signal x : integer range 0 to 1000;`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+10 bitów, bo $2^{10} = 1024 > 1000$. Syntezator wyznacza szerokość z zakresu. Bez zakresu `integer` miałby 32 bity.
+</details>
+
+### [04.03 — Instrukcje współbieżne: przypisania, when-else, with-select](../modules/04-vhdl/04.03-instrukcje-wspolbiezne-przypisania-when-else.md)
+
+1. **Czym różni się `when … else` od `with … select`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`when … else` sprawdza warunki po kolei i wybiera pierwszy spełniony — tworzy łańcuch priorytetowy; warunki mogą się nakładać i dotyczyć różnych sygnałów. `with … select` wybiera wartość według jednego wyrażenia i stałych, rozłącznych wyborów — tworzy multiplekser bez priorytetu; musi pokryć wszystkie wartości (`when others`).
+</details>
+
+2. **Czy kolejność przypisań współbieżnych w architekturze ma znaczenie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie. Każde przypisanie współbieżne to osobny proces reagujący na zmiany swoich wejść; wszystkie działają równolegle, jak elementy na schemacie. Kolejność ma znaczenie tylko dla instrukcji wewnątrz procesu.
+</details>
+
+### [04.04 — Procesy, lista wrażliwości, sygnały a zmienne](../modules/04-vhdl/04.04-procesy-lista-wrazliwosci-sygnaly-a-zmienne.md)
+
+1. **Czym różni się sygnał od zmiennej w VHDL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sygnał (`<=`) dostaje nową wartość dopiero po zawieszeniu procesu — w następnym cyklu delta; w jednym przebiegu procesu jego odczyt zwraca starą wartość, a z kilku przypisań obowiązuje ostatnie. Zmienna (`:=`) zmienia wartość natychmiast i jest widoczna tylko w procesie. W procesie taktowanym łańcuch przypisań sygnałów tworzy łańcuch rejestrów, a łańcuch przypisań zmiennych — logikę; zmienna czytana przed zapisem staje się rejestrem.
+</details>
+
+2. **Ile rejestrów powstanie z kodu poniżej?**
+
+```vhdl
+process (clk)
+  variable t : unsigned(7 downto 0);
+begin
+  if rising_edge(clk) then
+    t := a + b;
+    y <= t + c;
+  end if;
+end process;
+```
+
+<details>
+<summary>Odpowiedź</summary>
+
+8 rejestrów — tylko `y`. Zmienna `t` jest zapisywana przed odczytem, więc jest wynikiem pośrednim (sumator kombinacyjny), a cała suma `a + b + c` trafia do rejestru `y` w jednym takcie. Gdyby `t` był sygnałem, powstałyby dwa stopnie rejestrów: `t` i `y`, a `y` zawierałby `a + b` z poprzedniego taktu plus `c`.
+</details>
+
+3. **Po co `process (all)`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W VHDL-2008 oznacza, że proces jest wrażliwy na wszystkie sygnały, które czyta. Eliminuje błąd niepełnej listy wrażliwości, który powoduje różnice między symulacją a syntezą. Odpowiednik `always @*` w Verilogu i `always_comb` w SystemVerilogu.
+</details>
+
+### [04.05 — Instrukcje sekwencyjne: if, case i pętle](../modules/04-vhdl/04.05-instrukcje-sekwencyjne-if-case-i-petle.md)
+
+1. **Co powstanie w sprzęcie z pętli `for` w procesie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Syntezator rozwija pętlę: treść powtarza się tyle razy, ile jest iteracji, z indeksem zamienionym na stałą. Wszystko dzieje się w jednym przebiegu procesu, czyli w jednym takcie dla procesu taktowanego. Pętla nie może mieć liczby iteracji zależnej od sygnału, a algorytm wieloetapowy w czasie wymaga licznika lub automatu.
+</details>
+
+2. **Kiedy użyjesz `case`, a kiedy `if`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`case`, gdy wybieram według jednego wyrażenia i stałych, rozłącznych wartości — dekoder operacji, automat stanów; daje multiplekser bez priorytetu i jest czytelny. `if/elsif`, gdy warunki dotyczą różnych sygnałów, mogą się nakładać albo priorytet jest częścią specyfikacji (np. reset przed zezwoleniem, arbiter z priorytetem).
+</details>
+
+### [04.06 — Hierarchia: komponenty, instancjonowanie, generic i generate](../modules/04-vhdl/04.06-hierarchia-komponenty-instancjonowanie-generic.md)
+
+1. **Czym różni się instancja komponentu od instancji bezpośredniej `entity work.x`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Instancja komponentu wymaga deklaracji `component` (kopii interfejsu), a wiązanie z rzeczywistą jednostką następuje przy elaboracji — kompilować można w dowolnej kolejności, a komponent może być czarną skrzynką (np. moduł Verilog, IP). Instancja bezpośrednia nie potrzebuje deklaracji, sprawdza zgodność portów przy analizie, ale jednostka musi być skompilowana wcześniej.
+</details>
+
+2. **Jak zbudować parametryzowany łańcuch N rejestrów, który dla N = 0 jest zwykłym połączeniem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`if N = 0 generate y <= x; end generate;` i `if N > 0 generate` z tablicą etapów i `for i in 0 to N - 1 generate` z instancją rejestru między `stage(i)` a `stage(i + 1)`. W VHDL-2008 można użyć `if … else generate`. Tak jest zbudowany `pipe_delay` w tej bazie.
+</details>
+
+### [04.07 — Pakiety, funkcje, procedury i atrybuty](../modules/04-vhdl/04.07-pakiety-funkcje-procedury-i-atrybuty.md)
+
+1. **Czym różni się funkcja od procedury w VHDL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Funkcja zwraca jedną wartość, ma tylko parametry wejściowe i nie może zawierać `wait` — używa się jej w wyrażeniach, także w RTL. Procedura nie zwraca wartości, przekazuje wyniki przez parametry `out`/`inout` i w testbenchu może zawierać `wait`, więc nadaje się do opisu sekwencji w czasie (np. wysłanie ramki).
+</details>
+
+2. **Jak napisać funkcję VHDL działającą dla wektorów dowolnej długości?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Parametr deklaruje się jako typ bez ograniczeń (`std_logic_vector` bez zakresu), a długość i indeksy odczytuje atrybutami (`'length`, `'range`, `'high`). Na początku funkcji warto zadeklarować alias z indeksami od `'length - 1 downto 0`, żeby kod działał też dla wycinków o innych indeksach. Wynik ma zakres zmiennej lokalnej zbudowanej z `'length`.
+</details>
+
+### [04.08 — VHDL-2008 i VHDL-2019 — co ułatwiają](../modules/04-vhdl/04.08-vhdl-2008-i-vhdl-2019-co-ulatwiaja.md)
+
+1. **Co VHDL-2008 wnosi do kodu syntezowalnego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najważniejsze: `process (all)` (koniec błędów listy wrażliwości), czytanie portów `out`, przypisania warunkowe w procesach, `case?` i operatory dopasowania z wartościami obojętnymi, operatory redukcji, warunkowe `generate` z `else`/`case`, wyrażenia w `port map`, generic typów i pakietów, tablice z elementami bez ograniczeń oraz pakiety `fixed_pkg` i `float_pkg`. Kod jest krótszy i bezpieczniejszy.
+</details>
+
+2. **Czym różni się `casez` od `case inside`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`casez` (Verilog) traktuje `z` i `?` jako wartości obojętne po obu stronach porównania, więc wartość `z` na sygnale wyboru pasuje do dowolnego wzorca — błąd może zostać ukryty. `case inside` (SV) traktuje wartości obojętne tylko we wzorcach, obsługuje też zakresy i listy wartości; z `unique` symulator zgłasza nakładające się gałęzie.
+</details>
+
+### [04.09 — Pułapki VHDL: rozdzielczość sygnałów, konwersje i delta cykle](../modules/04-vhdl/04.09-pulapki-vhdl-rozdzielczosc-sygnalow-konwersje-i.md)
+
+1. **Co to jest cykl delta i dlaczego ma znaczenie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To krok symulacji wewnątrz jednej chwili czasu. Przypisania do sygnałów stają się widoczne w następnym kroku delta, więc wynik nie zależy od kolejności wykonywania procesów. Pułapka pojawia się, gdy zegar zostanie przepisany przez przypisanie (`clk_b <= clk`): zbocze `clk_b` następuje o deltę później, a procesy na `clk_b` widzą już nowe wartości z procesów na `clk` — symulacja pokazuje inne zachowanie niż sprzęt.
+</details>
+
+2. **Co się stanie, gdy dwa procesy przypiszą ten sam sygnał `std_logic`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kompilacja przejdzie, bo `std_logic` jest typem rozstrzyganym. W symulacji funkcja rozstrzygająca połączy wartości — przy różnych wartościach `'0'` i `'1'` wynik to `'X'`. Synteza zgłosi błąd wielu sterowników (chyba że to bufory trójstanowe na pinie). Żeby wykryć to przy kompilacji, używa się `std_ulogic` dla sygnałów wewnętrznych.
+</details>
+
+3. **Dlaczego `signed(unsigned_value)` może dać zły wynik?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo zmiana typu nie zmienia bitów, tylko ich interpretację: jeśli najstarszy bit liczby bez znaku jest ustawiony, po zmianie na `signed` liczba staje się ujemna (200 → −56 na 8 bitach). Trzeba najpierw poszerzyć wektor o jeden bit zerem (`resize` na `unsigned`), a dopiero potem zmienić typ.
+</details>
 
 ## 05 — Verilog
 

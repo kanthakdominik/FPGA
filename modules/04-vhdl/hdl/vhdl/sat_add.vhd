@@ -13,9 +13,10 @@ entity sat_add is
 end entity sat_add;
 
 architecture rtl of sat_add is
-  -- najmniejsza i największa liczba U2 na W bitach: 100..0 i 011..1
-  constant MAX_VAL : signed(W - 1 downto 0) := (W - 1 => '0', others => '1');
-  constant MIN_VAL : signed(W - 1 downto 0) := (W - 1 => '1', others => '0');
+  -- największa i najmniejsza liczba U2 na W bitach: 011..1 i 100..0
+  -- (agregat (W - 1 => '0', others => '1') jest niedozwolony: wybór zależny od generic obok others)
+  constant MAX_VAL : signed(W - 1 downto 0) := '0' & (W - 2 downto 0 => '1');
+  constant MIN_VAL : signed(W - 1 downto 0) := '1' & (W - 2 downto 0 => '0');
   signal sum       : signed(W downto 0);
 begin
   -- std_logic_vector -> signed (zmiana interpretacji), resize powiela bit znaku
