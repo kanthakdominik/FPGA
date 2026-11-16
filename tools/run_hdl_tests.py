@@ -62,8 +62,13 @@ def test_verilog(katalog, tb, tmp):
     return wynik(log + out)
 
 
+def kolejnosc_sv(pliki):
+    """Pakiety (*_pkg.sv) muszą być skompilowane przed modułami, które je importują."""
+    return sorted(pliki, key=lambda f: (not f.stem.endswith("_pkg"), f.name))
+
+
 def test_sv(katalog, tb, tmp):
-    zrodla = [str(f) for f in sorted(katalog.glob("*.sv")) if not f.name.startswith("tb_")]
+    zrodla = [str(f) for f in kolejnosc_sv(katalog.glob("*.sv")) if not f.name.startswith("tb_")]
     rc, log = uruchom(["verilator", "--binary", "--timing", "--timescale", "1ns/1ps", "-Wno-fatal", "-Wno-lint", "-Wno-style",
                        "--top-module", tb.stem, "-Mdir", tmp, *zrodla, str(tb)], tmp)
     if rc != 0:
@@ -92,8 +97,8 @@ def sprawdz_top_deca(top, tmp):
     rozsz = top.suffix
     jezyk = TOP_DECA[rozsz]
     hdl = top.parent.parent.parent / "hdl" / jezyk
-    zrodla = [str(f) for f in sorted(hdl.glob(f"*{rozsz}")) if not f.name.startswith("tb_")]
-    zrodla += [str(f) for f in sorted(top.parent.glob(f"*{rozsz}")) if f != top] + [str(top)]
+    zrodla = [str(f) for f in kolejnosc_sv(hdl.glob(f"*{rozsz}")) if not f.name.startswith("tb_")]
+    zrodla += [str(f) for f in kolejnosc_sv(top.parent.glob(f"*{rozsz}")) if f != top] + [str(top)]
     if jezyk == "vhdl":
         rc, log = uruchom(["ghdl", "-i", "--std=08", f"--workdir={tmp}", *zrodla], tmp)
         if rc == 0:
