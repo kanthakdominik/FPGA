@@ -230,6 +230,73 @@ jobs:
           name: slady-formalne-modul-13
           path: modules/13-weryfikacja-formalna/formal/*_*/engine_0/*.vcd
 
+  sta:
+    name: Analiza czasowa (OpenSTA, nextpnr-ecp5)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    env:
+      OSS_CAD_SUITE: "2026-11-16"
+      OPENSTA: "30653db4"                 # commit OpenSTA (parallaxsw/OpenSTA)
+      CUDD: "3.0.0"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pamięć podręczna OSS CAD Suite
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: /opt/oss-cad-suite
+          key: oss-cad-suite-linux-x64-${{ env.OSS_CAD_SUITE }}
+      - name: Instalacja OSS CAD Suite
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$OSS_CAD_SUITE" -R YosysHQ/oss-cad-suite-build \
+            -p "oss-cad-suite-linux-x64-${OSS_CAD_SUITE//-/}.tgz" -D /tmp
+          sudo tar -xzf /tmp/oss-cad-suite-linux-x64-*.tgz -C /opt
+      - name: Pamięć podręczna OpenSTA
+        id: cache_sta
+        uses: actions/cache@v5
+        with:
+          path: /opt/opensta
+          key: opensta-${{ env.OPENSTA }}-cudd-${{ env.CUDD }}-ubuntu24
+      - name: Budowa OpenSTA (z bibliotekami NanGate 45 nm z przykładów)
+        if: steps.cache_sta.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq cmake tcl-dev swig bison flex libfl-dev libeigen3-dev zlib1g-dev autoconf automake > /dev/null
+          cd /tmp
+          git clone -q https://github.com/cuddorg/cudd.git && cd cudd && git checkout -q "$CUDD"
+          autoreconf -fi > /dev/null 2>&1; ./configure --prefix=/tmp/cudd-inst -q > /dev/null
+          make -j4 -s > /dev/null 2>&1 && make install -s > /dev/null 2>&1
+          cd /tmp && git clone -q https://github.com/parallaxsw/OpenSTA.git && cd OpenSTA && git checkout -q "$OPENSTA"
+          mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCUDD_DIR=/tmp/cudd-inst > /dev/null
+          make -j4 > /dev/null 2>&1
+          sudo mkdir -p /opt/opensta/bin /opt/opensta/lib && sudo cp sta /opt/opensta/bin/
+          for c in slow typ fast; do zcat ../examples/nangate45_$c.lib.gz | sudo tee /opt/opensta/lib/nangate45_$c.lib > /dev/null; done
+      - name: Wersje
+        run: |
+          echo /opt/oss-cad-suite/bin >> "$GITHUB_PATH"
+          echo /opt/opensta/bin >> "$GITHUB_PATH"
+          /opt/opensta/bin/sta -version; /opt/oss-cad-suite/bin/nextpnr-ecp5 --version
+      - name: Obliczenia z tekstów (moduł 14)
+        run: python3 modules/14-analiza-czasowa/sta/obliczenia.py
+      - name: Eksperymenty STA — OpenSTA i nextpnr-ecp5 (moduł 14)
+        run: |
+          set -o pipefail
+          cd modules/14-analiza-czasowa/sta
+          python3 sprawdz_sta.py | tee wynik.txt
+          { echo "## Analiza czasowa (moduł 14)"; echo '```'; cat wynik.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Raporty OpenSTA i nextpnr do pobrania
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: raporty-sta-modul-14
+          path: |
+            modules/14-analiza-czasowa/sta/build/*.log
+            modules/14-analiza-czasowa/sta/build/*.json
+            modules/14-analiza-czasowa/sta/build/sta_demo_net.v
+
   linki:
     name: Linki wewnętrzne
     runs-on: ubuntu-24.04

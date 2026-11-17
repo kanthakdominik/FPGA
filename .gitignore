@@ -60,3 +60,6 @@ _site/
 *.sopcinfo
 hc_output/
 .projekt-*
+
+# Raporty Timing Analyzera (make raporty w projektach DECA)
+modules/*/deca/*/raporty/

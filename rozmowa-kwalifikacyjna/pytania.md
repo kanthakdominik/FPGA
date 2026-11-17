@@ -2450,7 +2450,201 @@ Sprawdzanie równoważności (kombinacyjnej i sekwencyjnej), łączność w SoC,
 
 ## 14 — Statyczna analiza czasowa (STA)
 
-_Pytania pojawią się razem z treścią modułu ([14-analiza-czasowa](../modules/14-analiza-czasowa/README.md))._
+### [14.01 — Ścieżki czasowe, setup, hold i zapas (slack)](../modules/14-analiza-czasowa/14.01-sciezki-czasowe-setup-hold-i-zapas-slack.md)
+
+1. **Wyprowadź warunek setup i hold dla ścieżki między dwoma przerzutnikami.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Setup: dane wysłane zboczem w chwili 0 muszą dotrzeć przed następnym zboczem odbiornika minus t_su: t_co + t_komb,max ≤ T + skew − t_su. Hold: dane wysłane zboczem w chwili 0 nie mogą dotrzeć przed upływem t_h po tym samym zboczu w odbiorniku: t_co,min + t_komb,min ≥ skew + t_h. Skew = opóźnienie zegara do odbiornika minus do nadajnika; dodatni pomaga setup, szkodzi hold.
+</details>
+
+2. **Masz naruszenie hold. Czy obniżenie częstotliwości pomoże?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie — w warunku hold nie ma okresu zegara. Naruszenie hold oznacza, że nowe dane docierają do odbiornika, zanim ten zdąży zapisać stare przy tym samym zboczu; zdarza się przy każdej częstotliwości. Naprawa: dłuższa ścieżka danych (narzędzie wstawia opóźnienie), mniejszy skew (zegar siecią globalną, nie przez logikę), poprawne ograniczenia interfejsu.
+</details>
+
+3. **Co to są WNS i TNS i do czego służą?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+WNS — najgorszy (najbardziej ujemny) zapas setup w projekcie: mówi, o ile trzeba skrócić najgorszą ścieżkę albo wydłużyć okres. TNS — suma ujemnych zapasów wszystkich punktów końcowych: mówi, jak powszechny jest problem (jedna ścieżka −0,5 ns i tysiąc ścieżek po −0,5 ns mają ten sam WNS, ale inny TNS i inną strategię naprawy). Odpowiedniki dla hold: WHS, THS.
+</details>
+
+4. **Dlaczego STA, a nie symulacja z opóźnieniami?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+STA sprawdza wszystkie ścieżki strukturalne we wszystkich narożnikach w sekundy i bez wektorów; symulacja z SDF tylko ścieżki pobudzone przez testbench, w jednym narożniku, bardzo wolno. Symulacja czasowa przydaje się do sprawdzenia, że ograniczenia (wyjątki) są poprawne, i do interfejsów asynchronicznych, których STA nie opisze.
+</details>
+
+### [14.02 — Zegar w praktyce: skew, jitter i niepewność](../modules/14-analiza-czasowa/14.02-zegar-w-praktyce-skew-jitter-i-niepewnosc.md)
+
+1. **Czym różnią się skew i jitter i jak każde z nich wpływa na setup i hold?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Skew to stała (dla danej pary przerzutników) różnica chwil przybycia tego samego zbocza; jitter to zmienność chwili zbocza w czasie (z okresu na okres). Skew dodatni (odbiornik później) zwiększa zapas setup i zmniejsza hold; jitter zmniejsza efektywny okres, więc odejmuje się od zapasu setup, a dla hold uwzględnia się tylko składnik, który może rozsunąć to samo zbocze w dwóch przerzutnikach. W SDC jitter i zapas projektowy zapisuje się jako `set_clock_uncertainty`.
+</details>
+
+2. **Co to jest CRPR i dlaczego jest potrzebne?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przy analizie z OCV ścieżka zegara nadajnika jest liczona jako późna, a odbiornika jako wczesna. Część drzewa zegara wspólna dla obu nie może jednocześnie mieć dwóch opóźnień, więc powstaje sztuczny pesymizm równy różnicy późnego i wczesnego opóźnienia wspólnej części. CRPR (*clock reconvergence pessimism removal*) go usuwa — w raporcie jako dodatnia poprawka zapasu.
+</details>
+
+3. **Dlaczego w FPGA nie używa się wyjścia licznika jako zegara?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sygnał z logiki nie jedzie siecią globalną — ma duży i zmienny skew względem zegara źródłowego, co powoduje naruszenia hold przy przesyłaniu danych między domenami. Narzędzie może go nie rozpoznać jako zegara (ścieżki nieograniczone) albo ostrzega o *ripple clock*. Poprawnie: jeden zegar i impuls zezwolenia co N taktów (taka sama funkcja, pełna analiza czasowa), albo PLL / blok sterowania zegarem, albo — gdy zegar musi wyjść z układu — `create_generated_clock` i staranne ograniczenia.
+</details>
+
+4. **Projekt przechodzi analizę w modelu Slow 85C, ale nie w Fast 0C. Jakiego rodzaju to błąd?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najprawdopodobniej hold — model szybki daje najkrótsze opóźnienia. Typowe przyczyny: interfejs zewnętrzny z błędnym `set_input_delay -min` / `set_output_delay -min`, zegar przez logikę z dużym skew, brakujący `-hold` przy ścieżce wielotaktowej. Rzadziej setup na ścieżce, której zegar odbiornika jest szybszy od danych w modelu szybkim.
+</details>
+
+### [14.03 — Ograniczenia SDC: zegary, zegary generowane, opóźnienia wejść i wyjść](../modules/14-analiza-czasowa/14.03-ograniczenia-sdc-zegary-zegary-generowane.md)
+
+1. **Jak opiszesz wejście danych z zewnętrznego układu taktowanego tym samym zegarem co FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zegarem wirtualnym (albo zegarem portu, jeśli to ten sam sygnał) i `set_input_delay`: `-max` = t_co,max układu zewnętrznego + maksymalne opóźnienie ścieżki na płytce (z poprawką o różnicę opóźnień zegara do obu układów), `-min` = t_co,min + minimalne opóźnienie. Narzędzie dołoży opóźnienie wewnątrz FPGA i sprawdzi setup i hold przerzutnika wejściowego.
+</details>
+
+2. **Czym różni się `create_clock` od `create_generated_clock`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`create_clock` definiuje zegar pierwotny — źródło na porcie (albo wirtualne), z okresem i kształtem podanym wprost. `create_generated_clock` definiuje zegar pochodny od innego (`-source`): wyjście PLL, dzielnik w rejestrze, zegar przesłany na pin. Jego okres i faza wynikają z zegara nadrzędnego i parametrów (`-multiply_by`, `-divide_by`, `-edges`), a latencja — ze ścieżki od źródła, dzięki czemu narzędzie zna relację między zegarami.
+</details>
+
+3. **Kiedy użyjesz zegara wirtualnego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy opisuje się wejścia lub wyjścia względem zegara, który nie wchodzi do FPGA tym pinem — zegar układu zewnętrznego, zegar z innym przesunięciem fazy niż zegar wewnętrzny, albo gdy chce się opisać interfejs niezależnie od tego, jak zegar trafia do FPGA (np. przez PLL z przesunięciem). Narzędzie analizuje wtedy relację między zegarem wirtualnym a zegarem przerzutnika w FPGA.
+</details>
+
+4. **Masz w projekcie zegary 50 MHz z oscylatora i 25 MHz odzyskany z PHY Ethernetu. Co wpisujesz do SDC?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa `create_clock` (oba porty), zegary generowane z PLL, jeśli są, i `set_clock_groups -asynchronous -group {zegary od 50 MHz} -group {zegary od 25 MHz PHY}`. Interfejs PHY opisany `set_input_delay`/`set_output_delay` względem zegara PHY. Przejścia danych między grupami — przez synchronizatory albo asynchroniczne FIFO, z ograniczeniami na opóźnienie (`set_max_delay -datapath_only` w Vivado, `set_net_delay`/`set_max_skew` w Quartusie) zamiast analizy synchronicznej.
+</details>
+
+### [14.04 — Wyjątki: false path, multicycle, max/min delay](../modules/14-analiza-czasowa/14.04-wyjatki-false-path-multicycle-max-min-delay.md)
+
+1. **Napisz ograniczenia dla ścieżki, na której dane mają 3 takty, i wyjaśnij hold.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`set_multicycle_path -setup 3 -from A -to B` i `set_multicycle_path -hold 2 -from A -to B`. Setup 3 przesuwa zbocze odbierające na 3·T. Domyślnie hold jest sprawdzany na zboczu o okres wcześniejszym niż zbocze setup, czyli na 2·T — wymagałoby to, by dane trzymały się przez 2 okresy po wysłaniu. `-hold 2` przesuwa zbocze hold o 2 okresy z powrotem, na 0, czyli zwykły warunek hold.
+</details>
+
+2. **Czym różni się `set_false_path` od `set_clock_groups -asynchronous`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`set_false_path` usuwa z analizy wskazane ścieżki (od/do/przez konkretne obiekty albo zegary) i działa w jedną stronę. `set_clock_groups -asynchronous` deklaruje relację między zegarami: wszystkie ścieżki między grupami, w obie strony, nie są analizowane, a narzędzie wie, że zegary są niezależne (w Vivado ma to też wpływ na analizę CDC i raporty). Do rozdzielenia domen używa się `set_clock_groups`; `set_false_path` — do pojedynczych ścieżek w obrębie domeny lub do portów.
+</details>
+
+3. **Kiedy multicycle jest niepoprawny, choć STA przechodzi?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy projekt nie gwarantuje założeń: rejestr źródłowy może zmienić się częściej niż co N taktów albo odbiornik zapisuje wynik w innym takcie niż N po zmianie (np. zezwolenie generowane z innego licznika, reset w środku, ścieżka objęta wzorcem przez pomyłkę). STA nie zna logiki sterującej — przyjmuje wyjątek na wiarę. Weryfikuje się to testem/asercją sprawdzającą stabilność danych i chwilę zapisu albo dowodem formalnym.
+</details>
+
+4. **Do czego służy `set_max_delay -datapath_only` w Vivado?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Ogranicza opóźnienie samej ścieżki danych (bez skew zegarów i bez relacji między zegarami) — typowo na przejściach CDC, gdzie zegary są asynchroniczne, ale trzeba ograniczyć rozrzut opóźnień bitów (np. wskaźnik w kodzie Graya w asynchronicznym FIFO nie może się „rozjechać” o więcej niż okres). W Quartusie podobny efekt daje `set_max_delay`/`set_min_delay` z `set_net_delay` i `set_max_skew`.
+</details>
+
+### [14.05 — Czytanie raportów: Timing Analyzer i Vivado](../modules/14-analiza-czasowa/14.05-czytanie-raportow-timing-analyzer-i-vivado.md)
+
+1. **Dostajesz projekt z ujemnym WNS. Od czego zaczynasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Od sprawdzenia, czy liczba jest prawdziwa: ostrzeżenia przy czytaniu SDC, lista zegarów (okresy, zegary generowane), ścieżki nieograniczone, przejścia między zegarami — wiele naruszeń to brak `set_clock_groups` albo zegar domyślny. Potem podsumowanie na zegar i model, TNS i liczba naruszonych punktów końcowych, dopiero potem najgorsze ścieżki: relacja zboczy, poziomy logiki, udział połączeń, wachlarz wyjść, skew. Na tej podstawie decyzja: kod (potok), SDC (poprawny wyjątek), implementacja (rozmieszczenie, duplikacja).
+</details>
+
+2. **W raporcie ścieżki 75 % opóźnienia to połączenia, a logika ma 3 poziomy. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To problem rozmieszczenia lub wachlarza, nie architektury. Sprawdzam fanout sieci na ścieżce (duży wachlarz → duplikacja rejestru, ograniczenie `max_fanout`, rejestr potoku przed rozgałęzieniem), położenie komórek (rozrzucone między odległymi blokami, np. DSP lub RAM na drugim końcu układu → rejestry przy granicach bloków, ograniczenia rozmieszczenia), czy ścieżka nie przechodzi przez blok I/O albo między regionami zegarowymi.
+</details>
+
+3. **Czym jest *Restricted Fmax* w Quartusie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+f_max ograniczone nie tylko przez ścieżki rejestr–rejestr, ale też przez minimalną szerokość impulsu i maksymalną częstotliwość elementów, przez które przechodzi zegar (bloki pamięci, DSP, PLL, bufory I/O). Jeśli *Restricted Fmax* jest niższe od *Fmax*, ograniczeniem jest sprzęt, a nie logika.
+</details>
+
+### [14.06 — Ograniczenia interfejsów źródłowo-synchronicznych](../modules/14-analiza-czasowa/14.06-ograniczenia-interfejsow-zrodlowo.md)
+
+1. **Czym różni się interfejs źródłowo-synchroniczny od systemowo-synchronicznego i dlaczego pozwala na wyższe częstotliwości?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W systemowo-synchronicznym oba układy dostają zegar ze wspólnego źródła, więc budżet obejmuje t_co nadajnika, całe opóźnienie ścieżki danych na płytce i rozrzut zegara do obu układów. W źródłowo-synchronicznym nadajnik wysyła zegar razem z danymi tymi samymi typami ścieżek — opóźnienia płytki dla zegara i danych są prawie takie same i się znoszą; liczy się tylko ich różnica (skew), t_su i t_h odbiornika. Dlatego możliwe są setki MHz i transmisja DDR.
+</details>
+
+2. **Jak ograniczysz wyjście DDR z zegarem przesyłanym w Quartusie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zegar wyjściowy jako `create_generated_clock` na porcie zegara (źródło: wyjście PLL zasilające rejestr DDR), dane: `set_output_delay -clock clk_out -max (t_su + skew_płytki)`, `-min (−t_h + skew)` dla zbocza narastającego oraz to samo z `-clock_fall -add_delay` dla opadającego. Do tego false path dla par zboczy, które nie przesyłają danych (np. dane wysłane na narastające analizowane względem opadającego, jeśli relacja jest inna niż zamierzona) — zgodnie z AN 433. Zegar i dane z rejestrów DDR w blokach I/O.
+</details>
+
+3. **Dlaczego przy odczycie SPI z zegarem z FPGA trzeba uwzględnić „pętlę”?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Urządzenie zmienia MISO względem zbocza SCLK, które dotarło do niego po opóźnieniu wyjścia FPGA i ścieżki na płytce; MISO wraca kolejną ścieżką i przez bufor wejściowy, a FPGA próbkuje je zegarem wewnętrznym. Całość: t_zegar→pin + t_płytka + t_co + t_płytka + t_wejście musi zmieścić się w czasie między zboczem wysyłającym a próbkującym. W SDC: `set_input_delay` względem zegara generowanego na pinie SCLK (`-clock_fall` dla trybu 0), dzięki czemu narzędzie samo dolicza opóźnienie zegara wychodzącego.
+</details>
+
+4. **Dane wejściowe są wyrównane do krawędzi zegara. Jak je poprawnie próbkować?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przesunąć zegar próbkujący o około pół bitu: PLL z przesunięciem fazy 90° (SDR: 180°), linia opóźniająca (IDELAY, opóźnienie wejścia w bloku I/O) albo próbkowanie przeciwnym zboczem, jeśli okno na to pozwala. W SDC: zegar wchodzący jako `create_clock`, zegar PLL jako generowany z przesunięciem, `set_input_delay` w metodzie skew-based (±rozrzut) i ewentualne multicycle/false path dla relacji między przesuniętym a oryginalnym zboczem.
+</details>
 
 ## 15 — Zegary, reset i przejścia między domenami (CDC)
 
