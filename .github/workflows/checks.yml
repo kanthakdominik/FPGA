@@ -61,13 +61,15 @@ jobs:
 
 
   weryfikacja:
-    name: Weryfikacja SystemVerilog (Verilator z OSS CAD Suite)
+    name: Weryfikacja SystemVerilog i UVM (Verilator z OSS CAD Suite)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       # wydanie OSS CAD Suite z określonego dnia: Verilator >= 5.050 (losowanie z ograniczeniami, covergroup)
       # i rozwiązywacz z3; zmiana daty = świadoma aktualizacja narzędzi
       OSS_CAD_SUITE: "2026-11-16"
+      # biblioteka UVM (IEEE 1800.2) z repozytorium Accellera; wersja = tag w uvm-core
+      UVM_VERSION: "2020.3.1"
     steps:
       - uses: actions/checkout@v5
       - name: Pamięć podręczna OSS CAD Suite
@@ -89,6 +91,15 @@ jobs:
           echo /opt/oss-cad-suite/bin >> "$GITHUB_PATH"
           /opt/oss-cad-suite/bin/verilator --version
           /opt/oss-cad-suite/bin/z3 --version
+      - name: Pamięć podręczna biblioteki UVM
+        id: cache-uvm
+        uses: actions/cache@v5
+        with:
+          path: /opt/uvm-core
+          key: uvm-core-${{ env.UVM_VERSION }}
+      - name: Biblioteka UVM (Accellera uvm-core)
+        if: steps.cache-uvm.outputs.cache-hit != 'true'
+        run: git clone -q --depth 1 --branch "$UVM_VERSION" https://github.com/accellera-official/uvm-core.git /opt/uvm-core
       - name: Moduł 10 — regresja testbenchy weryfikacyjnych
         run: make -C modules/10-weryfikacja-systemverilog/sim regresja
       - name: Moduł 10 — środowisko z pięcioma ziarnami
@@ -102,6 +113,10 @@ jobs:
             cat modules/10-weryfikacja-systemverilog/sim/build/pokrycie/podsumowanie.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Moduł 11 — regresja UVM
+        run: make -C modules/11-uvm/sim UVM_HOME=/opt/uvm-core/src regresja
+      - name: Moduł 11 — wykrywanie wstrzykniętych błędów
+        run: make -C modules/11-uvm/sim UVM_HOME=/opt/uvm-core/src bledy
       - name: Moduł 10 — raport pokrycia do pobrania
         uses: actions/upload-artifact@v4
         with:
