@@ -2648,7 +2648,203 @@ Przesunąć zegar próbkujący o około pół bitu: PLL z przesunięciem fazy 90
 
 ## 15 — Zegary, reset i przejścia między domenami (CDC)
 
-_Pytania pojawią się razem z treścią modułu ([15-zegary-reset-cdc](../modules/15-zegary-reset-cdc/README.md))._
+### [15.01 — Generowanie zegarów: PLL, clock enable i dlaczego nie bramkować zegara](../modules/15-zegary-reset-cdc/15.01-generowanie-zegarow-pll-clock-enable-i-dlaczego.md)
+
+1. **Dlaczego w FPGA nie bramkuje się zegara bramką AND i co robi się zamiast tego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bramka na zegarze daje szpilki i dodatkowe zbocza, gdy sygnał zezwolenia zmienia się przy wysokim stanie zegara (a zmienia się tuż po zboczu, bo pochodzi z przerzutnika), oraz wyprowadza zegar z sieci globalnej — duży skew, naruszenia hold i trudna analiza. Zamiast tego: zezwolenie zegara na wejściu `ENA` przerzutników (ta sama funkcja, jedna domena), a gdy trzeba naprawdę zatrzymać zegar dla oszczędności energii — dedykowany blok (ALTCLKCTRL, BUFGCE), który wyłącza sieć globalną bez szpilek.
+</details>
+
+2. **Jak działa komórka ICG?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zatrzask przezroczysty przy niskim stanie zegara przepuszcza zezwolenie tylko wtedy, gdy zegar jest niski; przy wysokim stanie trzyma ostatnią wartość. Iloczyn zegara i zatrzaśniętego zezwolenia zmienia się więc tylko razem ze zboczami zegara — bez szpilek. Wymaga, żeby zezwolenie ustaliło się przed narastającym zboczem (warunek czasowy jak setup), co sprawdza STA (*clock gating check*).
+</details>
+
+3. **Masz zegar 50 MHz i potrzebujesz logiki pracującej „z częstotliwością 1 kHz”. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Licznik w domenie 50 MHz generuje impuls o szerokości jednego taktu co 50 000 taktów, a logika „1 kHz” jest taktowana tym samym zegarem 50 MHz i zmienia stan tylko przy `if (tick)`. Jeśli ścieżki tej logiki są długie, można je opisać `set_multicycle_path` (gwarancja: zmiany co 50 000 taktów). Nie robię zegara 1 kHz z licznika.
+</details>
+
+### [15.02 — Metastabilność i MTBF — rachunek](../modules/15-zegary-reset-cdc/15.02-metastabilnosc-i-mtbf-rachunek.md)
+
+1. **Co to jest metastabilność i czy synchronizator ją eliminuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Stan przerzutnika, w którym po naruszeniu t_su/t_h wyjście przez nieokreślony czas nie jest poprawnym 0 ani 1. Nie da się jej wyeliminować dla sygnałów asynchronicznych; synchronizator daje dodatkowy czas (okres zegara na każdy stopień) na rozstrzygnięcie, przez co prawdopodobieństwo, że stan metastabilny dotrze do logiki, maleje wykładniczo — MTBF rośnie do tysięcy lat i więcej. Wartość po synchronizatorze jest poprawna, ale może pojawić się o takt później.
+</details>
+
+2. **Podaj wzór na MTBF i powiedz, który parametr ma największy wpływ.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+MTBF = exp(t_r/τ) / (T_w · f_clk · f_dane). Największy wpływ ma t_r — czas na ustalenie (w wykładniku): okres zegara docelowego minus t_co, t_su, połączenia i logika za przerzutnikiem. Dlatego zero logiki między stopniami, przerzutniki blisko siebie i dodatkowy stopień przy wysokich częstotliwościach. Częstotliwości zegara i danych wpływają tylko liniowo.
+</details>
+
+3. **Kiedy użyjesz trzech przerzutników zamiast dwóch?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy MTBF dwóch stopni jest niewystarczający: bardzo wysoka częstotliwość zegara docelowego (krótki okres = mało czasu na ustalenie), szybko zmieniający się sygnał, wymagania niezawodności (motoryzacja, medycyna, kosmos), duża liczba synchronizatorów lub urządzeń. Zalecenia producentów: Quartus raportuje MTBF i podpowiada liczbę stopni; AMD zaleca 2–3 w zależności od częstotliwości i wymagań.
+</details>
+
+### [15.03 — Synchronizatory jednobitowe i synchronizacja impulsów](../modules/15-zegary-reset-cdc/15.03-synchronizatory-jednobitowe-i-synchronizacja.md)
+
+1. **Jak przesłać impuls jednego taktu z domeny 200 MHz do 25 MHz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie przez 2FF — impuls 5 ns zostanie zgubiony przez zegar 40 ns. Impuls zmienia stan przerzutnika (przełącznik) w domenie 200 MHz; poziom przechodzi przez synchronizator 2FF w domenie 25 MHz, a wykrycie zmiany (XOR z poprzednią wartością) daje jeden impuls 25 MHz. Jeśli impulsy mogą przyjść częściej niż co ok. 3 takty 25 MHz, potrzebne potwierdzenie z powrotem (blokada nadawcy) albo kolejka FIFO zdarzeń. Alternatywa dla rzadkich impulsów: rozciągnięcie do ≥ 1,5 okresu 25 MHz.
+</details>
+
+2. **Dlaczego wyjście pierwszego przerzutnika synchronizatora nie może iść do logiki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pierwszy przerzutnik może być w stanie metastabilnym; jego wyjście ma wtedy napięcie pośrednie albo zmienia się z opóźnieniem. Różne bramki mogą odczytać je jako różne wartości (np. dwa przerzutniki automatu przejdą do niespójnych stanów), a czas ustalenia skrócony o logikę wykładniczo zmniejsza MTBF. Drugi przerzutnik daje pełny okres na rozstrzygnięcie i jedną, spójną wartość dla całej logiki.
+</details>
+
+3. **Co to jest reguła trzech zboczy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sygnał przechodzący przez synchronizator do wolniejszej domeny powinien być stabilny przez co najmniej trzy kolejne zbocza zegara docelowego (ok. 1,5 okresu lub więcej z zapasem na jitter i rozrzut), żeby na pewno został zarejestrowany mimo możliwego naruszenia t_su/t_h na pierwszym zboczu. Krótsze impulsy trzeba rozciągnąć albo przesłać jako przełącznik.
+</details>
+
+### [15.04 — Przesyłanie słów: handshake, kod Graya i MCP](../modules/15-zegary-reset-cdc/15.04-przesylanie-slow-handshake-kod-graya-i-mcp.md)
+
+1. **Jak przesłać 32-bitowe słowo między dwiema asynchronicznymi domenami?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie bit po bicie. Dla pojedynczych słów: handshake/MCP — słowo w rejestrze nadawcy trzymane stałe, do odbiorcy przez synchronizator przechodzi tylko sygnał sterujący (zmiana `req`), po jego dotarciu odbiorca zapisuje słowo i odsyła potwierdzenie; ścieżka danych ograniczona w SDC maksymalnym opóźnieniem. Dla strumienia słów: asynchroniczna kolejka FIFO. Dla wartości zmieniających się o 1 (liczniki) — kod Graya z synchronizatorem na każdy bit.
+</details>
+
+2. **Dlaczego kod Graya jest bezpieczny przy synchronizacji bit po bicie i jakie ma ograniczenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kolejne wartości różnią się jednym bitem, więc w chwili próbkowania niepewny jest tylko jeden bit — odbiornik dostaje starą albo nową wartość. Ograniczenia: wartość może zmieniać się tylko o ±1 na takt nadawcy, kod musi być w rejestrze (nie z logiki), rozrzut opóźnień bitów do synchronizatora musi być mniejszy niż okres nadawcy, a licznik powinien obejmować pełny zakres 2ⁿ. Nie nadaje się do dowolnych danych.
+</details>
+
+3. **Czym różni się protokół handshake dwufazowy od czterofazowego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W dwufazowym każda zmiana poziomu `req` (0→1 albo 1→0) oznacza nowe słowo, a `ack` odbija tę zmianę — jedna podróż tam i z powrotem na słowo. W czterofazowym `req` idzie na 1, odbiorca odpowiada `ack` = 1, nadawca zdejmuje `req`, odbiorca zdejmuje `ack` — dwie podróże na słowo, ale sygnały są poziomami „aktywny/nieaktywny”, łatwiejsze do zrozumienia i odporne na zgubienie stanu po resecie jednej strony. Dwufazowy jest dwa razy szybszy.
+</details>
+
+### [15.05 — Asynchroniczna kolejka FIFO](../modules/15-zegary-reset-cdc/15.05-asynchroniczna-kolejka-fifo.md)
+
+1. **Zaprojektuj asynchroniczną kolejkę FIFO. Jak liczysz flagi pełna i pusta?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pamięć dwuportowa, wskaźniki zapisu i odczytu o jeden bit szersze niż adres, każdy w postaci binarnej (adres) i Graya (rejestr). Gray wskaźnika zapisu przez synchronizator 2FF do domeny odczytu, Gray odczytu — do domeny zapisu. Pusta w domenie odczytu: następny Gray odczytu równy zsynchronizowanemu Grayowi zapisu. Pełna w domenie zapisu: następny Gray zapisu równy zsynchronizowanemu Grayowi odczytu z odwróconymi dwoma najstarszymi bitami. Flagi rejestrowane, liczone z wartości następnych.
+</details>
+
+2. **Dlaczego flagi asynchronicznego FIFO są „pesymistyczne” i czy to problem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Każda domena widzi wskaźnik drugiej z opóźnieniem synchronizatora, czyli starszą wartość. Zapisujący widzi mniej odczytów — kolejka wygląda na pełniejszą; czytający widzi mniej zapisów — wygląda na pustszą. Flaga może więc trwać o 2–3 takty dłużej niż trzeba, ale nigdy nie dopuści przepełnienia ani odczytu z pustej. Kosztem jest nieco mniejsza efektywna głębokość i przepustowość przy krótkich kolejkach — uwzględnia się to w doborze głębokości.
+</details>
+
+3. **Jak dobrać głębokość FIFO między domeną 100 MHz a 75 MHz dla paczek po 256 słów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W czasie paczki (256 taktów 100 MHz = 2,56 µs) odbiorca odczyta 2,56 µs · 75 MHz = 192 słowa, więc w kolejce zbierze się 64 słowa; do tego zapas na opóźnienie flag i synchronizacji (kilka słów) i ewentualne przerwy w odczycie. Głębokość 64 + ~8 → zaokrąglona do potęgi dwójki: 128. Warunek: średnio odbiorca musi nadążać — przerwy między paczkami ≥ czas opróżnienia.
+</details>
+
+4. **Dlaczego wskaźniki mają o jeden bit więcej niż adres?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Żeby odróżnić kolejkę pełną od pustej: w obu przypadkach adresy (młodsze bity) są równe. Dodatkowy bit liczy okrążenia — równe wszystkie bity = pusta, różny tylko najstarszy (w binarnym) = pełna. Alternatywą jest osobny licznik zajętości, którego w FIFO asynchronicznym nie da się łatwo utrzymać w dwóch domenach.
+</details>
+
+### [15.06 — Strategie resetu: synchronizator resetu i RDC](../modules/15-zegary-reset-cdc/15.06-strategie-resetu-synchronizator-resetu-i-rdc.md)
+
+1. **Narysuj synchronizator resetu i wyjaśnij, dlaczego reset jest „asynchronicznie ustawiany, synchronicznie zdejmowany”.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa przerzutniki z asynchronicznym zerowaniem od zewnętrznego resetu; wejście D pierwszego na stałe 1, wyjście drugiego to reset domeny. Ustawienie natychmiastowe (bez zegara) — układ przechodzi w bezpieczny stan nawet bez zegara. Zdjęcie: jedynka przechodzi przez dwa przerzutniki taktowane zegarem domeny, więc wszystkie przerzutniki domeny widzą koniec resetu na tym samym zboczu, z czasem ustalenia sprawdzanym przez STA (recovery/removal), a ewentualna metastabilność pierwszego stopnia ma pełny okres na rozstrzygnięcie.
+</details>
+
+2. **Czym jest RDC i czym różni się od CDC?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+RDC (*reset domain crossing*) to ścieżka z przerzutnika w jednej domenie resetu do przerzutnika w innej — nawet w tej samej domenie zegarowej. Gdy źródło jest resetowane asynchronicznie, a odbiornik nie, zmiana stanu źródła następuje w dowolnej chwili względem zegara odbiornika — możliwa metastabilność, jak przy CDC. Rozwiązania: wspólny reset, kolejność (odbiornik w reset przed źródłem), izolacja wyjścia domeny resetowanej, reset synchroniczny.
+</details>
+
+3. **Czy każdy przerzutnik w FPGA potrzebuje resetu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie. Wartość po konfiguracji jest znana z bitstreamu. Reset potrzebują elementy sterujące, które muszą wrócić do stanu początkowego w trakcie pracy (automaty, liczniki, flagi, wskaźniki, sygnały valid). Rejestry danych nie potrzebują — ich zawartość jest ignorowana, dopóki valid = 0. Mniej resetu oznacza mniejszy wachlarz, lepsze zamknięcie czasu i możliwość wchłonięcia rejestrów przez bloki DSP i RAM.
+</details>
+
+### [15.07 — Ograniczenia i weryfikacja CDC](../modules/15-zegary-reset-cdc/15.07-ograniczenia-i-weryfikacja-cdc.md)
+
+1. **Jak ograniczyłbyś w SDC/XDC wskaźniki Graya asynchronicznej kolejki FIFO?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie samą grupą asynchroniczną, bo wyłącza ona analizę. W Vivado: `set_max_delay -datapath_only` z rejestru wskaźnika do pierwszego stopnia synchronizatora o wartości ok. okresu zegara nadajnika (często mniej) oraz `set_bus_skew` dla bitów wskaźnika — i bez `set_clock_groups` na tej parze zegarów, bo ma ona pierwszeństwo. W Quartusie: grupy mogą zostać, a `set_net_delay -max` i `set_max_skew` na wskaźnikach działają niezależnie (tak ograniczony jest `dcfifo`). Cel: każdy bit dociera przed następną zmianą wskaźnika, więc odbiornik widzi tylko kolejne wartości kodu Graya.
+</details>
+
+2. **Dlaczego STA bez ograniczeń zgłasza błąd na ścieżce między niezależnymi zegarami, i dlaczego ten wynik jest bez znaczenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+STA zakłada, że zegary mają stałą relację fazową, rozwija je do wspólnej wielokrotności okresów i wybiera najciaśniejszą parę zboczy nadania i odbioru. Dla 10 ns i 27,3 ns jest to para różniąca się o 0,1 ns — wymaganie niemożliwe do spełnienia. Ponieważ zegary są w rzeczywistości niezależne, każda relacja faz wystąpi i układ musi to tolerować (synchronizator, protokół), a nie spełnić setup względem konkretnej pary zboczy. Zamiast tej analizy ogranicza się samo opóźnienie i rozrzut.
+</details>
+
+3. **Czego nie wykryje narzędzie CDC (analiza strukturalna)?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Błędów protokołu: czy dane przy handshake'u są naprawdę stabilne, gdy odbiornik je przechwytuje; czy impuls nie jest za krótki dla synchronizatora; czy kod jest naprawdę kodem Graya (jeśli nie sprawdza tego formalnie); czy kolejność resetu jest dobra; problemów reconvergence (kilka niezależnie zsynchronizowanych sygnałów łączonych później w logice — każdy może dojść o takt wcześniej). Do tego służą testy z losowymi fazami zegarów, asercje i dowody formalne.
+</details>
+
+4. **Co to jest reconvergence w CDC?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa lub więcej sygnałów z jednej domeny synchronizowanych osobno, a potem łączonych w logice drugiej domeny. Każdy synchronizator może dodać takt opóźnienia niezależnie, więc w domenie odbiornika przez takt widać kombinację, która w nadajniku nigdy nie wystąpiła. Rozwiązania: przesyłać je jako jedno słowo (handshake, Gray, FIFO) albo zaprojektować odbiornik odporny na różnicę jednego taktu.
+</details>
 
 ## 16 — Wydajność, zasoby i pobór mocy
 

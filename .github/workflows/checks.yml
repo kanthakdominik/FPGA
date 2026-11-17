@@ -231,7 +231,7 @@ jobs:
           path: modules/13-weryfikacja-formalna/formal/*_*/engine_0/*.vcd
 
   sta:
-    name: Analiza czasowa (OpenSTA, nextpnr-ecp5)
+    name: Analiza czasowa i CDC (OpenSTA, nextpnr-ecp5, Yosys)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -287,6 +287,14 @@ jobs:
           cd modules/14-analiza-czasowa/sta
           python3 sprawdz_sta.py | tee wynik.txt
           { echo "## Analiza czasowa (moduł 14)"; echo '```'; cat wynik.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: CDC — MTBF, strukturalna analiza przejść i ograniczenia w OpenSTA (moduł 15)
+        run: |
+          set -o pipefail
+          cd modules/15-zegary-reset-cdc/cdc
+          python3 mtbf.py | tee mtbf.txt
+          python3 sprawdz_cdc.py | tee cdc.txt
+          python3 sprawdz_sta_cdc.py | tee sta_cdc.txt
+          { echo "## CDC (moduł 15)"; echo '```'; tail -8 mtbf.txt; grep -E "^(==|  podsumowanie|  OK|  <--|PASS|FAIL)" cdc.txt; cat sta_cdc.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4
@@ -296,6 +304,7 @@ jobs:
             modules/14-analiza-czasowa/sta/build/*.log
             modules/14-analiza-czasowa/sta/build/*.json
             modules/14-analiza-czasowa/sta/build/sta_demo_net.v
+            modules/15-zegary-reset-cdc/cdc/build/e07_cdc.log
 
   linki:
     name: Linki wewnętrzne
