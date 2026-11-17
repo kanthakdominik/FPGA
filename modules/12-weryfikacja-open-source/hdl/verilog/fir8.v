@@ -39,10 +39,10 @@ module fir8 #(
     integer           i;
 
     wire signed [30:0] rounded = (BUG == 1) ? acc : acc + 31'sd1024;
-    wire signed [30:0] shifted = rounded >>> 11;
     /* verilator lint_off UNUSEDSIGNAL */            // górne bity po przesunięciu: kopie znaku
-    wire signed [19:0] scaled  = shifted[19:0];
+    wire signed [30:0] shifted = rounded >>> 11;
     /* verilator lint_on UNUSEDSIGNAL */
+    wire signed [19:0] scaled  = shifted[19:0];
 
     reg signed [15:0] sat;
     always @* begin
