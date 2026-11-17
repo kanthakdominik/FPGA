@@ -1,0 +1,46 @@
+# cnt10 — pierwsze dowody (13.01, 13.02). Uruchomienie: sby -f cnt10.sby [zadanie]
+#   bmc          — BMC 20 taktów: PASS (żaden stan osiągalny w 20 taktach nie łamie właściwości)
+#   prove_fail   — indukcja bez niezmiennika: nie domyka się (kontrprzykład indukcyjny 11 -> 12)
+#   prove        — indukcja z niezmiennikiem q <= 9: PASS (pełny dowód, nieograniczony)
+#   prove_pdr    — bez niezmiennika, silnik abc pdr (IC3): PASS — niezmiennik znajduje sam
+#   cover        — osiągalność wrap i wstrzymania: PASS, ślady w cnt10_cover/engine_0/trace*.vcd
+#   cover_unreach — cover stanu 10: FAIL (dowód, że stan jest nieosiągalny w 20 taktach)
+
+[tasks]
+bmc
+prove_fail
+prove
+prove_pdr
+cover
+cover_unreach
+
+[options]
+bmc:           mode bmc
+bmc:           depth 20
+prove_fail:    mode prove
+prove_fail:    depth 20
+prove:         mode prove
+prove:         depth 2
+prove_pdr:     mode prove
+cover:         mode cover
+cover:         depth 15
+cover_unreach: mode cover
+cover_unreach: depth 20
+
+[engines]
+prove_pdr:  abc pdr
+~prove_pdr: smtbmc yices
+
+[script]
+read_verilog -sv -formal cnt10.sv
+prove:         read_verilog -sv -formal -D INVARIANT cnt10_formal.sv
+cover_unreach: read_verilog -sv -formal -D NIEOSIAGALNY cnt10_formal.sv
+bmc:           read_verilog -sv -formal cnt10_formal.sv
+prove_fail:    read_verilog -sv -formal cnt10_formal.sv
+cover:         read_verilog -sv -formal cnt10_formal.sv
+prove_pdr:     read_verilog -sv -formal cnt10_formal.sv
+prep -top cnt10_formal
+
+[files]
+../hdl/sv/cnt10.sv
+cnt10_formal.sv

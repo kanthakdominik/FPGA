@@ -1,0 +1,34 @@
+# fifo_sync — właściwości wbudowane w RTL pod `ifdef FORMAL (13.04). sby -f fifo_sync.sby [zadanie]
+#   prove      — indukcja z niezmiennikami pomocniczymi: PASS
+#   prove_weak — bez niezmienników (-D BEZ_NIEZMIENNIKOW): BMC przechodzi, indukcja nie domyka się
+#   prove_pdr  — bez niezmienników, silnik abc pdr: PASS — niezmienniki znajduje sam
+#   cover      — pełna, pusta po pełnej, odczyt przy pełnej, śledzony element z pełnej: PASS
+
+[tasks]
+prove
+prove_weak
+prove_pdr
+cover
+
+[options]
+prove:      mode prove
+prove:      depth 3
+prove_weak: mode prove
+prove_weak: depth 12
+prove_pdr:  mode prove
+cover:      mode cover
+cover:      depth 24
+
+[engines]
+prove_pdr:  abc pdr
+~prove_pdr: smtbmc yices
+
+[script]
+prove:      read_verilog -sv -formal fifo_sync.sv
+cover:      read_verilog -sv -formal fifo_sync.sv
+prove_weak: read_verilog -sv -formal -D BEZ_NIEZMIENNIKOW fifo_sync.sv
+prove_pdr:  read_verilog -sv -formal -D BEZ_NIEZMIENNIKOW fifo_sync.sv
+prep -top fifo_sync
+
+[files]
+../hdl/sv/fifo_sync.sv

@@ -2294,7 +2294,159 @@ Wersje narzędzi i pakietów (krok wypisujący wersje), różnice środowiska (z
 
 ## 13 — Weryfikacja formalna
 
-_Pytania pojawią się razem z treścią modułu ([13-weryfikacja-formalna](../modules/13-weryfikacja-formalna/README.md))._
+### [13.01 — Dowód zamiast symulacji: BMC, indukcja i cover](../modules/13-weryfikacja-formalna/13.01-dowod-zamiast-symulacji-bmc-indukcja-i-cover.md)
+
+1. **Czym różni się BMC od dowodu przez indukcję?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+BMC sprawdza wszystkie przebiegi o długości do *k* taktów od stanu początkowego — znajduje błędy płytsze niż *k*, ale nie mówi nic o dalszych taktach. Indukcja dodaje krok indukcyjny: z dowolnego stanu, w którym właściwość zachodzi przez *k* taktów, zachodzi też w następnym. Baza + krok = właściwość zachodzi zawsze. Krok indukcyjny może zawieść na stanie nieosiągalnym (CTI) — wtedy wynik jest nierozstrzygnięty, a nie błędny.
+</details>
+
+2. **Narzędzie zgłasza błąd kroku indukcyjnego, ale BMC na 50 taktów przechodzi. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Otwieram ślad indukcyjny i sprawdzam, czy stan startowy jest osiągalny z resetu. Jeśli nie (np. licznik poza zakresem, niespójne wskaźniki FIFO, automat w stanie, którego para z innym rejestrem jest niemożliwa) — dopisuję niezmiennik, który go wyklucza, i powtarzam. Jeśli stan jest osiągalny — to prawdziwy błąd, tylko głębszy niż 50 taktów; BMC z większą głębokością albo cover prowadzący do tego stanu go potwierdzi. Alternatywa: silnik PDR, który szuka niezmienników sam.
+</details>
+
+3. **Po co cover w weryfikacji formalnej, skoro asercje są dowodzone dla wszystkich wejść?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Asercja „dla wszystkich wejść” obejmuje tylko wejścia dopuszczone przez założenia. Zbyt mocne lub sprzeczne założenia wykluczają ciekawe przebiegi i asercje przechodzą trywialnie (w skrajnym przypadku sprzeczne założenia = brak jakiegokolwiek przebiegu = wszystko „udowodnione”). Cover pokazuje, że przebiegi, których dotyczą asercje, są osiągalne, i daje gotowy ślad do obejrzenia.
+</details>
+
+4. **Czy weryfikacja formalna zastępuje symulację?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie. Formalna jest najmocniejsza dla bloków sterujących, protokołów, arbitrów, kolejek i przypadków brzegowych, ograniczona rozmiarem układu i głębokością. Symulacja sprawdza cały system, długie scenariusze, wydajność, interakcję z oprogramowaniem i modelem odniesienia. W praktyce: formalnie bloki i interfejsy, symulacja — integracja i system; do tego formalne sprawdzanie równoważności po syntezie i zmianach.
+</details>
+
+### [13.02 — SymbiYosys: pierwsze dowody](../modules/13-weryfikacja-formalna/13.02-symbiyosys-pierwsze-dowody.md)
+
+1. **Co zawiera plik .sby i jak uruchamiasz kilka wariantów tego samego dowodu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sekcje: `[tasks]` (lista wariantów), `[options]` (tryb i głębokość), `[engines]` (silnik i solver), `[script]` (polecenia Yosysa wczytujące projekt, np. z definicjami preprocesora albo `chparam`), `[files]`. Linie poprzedzone `zadanie:` dotyczą jednego wariantu, więc jeden plik może zawierać BMC, dowód, cover i wersje z wstrzykniętymi błędami. `sby -f plik.sby zadanie` uruchamia jeden wariant, bez nazwy — wszystkie.
+</details>
+
+2. **Do czego służy `f_past_valid`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To rejestr równy 0 w pierwszym kroku i 1 później. W kroku 0 stan jest dowolny (poza wartościami początkowymi), a `$past` odnosi się do nieistniejącego taktu. `f_past_valid` pozwala założyć reset w pierwszym takcie i wyłączyć asercje, które w kroku 0 nie mają sensu. W kroku indukcyjnym jego wartość też jest dowolna, więc konstrukcje oparte na nim muszą działać dla obu wartości.
+</details>
+
+3. **Kiedy wybierzesz silnik `abc pdr` zamiast `smtbmc`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy k-indukcja daje UNKNOWN, a ręczne szukanie niezmienników jest pracochłonne — PDR (IC3) buduje niezmienniki indukcyjne sam. Ograniczenia: pracuje na modelu bitowym (duże ścieżki danych i pamięci spowalniają go), nie daje kontrprzykładu indukcyjnego, który podpowiedziałby niezmiennik, i bywa wolniejszy. Często uruchamia się oba silniki równolegle.
+</details>
+
+### [13.03 — Pisanie właściwości: assume, assert, cover](../modules/13-weryfikacja-formalna/13.03-pisanie-wlasciwosci-assume-assert-cover.md)
+
+1. **Czym różni się `assume` od `assert` i co się stanie, gdy założenia są sprzeczne?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`assume` ogranicza zbiór rozważanych przebiegów (solver pomija te, w których założenie jest fałszywe), `assert` jest sprawdzane w przebiegach, które pozostały. Przy sprzecznych założeniach nie zostaje żaden przebieg — każda asercja jest „spełniona”, dowód nic nie znaczy. Wykrywa się to coverami: przy sprzecznych założeniach żaden cover nie jest osiągalny.
+</details>
+
+2. **Jak formalnie sprawdzić, że blok z interfejsem valid/ready nie gubi i nie nadpisuje danych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Założenia na wejściu: reset na starcie, wstrzymane `in_valid` z danymi stabilnymi do przyjęcia. Asercje na wyjściu: `out_valid && !out_ready` w takcie *t* ⇒ w takcie *t+1* `out_valid` i dane bez zmian (brak nadpisania i zniknięcia); wynik pojawia się po przyjęciu w określonym czasie; brak wyniku bez przyjęcia. Do tego asercja funkcji względem modelu odniesienia zapamiętanego przy przyjęciu i covery: wstrzymanie, pełna przepustowość. Dla bloków z kolejką — śledzenie dowolnego elementu (`anyconst`/`anyseq`) zamiast pełnego modelu.
+</details>
+
+3. **Co to jest assume-guarantee?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Metoda dzielenia dowodu: blok A jest weryfikowany przy założeniach *P* na wejściach i dowodzi gwarancji *Q* na wyjściach; blok B, którego wejścia są wyjściami A, zakłada *Q*. Jeśli założenia każdego bloku są udowodnionymi gwarancjami sąsiada, połączenie jest poprawne bez weryfikowania całości naraz — a całość często jest za duża dla solvera.
+</details>
+
+### [13.04 — Formalna weryfikacja FIFO i interfejsów z handshakiem](../modules/13-weryfikacja-formalna/13.04-formalna-weryfikacja-fifo-i-interfejsow-z.md)
+
+1. **Jak formalnie udowodnić, że FIFO nie gubi danych i zachowuje kolejność, bez modelowania całej zawartości?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Śledzi się jeden element wybrany dowolnie przez solver (`anyseq`/`anyconst`): przy jego zapisie zapamiętuje się wskaźnik i wartość, a gdy wskaźnik odczytu do niego dojdzie i nastąpi odczyt — sprawdza się wartość. Skoro wychodzi dokładnie po wszystkich starszych i nienaruszony, a wybór był dowolny, właściwość zachodzi dla każdego elementu. Do pełnego dowodu indukcyjnego potrzebne są niezmienniki: licznik w zakresie, śledzony element między wskaźnikami, jego komórka nienadpisana. Wersja z dwoma elementami dowodzi kolejności bez odwoływania się do wskaźników.
+</details>
+
+2. **Jak rozpoznać FIFO pełne i puste przy wskaźnikach o jeden bit szerszych niż adres?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Puste — wskaźniki identyczne. Pełne — młodsze bity (adres) równe, najstarszy różny: zapis wyprzedził odczyt o pełne okrążenie. Liczba elementów to różnica wskaźników modulo 2ⁿ⁺¹. Dodatkowy bit rozróżnia dwa przypadki, w których adresy są równe, bez osobnego licznika ani „marnowania” jednej komórki.
+</details>
+
+3. **Jakie reguły handshake valid/ready sprawdziłbyś formalnie dla nadawcy AXI-Stream?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Po resecie `TVALID = 0`; raz podniesione `TVALID` pozostaje do przesłania (`TVALID && TREADY`); `TDATA`, `TLAST` i pozostałe pola stabilne, gdy `TVALID && !TREADY`; `TVALID` nie zależy od `TREADY` (nadawca nie może czekać na `TREADY`, by podnieść `TVALID`). Do tego covery: wstrzymanie, przesłania w kolejnych taktach, `TLAST`. Te same właściwości jako założenia służą do weryfikacji odbiorcy.
+</details>
+
+4. **Krok indukcyjny dla FIFO zawodzi, choć BMC na 30 taktów przechodzi. Od czego zaczynasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Od śladu `trace_induct.vcd` i pytania, czy stan startowy jest osiągalny. Typowe przyczyny: licznik lub różnica wskaźników poza zakresem, flagi `full`/`empty` niespójne ze wskaźnikami (gdy są rejestrami, a nie funkcją wskaźników), śledzony element „poza kolejką” albo nadpisany w pamięci. Każdą dopisuję jako niezmiennik z uzasadnieniem. Gdy stan jest osiągalny — to prawdziwy błąd głębszy niż 30 taktów. Alternatywnie silnik PDR.
+</details>
+
+### [13.05 — Sprawdzanie równoważności i metody formalne w przemyśle](../modules/13-weryfikacja-formalna/13.05-sprawdzanie-rownowaznosci-i-metody-formalne-w.md)
+
+1. **Czym jest sprawdzanie równoważności (LEC) i kiedy się je stosuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Formalny dowód, że dwie reprezentacje układu mają identyczną funkcję dla wszystkich wejść. Stosuje się między RTL a netlistą po syntezie, po wstawieniu DFT, po optymalizacjach fizycznych i po ECO, a także między dwiema wersjami RTL po refaktoryzacji. Narzędzia dopasowują rejestry obu wersji i dowodzą równoważności logiki kombinacyjnej między nimi; gdy struktura stanów się zmienia (retiming, zmiana kodowania), potrzebne jest sprawdzanie sekwencyjne.
+</details>
+
+2. **Dlaczego retiming utrudnia LEC?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Retiming przesuwa rejestry przez logikę kombinacyjną, więc rejestry netlisty nie odpowiadają już rejestrom RTL jeden do jednego, a logika między nimi jest inna. Klasyczny LEC oparty na dopasowaniu punktów nie znajduje par. Rozwiązania: sprawdzanie sekwencyjne (dowód równoważności na wyjściach przez wiele taktów), wyłączenie retimingu w przebiegu LEC, albo informacje o przesunięciach z narzędzia syntezy.
+</details>
+
+3. **Jakie zastosowania metod formalnych poza dowodzeniem asercji znasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdzanie równoważności (kombinacyjnej i sekwencyjnej), łączność w SoC, weryfikacja mapy rejestrów, propagacja X, CDC/RDC, bezpieczeństwo (przepływ informacji), wykazywanie nieosiągalności koszy pokrycia kodu, generowanie przebiegów z coverów jako testów ukierunkowanych, *bug hunting* głębokim BMC od stanów z symulacji.
+</details>
+
+4. **Masz dwa układy kombinacyjne z 64 wejściami. Czemu nie wystarczy ich wysymulować?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+2⁶⁴ ≈ 1,8·10¹⁹ wektorów; przy 10⁹ wektorów na sekundę to ok. 580 lat. Losowa próbka nie daje dowodu, a różnica może występować dla jednej kombinacji. Miter + SAT rozwiązuje to symbolicznie — tu w ułamku sekundy — i albo dowodzi równoważności, albo podaje konkretny wektor różnicujący.
+</details>
 
 ## 14 — Statyczna analiza czasowa (STA)
 

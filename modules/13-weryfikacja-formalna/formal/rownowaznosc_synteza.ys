@@ -1,0 +1,19 @@
+# Równoważność RTL i netlisty po syntezie (13.05): alu_hs (moduł 10) przed i po `synth -lut 4`.
+# equiv_make paruje sygnały o tych samych nazwach, equiv_simple/equiv_induct dowodzą każdej pary,
+# equiv_status -assert kończy skrypt błędem, jeśli choć jedna para pozostała niedowiedziona.
+read_verilog -sv ../../10-weryfikacja-systemverilog/hdl/sv/alu_hs.sv
+prep -top alu_hs
+design -stash gold
+
+read_verilog -sv ../../10-weryfikacja-systemverilog/hdl/sv/alu_hs.sv
+synth -top alu_hs -flatten -lut 4
+stat
+design -stash gate
+
+design -copy-from gold -as gold alu_hs
+design -copy-from gate -as gate alu_hs
+equiv_make gold gate equiv
+hierarchy -top equiv
+equiv_simple -seq 2
+equiv_induct
+equiv_status -assert

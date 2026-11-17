@@ -191,6 +191,45 @@ jobs:
             modules/12-weryfikacja-open-source/cocotb/build/*/results.xml
             modules/12-weryfikacja-open-source/vunit/wyniki.xml
 
+  formalna:
+    name: Weryfikacja formalna (SymbiYosys, Yosys, GHDL)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      OSS_CAD_SUITE: "2026-11-16"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pamięć podręczna OSS CAD Suite
+        id: cache
+        uses: actions/cache@v5
+        with:
+          path: /opt/oss-cad-suite
+          key: oss-cad-suite-linux-x64-${{ env.OSS_CAD_SUITE }}
+      - name: Instalacja OSS CAD Suite
+        if: steps.cache.outputs.cache-hit != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download "$OSS_CAD_SUITE" -R YosysHQ/oss-cad-suite-build \
+            -p "oss-cad-suite-linux-x64-${OSS_CAD_SUITE//-/}.tgz" -D /tmp
+          sudo tar -xzf /tmp/oss-cad-suite-linux-x64-*.tgz -C /opt
+      - name: Wersje
+        run: |
+          echo /opt/oss-cad-suite/bin >> "$GITHUB_PATH"
+          /opt/oss-cad-suite/bin/sby --version; /opt/oss-cad-suite/bin/yosys -V
+      - name: Dowody, kontrprzykłady, cover i równoważność (moduł 13)
+        run: |
+          set -o pipefail
+          cd modules/13-weryfikacja-formalna/formal
+          python3 sprawdz.py | tee wynik.txt
+          { echo "## Weryfikacja formalna (moduł 13)"; echo '```'; grep -E "^(==|  [a-z]|PASS|FAIL)" wynik.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Ślady (VCD) do pobrania
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: slady-formalne-modul-13
+          path: modules/13-weryfikacja-formalna/formal/*_*/engine_0/*.vcd
+
   linki:
     name: Linki wewnętrzne
     runs-on: ubuntu-24.04

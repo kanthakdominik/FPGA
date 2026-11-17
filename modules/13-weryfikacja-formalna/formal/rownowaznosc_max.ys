@@ -1,0 +1,8 @@
+# Równoważność kombinacyjna (13.05): max_chain (łańcuch) i max_tree (drzewo) z modułu 07.
+# Miter: oba układy na wspólnych wejściach, wyjście 1, gdy wyniki się różnią; SAT dowodzi, że nigdy.
+read_verilog ../../07-kodowanie-pod-synteze/hdl/verilog/max_chain.v
+read_verilog ../../07-kodowanie-pod-synteze/hdl/verilog/max_tree.v
+prep
+miter -equiv -flatten -make_assert max_chain max_tree miter
+hierarchy -top miter
+sat -verify -prove-asserts -show-ports miter

@@ -1,0 +1,19 @@
+# Brak równoważności (13.05): alu_hs z BUG=0 i z BUG=1. Miter sekwencyjny, oba od stanu zerowego;
+# sat -seq 4 szuka różnicy wyjść w 4 taktach — znajduje SUB z a == b, a skrypt kończy się błędem.
+read_verilog -defer -sv ../../10-weryfikacja-systemverilog/hdl/sv/alu_hs.sv
+hierarchy -top alu_hs -chparam BUG 0
+prep
+rename -top gold
+design -stash gold
+
+read_verilog -defer -sv ../../10-weryfikacja-systemverilog/hdl/sv/alu_hs.sv
+hierarchy -top alu_hs -chparam BUG 1
+prep
+rename -top gate
+design -stash gate
+
+design -copy-from gold -as gold gold
+design -copy-from gate -as gate gate
+miter -equiv -flatten -make_assert gold gate miter
+hierarchy -top miter
+sat -verify -prove-asserts -set-init-zero -seq 4 -show-inputs -show-outputs miter

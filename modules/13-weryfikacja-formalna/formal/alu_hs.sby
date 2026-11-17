@@ -1,0 +1,34 @@
+# alu_hs (moduł 10) — dowód poprawności i znajdowanie błędów (13.03). sby -f alu_hs.sby [zadanie]
+#   prove — BUG=0, indukcja: PASS
+#   bug1  — BUG=1, BMC: FAIL, kontrprzykład SUB z a == b (pożyczka 1 zamiast 0)
+#   bug2  — BUG=2, BMC: FAIL, kontrprzykład nadpisania wstrzymanego wyniku
+#   cover — BUG=0: PASS, ślady czterech scenariuszy
+
+[tasks]
+prove
+bug1
+bug2
+cover
+
+[options]
+prove: mode prove
+prove: depth 3
+bug1:  mode bmc
+bug1:  depth 8
+bug2:  mode bmc
+bug2:  depth 8
+cover: mode cover
+cover: depth 8
+
+[engines]
+smtbmc yices
+
+[script]
+read_verilog -sv -formal alu_hs.sv alu_hs_formal.sv
+bug1: chparam -set BUG 1 alu_hs_formal
+bug2: chparam -set BUG 2 alu_hs_formal
+prep -top alu_hs_formal
+
+[files]
+../../10-weryfikacja-systemverilog/hdl/sv/alu_hs.sv
+alu_hs_formal.sv
