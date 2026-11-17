@@ -176,7 +176,7 @@ module tb_axil_regs;
             idx  = $urandom_range(7);
             d    = $urandom;
             strb = ($urandom_range(3) == 0) ? 4'($urandom) : 4'hF;
-            if (idx == 1 && $urandom_range(3) != 0) d[2:0] = 3'($urandom_range(6));   // OP = 7 rzadziej
+            if (idx == 1) d[2:0] = ($urandom_range(3) == 0) ? 3'd7 : 3'($urandom_range(6)); // OP = 7: co 4. zapis CTRL
             if ($urandom_range(1)) do_write(idx, d, strb);
             else                   check_read(idx);
             if (irq !== (m_err && m_irq_en)) fail($sformatf("irq=%b, oczekiwano %b", irq, m_err && m_irq_en));

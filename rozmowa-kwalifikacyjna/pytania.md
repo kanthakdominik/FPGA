@@ -2022,7 +2022,165 @@ Pokrycie gałęzi sprawdza, czy każda gałąź `if`/`case` została wybrana. Po
 
 ## 11 — UVM — Universal Verification Methodology
 
-_Pytania pojawią się razem z treścią modułu ([11-uvm](../modules/11-uvm/README.md))._
+### [11.01 — Po co metodologia: struktura środowiska UVM](../modules/11-uvm/11.01-po-co-metodologia-struktura-srodowiska-uvm.md)
+
+1. **Opisz strukturę typowego środowiska UVM.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Moduł górny z układem, interfejsami i `run_test()`; test (`uvm_test`) tworzy środowisko i uruchamia sekwencje; środowisko (`uvm_env`) zawiera agentów (po jednym na interfejs: sekwencer, driver, monitor; aktywny albo pasywny), scoreboard z modelem referencyjnym, kolektory pokrycia, model rejestrów z predyktorem. Komponenty komunikują się portami TLM (sekwencer–driver) i portami analizy (monitor → scoreboard/pokrycie), konfigurację dostają z `uvm_config_db`.
+</details>
+
+2. **Czym różni się `uvm_object` od `uvm_component`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Komponenty tworzone są w fazie budowy, mają rodzica i stałe miejsce w hierarchii, uczestniczą w fazach i istnieją przez całą symulację (test, środowisko, agent, driver, monitor, scoreboard). Obiekty są dynamiczne, bez hierarchii i faz — transakcje, sekwencje, konfiguracje, model rejestrów.
+</details>
+
+3. **Co to są sprzeciwy (objections) i po co są?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mechanizm kończenia faz czasowych: faza `run` trwa, dopóki choć jeden komponent lub sekwencja trzyma sprzeciw. Test podnosi sprzeciw przed uruchomieniem sekwencji i zdejmuje po zakończeniu; komponenty mogą przedłużyć test, np. scoreboard do opróżnienia kolejki. Opcjonalnie `set_drain_time` daje dodatkowy czas po zdjęciu ostatniego sprzeciwu.
+</details>
+
+### [11.02 — Komponenty, fazy i fabryka](../modules/11-uvm/11.02-komponenty-fazy-i-fabryka.md)
+
+1. **Wymień fazy UVM. Dlaczego `build_phase` wykonuje się z góry na dół, a `connect_phase` z dołu do góry?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`build`, `connect`, `end_of_elaboration`, `start_of_simulation`, `run` (oraz równoległe fazy szczegółowe `reset`/`configure`/`main`/`shutdown`), `extract`, `check`, `report`, `final`. `build` z góry, bo rodzic tworzy dzieci i ustawia ich konfigurację, zanim się zbudują; `connect` z dołu, bo połączenia między komponentami wymagają, by wszystkie dzieci i ich porty już istniały, a rodzic łączy gotowe poddrzewa.
+</details>
+
+2. **Do czego służy fabryka UVM? Podaj przykład użycia.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pozwala zmienić typ tworzonego obiektu lub komponentu bez zmiany kodu, który go tworzy. Przykłady: test błędów podmienia driver na wersję wstrzykującą błędy protokołu; test podmienia transakcję na wersję z innymi ograniczeniami (np. tylko zapisy, długie opóźnienia); środowisko systemowe podmienia monitor na wersję z dodatkowym pokryciem. Warunek: tworzenie przez `type_id::create()` i dziedziczenie nowego typu po starym.
+</details>
+
+### [11.03 — Transakcje, sekwencje i sekwencer](../modules/11-uvm/11.03-transakcje-sekwencje-i-sekwencer.md)
+
+1. **Opisz uzgadnianie między sekwencją, sekwencerem i driverem.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sekwencja wywołuje `start_item` — sekwencer kolejkuje prośbę i po arbitrażu przydziela dostęp; sekwencja losuje transakcję i wywołuje `finish_item`, które przekazuje ją driverowi oczekującemu w `get_next_item`. Driver steruje interfejsem i wywołuje `item_done` (opcjonalnie z odpowiedzią), co odblokowuje `finish_item`. Przy odpowiedziach osobnymi obiektami: `put_response` w driverze i `get_response` w sekwencji, z dopasowaniem po identyfikatorze transakcji.
+</details>
+
+2. **Czym jest sekwencja wirtualna?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sekwencja bez własnych transakcji, uruchamiana na sekwencerze wirtualnym (albo bez sekwencera), która koordynuje sekwencje na sekwencerach kilku agentów — ustala kolejność i równoległość scenariuszy dla całego układu, np. najpierw konfiguracja przez magistralę rejestrów, potem równoległy ruch na dwóch portach danych.
+</details>
+
+### [11.04 — Agent, driver i monitor](../modules/11-uvm/11.04-agent-driver-i-monitor.md)
+
+1. **Jakie są zasady handshake w AXI? Czy slave może czekać na `VALID` przed ustawieniem `READY`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przesłanie zachodzi na zboczu, gdy `VALID` i `READY` są równe 1. Nadawca po ustawieniu `VALID` musi go trzymać razem z niezmienionymi danymi do przesłania i nie może uzależniać `VALID` od `READY`. Odbiorca może czekać na `VALID` przed ustawieniem `READY` (i może ustawić `READY` wcześniej). Dla zapisu slave nie może wymagać kolejności AW/W; odpowiedź B dopiero po obu przesłaniach.
+</details>
+
+2. **Kiedy agent jest pasywny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy środowisko obserwuje interfejs, którym steruje ktoś inny — inny blok w środowisku systemowym, rzeczywisty procesor, albo strona wyjściowa układu. Pasywny agent ma tylko monitor (i ewentualnie pokrycie); ten sam kod agenta służy do obu trybów przez pole `is_active` w konfiguracji.
+</details>
+
+### [11.05 — Scoreboard, porty analizy i pokrycie](../modules/11-uvm/11.05-scoreboard-porty-analizy-i-pokrycie.md)
+
+1. **Czym różni się port analizy od portu `put`/`get` w TLM?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Port analizy realizuje rozgłaszanie: `write()` jest funkcją bez czasu, może mieć dowolną liczbę odbiorców (także zero) i nadawca nie czeka na nich. Porty `put`/`get` łączą jednego nadawcę z jednym odbiorcą, mogą blokować (zadania) i służą do przekazywania transakcji z kontrolą przepływu — np. sekwencer–driver.
+</details>
+
+2. **Jak zbudujesz scoreboard dla bloku z wejściem i wyjściem o zmiennym opóźnieniu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa wejścia (osobne monitory wejścia i wyjścia), model referencyjny liczący oczekiwany wynik z transakcji wejściowej, kolejka przewidywań i porównanie z transakcją wyjściową — w kolejności, a jeśli układ może zmieniać kolejność, wyszukiwanie po identyfikatorze. W `check_phase` sprawdzenie, czy kolejka jest pusta. Transakcje z monitorów przez `uvm_tlm_analysis_fifo`, przetwarzanie w `run_phase`.
+</details>
+
+### [11.06 — Konfiguracja: uvm_config_db, testy i środowiska](../modules/11-uvm/11.06-konfiguracja-uvm-config-db-testy-i-srodowiska.md)
+
+1. **Jak przekazać wirtualny interfejs z modułu górnego do drivera?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W module górnym, przed `run_test()`: `uvm_config_db #(virtual axil_if)::set(null, "uvm_test_top*", "vif", vif);` (albo tylko dla testu, który składa obiekt konfiguracji). Driver w `build_phase`: `if (!uvm_config_db #(virtual axil_if)::get(this, "", "vif", vif)) `uvm_fatal(…)`. W większych środowiskach `vif` trafia do obiektu konfiguracji agenta, który test przekazuje w dół jednym wpisem.
+</details>
+
+2. **Ustawiłeś wartość w `config_db`, a komponent jej nie widzi. Co sprawdzasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Typ parametru w `set` i `get` (musi być identyczny), nazwę pola, ścieżkę względem kontekstu (`this` vs `null`, pełna nazwa komponentu, wzorzec `*`), kolejność faz (czy `set` wykonuje się przed `get`, np. w `build_phase` rodzica), wpisy o wyższym priorytecie nadpisujące wartość. Włączam śledzenie `config_db` i drukuję pełną nazwę komponentu (`get_full_name()`).
+</details>
+
+### [11.07 — Model rejestrów (RAL)](../modules/11-uvm/11.07-model-rejestrow-ral.md)
+
+1. **Czym różnią się wartości pożądana, lustrzana i rzeczywista w RAL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pożądana — to, co test chce zapisać (`set`, `randomize`), używana przez `update`. Lustrzana — najlepsza wiedza modelu o stanie układu, aktualizowana przez predyktor po każdej transakcji lub ręcznie `predict`. Rzeczywista — stan w układzie, odczytywany przez magistralę lub backdoor. `mirror(UVM_CHECK)` porównuje rzeczywistą z lustrzaną.
+</details>
+
+2. **Kiedy predykcja jawna (predyktor z monitora), a kiedy automatyczna?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Automatyczna wystarcza, gdy jedynym masterem jest model rejestrów i układ nie zmienia rejestrów sam. Jawna jest potrzebna, gdy do rejestrów piszą też inne źródła (procesor, inne sekwencje, DMA), gdy test integracyjny używa tego samego modelu przy pasywnym agencie, i jest zalecana jako domyślna w środowiskach wielokrotnego użytku.
+</details>
+
+3. **Twój rejestr ma bit, który sprzęt ustawia przy błędzie i który kasuje się zapisem 1. Jak go zamodelujesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pole z dostępem `W1C`, `volatile = 1` (bo sprzęt je zmienia), wyłączone z bit-bash (`NO_REG_BIT_BASH_TEST`), a w testach — `predict(1)` po wywołaniu warunku błędu, potem `mirror(UVM_CHECK)` z włączonym porównaniem; zapis 1 i ponowne sprawdzenie, że predyktor i układ dają 0. Alternatywnie własny callback pola, który ustawia lustro na podstawie obserwowanego zdarzenia.
+</details>
+
+### [11.08 — Kompletny przykład: testbench UVM dla bloku z AXI4-Lite](../modules/11-uvm/11.08-kompletny-przyklad-testbench-uvm-dla-bloku-z.md)
+
+1. **Opisz, jak zweryfikowałbyś blok z interfejsem rejestrowym AXI4-Lite w UVM.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Plan: mapa rejestrów, dostęp i reset każdego pola, efekty uboczne, odpowiedzi błędu, protokół AXI. Środowisko: agent AXI4-Lite (driver z losowymi opóźnieniami i kolejnością AW/W, monitor odtwarzający transakcje, asercje handshake w interfejsie), model rejestrów generowany ze specyfikacji z adapterem i predyktorem z monitora, scoreboard z modelem funkcji bloku, pokrycie (rejestry × kierunek, WSTRB, odpowiedzi, kolejność kanałów). Testy: wbudowane sekwencje RAL (reset, bit-bash), testy funkcjonalne przez model rejestrów, losowy ruch, testy błędów (adresy spoza mapy), wiele ziaren; ocena testbencha wstrzykniętymi błędami; regresja w CI z pokryciem jako kryterium.
+</details>
+
+2. **Bit-bash przechodzi, a układ ma błąd w obsłudze WSTRB. Jak to możliwe?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wbudowane sekwencje RAL zapisują rejestry całymi słowami (wszystkie bajty włączone), więc ścieżka częściowego zapisu nie jest ćwiczona. Wykrywa to losowy ruch z różnymi WSTRB i scoreboard albo model rejestrów z polami dostępnymi bajtowo i adapterem przekazującym `byte_en`.
+</details>
 
 ## 12 — Weryfikacja z otwartymi narzędziami
 

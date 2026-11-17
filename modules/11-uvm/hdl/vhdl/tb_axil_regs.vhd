@@ -275,8 +275,12 @@ begin
       else
         strb := "1111";
       end if;
-      if idx = 1 and rnd(4) /= 0 then
-        d(2 downto 0) := std_logic_vector(to_unsigned(rnd(7), 3));    -- OP = 7 rzadziej
+      if idx = 1 then                                          -- OP = 7: co 4. zapis CTRL
+        if rnd(4) = 0 then
+          d(2 downto 0) := "111";
+        else
+          d(2 downto 0) := std_logic_vector(to_unsigned(rnd(7), 3));
+        end if;
       end if;
       if rnd(2) = 1 then
         do_write(idx, d, strb);

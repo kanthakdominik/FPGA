@@ -54,7 +54,9 @@ regresja: $(BUILD)/obj_bug0/Vtb_uvm
 	@zal=0; niezal=0; \
 	for t in $(TESTY); do \
 	  ( cd $(BUILD) && timeout 300 stdbuf -oL ./obj_bug0/Vtb_uvm +UVM_TESTNAME=$$t +verilator+seed+$(SEED) > $${t}_bug0.log 2>&1 ); \
-	  if $(call SPRAWDZ,$(BUILD)/$${t}_bug0.log); then echo "PASS  $$t"; zal=$$((zal + 1)); \
+	  info="$$(grep -oh 'sprawdzonych transakcji: [0-9]*\|pokrycie funkcjonalne: [0-9.]* %\|finish at [^;]*; walltime [0-9.]* s' \
+	         $(BUILD)/$${t}_bug0.log | paste -sd ',' -)"; \
+	  if $(call SPRAWDZ,$(BUILD)/$${t}_bug0.log); then echo "PASS  $$t  ($$info)"; zal=$$((zal + 1)); \
 	  else echo "FAIL  $$t"; grep -E 'UVM_(ERROR|FATAL) |naruszen|^FAIL' $(BUILD)/$${t}_bug0.log | head -20; \
 	       niezal=$$((niezal + 1)); fi; \
 	done; \

@@ -251,7 +251,10 @@ module tb_axil_regs;
             idx  = $unsigned($random(seed)) % 8;
             d    = $random(seed);
             strb = ($unsigned($random(seed)) % 4 == 0) ? $random(seed) : 4'hF;
-            if (idx == 1 && $unsigned($random(seed)) % 4 != 0) d[2:0] = $unsigned($random(seed)) % 7;
+            if (idx == 1) begin                                       // OP = 7: co 4. zapis CTRL
+                if ($unsigned($random(seed)) % 4 == 0) d[2:0] = 3'd7;
+                else                                   d[2:0] = $unsigned($random(seed)) % 7;
+            end
             if ($random(seed) & 1) do_write(idx, d, strb);
             else                   check_read(idx);
             if (irq !== (m_err && m_irq_en)) fail("irq niezgodne z modelem");

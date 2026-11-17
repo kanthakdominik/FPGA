@@ -83,7 +83,7 @@ Zasady:
 |---|-------|------------|---------|------|--------|
 | 09 | [Symulacja i testbenche](modules/09-symulacja-i-testbench/README.md) | 🔍💼 | 7 | 16 h | ✅ pełny |
 | 10 | [Weryfikacja w SystemVerilogu](modules/10-weryfikacja-systemverilog/README.md) | 🔍💼 | 7 | 24 h | ✅ pełny |
-| 11 | [UVM — Universal Verification Methodology](modules/11-uvm/README.md) | 🔍💼 | 8 | 24 h | 🔲 szkielet |
+| 11 | [UVM — Universal Verification Methodology](modules/11-uvm/README.md) | 🔍💼 | 8 | 24 h | ✅ pełny |
 | 12 | [Weryfikacja z otwartymi narzędziami](modules/12-weryfikacja-open-source/README.md) | 🔍 | 6 | 16 h | 🔲 szkielet |
 | 13 | [Weryfikacja formalna](modules/13-weryfikacja-formalna/README.md) | 🔍💼 | 5 | 12 h | 🔲 szkielet |
 
