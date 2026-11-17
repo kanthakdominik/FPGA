@@ -231,7 +231,7 @@ jobs:
           path: modules/13-weryfikacja-formalna/formal/*_*/engine_0/*.vcd
 
   sta:
-    name: Analiza czasowa i CDC (OpenSTA, nextpnr-ecp5, Yosys)
+    name: Analiza czasowa, CDC i wydajność (OpenSTA, nextpnr-ecp5, Yosys)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -295,6 +295,13 @@ jobs:
           python3 sprawdz_cdc.py | tee cdc.txt
           python3 sprawdz_sta_cdc.py | tee sta_cdc.txt
           { echo "## CDC (moduł 15)"; echo '```'; tail -8 mtbf.txt; grep -E "^(==|  podsumowanie|  OK|  <--|PASS|FAIL)" cdc.txt; cat sta_cdc.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Wydajność, zasoby i moc — Yosys, nextpnr-ecp5, aktywność z symulacji (moduł 16)
+        run: |
+          set -o pipefail
+          cd modules/16-wydajnosc-zasoby-moc/wydajnosc
+          python3 moc.py | tee moc.txt
+          python3 eksperymenty.py | tee eksp.txt
+          { echo "## Wydajność i moc (moduł 16)"; echo '```'; cat moc.txt eksp.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4
@@ -305,6 +312,8 @@ jobs:
             modules/14-analiza-czasowa/sta/build/*.json
             modules/14-analiza-czasowa/sta/build/sta_demo_net.v
             modules/15-zegary-reset-cdc/cdc/build/e07_cdc.log
+            modules/16-wydajnosc-zasoby-moc/wydajnosc/build/wyniki.json
+            modules/16-wydajnosc-zasoby-moc/wydajnosc/build/*_pnr.log
 
   linki:
     name: Linki wewnętrzne

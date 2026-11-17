@@ -2848,7 +2848,153 @@ Dwa lub więcej sygnałów z jednej domeny synchronizowanych osobno, a potem ł�
 
 ## 16 — Wydajność, zasoby i pobór mocy
 
-_Pytania pojawią się razem z treścią modułu ([16-wydajnosc-zasoby-moc](../modules/16-wydajnosc-zasoby-moc/README.md))._
+### [16.01 — Potokowanie i retiming](../modules/16-wydajnosc-zasoby-moc/16.01-potokowanie-i-retiming.md)
+
+1. **Ścieżka ma 12 ns, zegar 100 MHz. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw sprawdzam, z czego się składa (logika czy połączenia, ile poziomów) i czy to ścieżka rzeczywista (może wielotaktowa albo fałszywa). Jeśli logika: potokuję — rejestr w miejscu, które dzieli opóźnienie mniej więcej na pół, i przesunięcie sygnału ważności o takt. Jeśli latencja jest zablokowana — restrukturyzacja logiki (drzewo zamiast łańcucha, przeniesienie decyzji wcześniej), retiming narzędzia. Jeśli połączenia — rozmieszczenie lub rejestr w połowie drogi.
+</details>
+
+2. **Czym różni się potokowanie od retimingu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Potokowanie dodaje rejestry i zwiększa latencję; robi to projektant (zmienia zachowanie cyklowe układu). Retiming przesuwa istniejące rejestry przez logikę bez zmiany liczby rejestrów na ścieżkach, więc bez zmiany latencji i funkcji; robi to narzędzie. W praktyce łączy się oba: projektant dodaje rejestry na wyjściu bloku, a retiming rozmieszcza je wewnątrz.
+</details>
+
+3. **Dlaczego nie da się po prostu dodać rejestru do akumulatora, żeby był szybszy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Akumulator to pętla: suma z bieżącego taktu jest argumentem w następnym. Rejestr w pętli sprawia, że do wejścia dodawana jest suma sprzed dwóch taktów — powstają dwa przeplecione akumulatory (każdy sumuje co drugą próbkę). Można to wykorzystać: dwie sumy częściowe i dodanie ich na końcu, albo przeplot dwóch niezależnych strumieni (C-slow), ale wymaga to zmiany algorytmu.
+</details>
+
+### [16.02 — Współdzielenie zasobów i kompromis powierzchnia–szybkość](../modules/16-wydajnosc-zasoby-moc/16.02-wspoldzielenie-zasobow-i-kompromis.md)
+
+1. **Masz 10 wolnych mnożarek, a filtr potrzebuje 32 mnożeń na próbkę przy próbkowaniu 10 MHz i zegarze 200 MHz. Czy się zmieści?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Potrzeba 32 · 10 MHz = 320 mln mnożeń/s; jedna mnożarka przy 200 MHz wykonuje 200 mln/s, więc wystarczą ⌈320/200⌉ = 2 mnożarki ze współdzieleniem w czasie (każda wykonuje 16 mnożeń na próbkę w 20 taktach dostępnych na próbkę). Mieści się z zapasem; koszt to multipleksery współczynników i próbek (albo pamięć), akumulatory i sterowanie.
+</details>
+
+2. **Czy synteza sama połączy dwie mnożarki w `y = sel ? a*b : c*d`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Często tak — narzędzia mają współdzielenie zasobów dla operacji wzajemnie się wykluczających (Quartus: *Auto Resource Sharing*, Vivado: `-resource_sharing`, Yosys: przebieg `share`). Ale zależy to od ustawień, przebiegu i struktury kodu (np. czy mnożenia są w tym samym bloku, czy wynik idzie przez rejestr). W eksperymencie z modułu ten sam Yosys połączył mnożarki w syntezie ECP5, a w syntezie ogólnej nie. Jeśli zasób jest krytyczny, współdzieli się ręcznie i sprawdza w raporcie.
+</details>
+
+3. **Kiedy powielisz zasób zamiast go współdzielić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy przepustowość przy dostępnej częstotliwości wymaga więcej operacji na takt, niż daje jeden zasób, albo gdy zegar nie może być wyższy (ograniczenie układu, mocy, interfejsu). Dwie kopie przy połowie częstotliwości dają tę samą przepustowość co jedna przy pełnej, a łatwiej zamykają timing — kosztem powierzchni.
+</details>
+
+### [16.03 — Fanout, duplikacja rejestrów i głębokość logiki](../modules/16-wydajnosc-zasoby-moc/16.03-fanout-duplikacja-rejestrow-i-glebokosc-logiki.md)
+
+1. **Jak zredukujesz fanout sygnału, który steruje 2000 przerzutników?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw sprawdzam, czy to problem (raport: udział połączeń na ścieżce). Jeśli tak: ograniczenie fanoutu w narzędziu (`MAX_FANOUT`, `maxfan`) albo fizyczna synteza z duplikacją, ewentualnie ręczne kopie rejestru źródłowego z atrybutem `dont_merge`/`DONT_TOUCH` — każda kopia przy swojej grupie odbiorców; przy bardzo dużych wachlarzach drzewo rejestrów (takt opóźnienia); dla wolno zmieniających się sygnałów — sieć globalna. Jeśli to reset — ograniczam liczbę resetowanych rejestrów.
+</details>
+
+2. **Dlaczego synteza usuwa twoje zduplikowane rejestry i jak temu zapobiec?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rejestry z tym samym wejściem, zegarem i sterowaniem są logicznie równoważne — scalenie oszczędza zasoby, więc to standardowa optymalizacja. Zapobiega jej atrybut na rejestrach: Quartus `dont_merge` lub `preserve`, Vivado `DONT_TOUCH` (albo `MAX_FANOUT`, które powoduje duplikację kontrolowaną przez narzędzie). W eksperymencie z modułu Yosys scalił 32 kopie w jedną, bo nie interpretuje tych atrybutów jako zakazu scalania.
+</details>
+
+3. **Ścieżka przechodzi przez 15 poziomów logiki. Co sprawdzasz w kodzie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Czy to łańcuch operacji łącznych (przebudowa w drzewo), łańcuch priorytetowy `if/else if` (równoległy wybór), porównanie licznika w ścieżce (flaga liczona takt wcześniej), dekodowanie stanu binarnego (jednogorące), późny sygnał na początku logiki (przesunięcie na koniec). Jeśli struktura jest już optymalna — potok ([16.01](../modules/16-wydajnosc-zasoby-moc/16.01-potokowanie-i-retiming.md)).
+</details>
+
+### [16.04 — Zamykanie timingu: metodyka krok po kroku](../modules/16-wydajnosc-zasoby-moc/16.04-zamykanie-timingu-metodyka-krok-po-kroku.md)
+
+1. **Projekt nie spełnia wymagań czasowych o 0,5 ns. Opisz, co robisz po kolei.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdzam ograniczenia (zegary, niepewność, ścieżki nieograniczone, wyjątki) i czy najgorsza ścieżka jest rzeczywista. Potem diagnozuję kilka najgorszych ścieżek: poziomy logiki, udział połączeń, fanout, skew, czy to przejście między domenami. Poprawiam przyczynę w RTL — potok, restrukturyzacja, duplikacja, rejestry DSP/RAM. Dopiero jeśli brakuje niewiele przy zamrożonym RTL: ustawienia Fittera (wysiłek, fizyczna synteza), rozmieszczenie obszarami i przegląd ziaren. Po każdej zmianie sprawdzam setup i hold we wszystkich narożnikach.
+</details>
+
+2. **Czy przegląd ziaren to dobra metoda zamknięcia timingu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jako ostatni krok przy zamrożonym projekcie i małym brakującym zapasie — tak. Jako metoda podstawowa — nie: wynik jest losowy, a projekt zamykany przypadkowym ziarnem traci margines przy każdej zmianie. Rozrzut f_max między ziarnami (w przykładzie z modułu 8,9 %) pokazuje też, że porównując dwie wersje RTL, trzeba porównywać kilka kompilacji, a nie jedną.
+</details>
+
+3. **Ścieżka ma 3 poziomy logiki, a 70 % jej opóźnienia to połączenia. Co to oznacza?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Logika nie jest problemem — problemem jest odległość albo przeciążenie trasowania. Sprawdzam fanout sygnałów na ścieżce (duplikacja), położenie źródła i celu w Chip Plannerze/Device View (może łączą odległe bloki lub piny), zajętość układu i przeciążenie. Poprawki: duplikacja rejestru blisko odbiorców, rejestr w połowie drogi, ograniczenie obszaru dla powiązanych bloków, zmniejszenie zajętości.
+</details>
+
+### [16.05 — Floorplanning i ograniczenia fizyczne](../modules/16-wydajnosc-zasoby-moc/16.05-floorplanning-i-ograniczenia-fizyczne.md)
+
+1. **Kiedy użyłbyś Logic Lock/Pblocka?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy narzędzie bez wiedzy o systemie rozmieszcza blok źle: interfejs musi być przy swoich pinach lub bankach pamięci, blok intensywnie korzysta z konkretnej kolumny DSP/RAM, dwa bloki są silnie połączone, a narzędzie je rozrywa; przy kompilacji przyrostowej i partycjach (powtarzalność wyników); w układach wieloczęściowych (SLR). Nie używałbym na start ani dla pojedynczych ścieżek — najpierw rozmieszczenie automatyczne i jego analiza.
+</details>
+
+2. **Ścieżka rejestr–rejestr bez logiki nie spełnia wymagań. Co to oznacza i co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Całe opóźnienie to połączenie — źródło i cel są daleko od siebie (albo trasowanie jest przeciążone, albo duży skew zegara). Sprawdzam położenie obu rejestrów i dlaczego narzędzie je rozsunęło (inne połączenia, piny, bloki twarde). Rozwiązania: rejestr w połowie drogi (potok połączenia), duplikacja źródła bliżej odbiorców, obszar przybliżający oba końce, rejestr w buforze I/O, jeśli to ścieżka z pinu.
+</details>
+
+### [16.06 — Pobór mocy: statyczny i dynamiczny, szacowanie i redukcja](../modules/16-wydajnosc-zasoby-moc/16.06-pobor-mocy-statyczny-i-dynamiczny-szacowanie-i.md)
+
+1. **Z czego składa się moc FPGA i od czego zależy każda część?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Statyczna — upływ tranzystorów: rozmiar układu, proces, napięcie, temperatura złącza; prawie niezależna od projektu. Dynamiczna rdzenia — ½·α·C·V²·f dla każdej sieci: aktywność (dane, kodowanie, szpilki), pojemność (długość połączeń, fanout), napięcie, częstotliwość; plus zegary i bloki twarde. I/O — standardy, napięcia, prądy, terminacja, obciążenie i częstotliwość przełączania na pinach.
+</details>
+
+2. **Jak zmniejszysz moc dynamiczną bez zmiany funkcji?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Ograniczam przełączanie bez potrzeby: clock enable i izolacja argumentów (bloki nie liczą na śmieciach), wyłączanie zegara całych bloków przez dedykowane bufory z zezwoleniem, kodowanie o małej aktywności (Gray), rejestry przed szerokim rozgałęzieniem przeciw szpilkom, zezwolenia w blokach RAM. Dalej: niższa częstotliwość z większą równoległością, niższe napięcia I/O, wyłączenie nieużywanych PLL i bloków. Skutek sprawdzam Power Analyzerem z aktywnością z symulacji.
+</details>
+
+3. **Skąd Power Analyzer bierze aktywność sygnałów i jak to wpływa na wynik?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z plików symulacji (VCD/SAIF) — najdokładniej z symulacji netlisty po rozmieszczeniu, z opóźnieniami; z szacowania bez wektorów — propagacja prawdopodobieństw od wejść, dla których podano aktywność; albo z wartości domyślnych (w Quartusie 12,5 %). Wynik może się różnić kilkukrotnie; dlatego raport podaje pewność szacowania, a dla zasilacza dodaje się zapas albo mierzy prąd na płytce.
+</details>
 
 ## 17 — Uruchamianie i debug na sprzęcie
 

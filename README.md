@@ -93,7 +93,7 @@ Zasady:
 |---|-------|------------|---------|------|--------|
 | 14 | [Statyczna analiza czasowa (STA)](modules/14-analiza-czasowa/README.md) | 🛠️💼 | 6 | 16 h | ✅ pełny |
 | 15 | [Zegary, reset i przejścia między domenami (CDC)](modules/15-zegary-reset-cdc/README.md) | 🧩🛠️💼 | 7 | 18 h | ✅ pełny |
-| 16 | [Wydajność, zasoby i pobór mocy](modules/16-wydajnosc-zasoby-moc/README.md) | 🧩💼 | 6 | 14 h | 🔲 szkielet |
+| 16 | [Wydajność, zasoby i pobór mocy](modules/16-wydajnosc-zasoby-moc/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
 | 17 | [Uruchamianie i debug na sprzęcie](modules/17-debug-na-sprzecie/README.md) | 🛠️💼 | 5 | 10 h | 🔲 szkielet |
 
 ### V. Bloki i interfejsy
