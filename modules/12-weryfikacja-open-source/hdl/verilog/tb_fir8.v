@@ -1,4 +1,4 @@
-// Testbench fir8: impuls, skok, wzorzec nasycenia dodatni i ujemny, 2000 próbek losowych z przerwami
+// Testbench fir8: impuls, połówka LSB, skok, wzorzec nasycenia dodatni i ujemny, 2000 próbek losowych z przerwami
 // w in_valid. Model na liczbach całkowitych: suma iloczynów z historii próbek, (s + 1024) >>> 11
 // (zaokrąglenie w górę połówki), nasycenie do 16 bitów. Sprawdzane: każda próbka wyjściowa i opóźnienie
 // (wynik po 4. zboczu od wysłania = 3 takty potoku); pokrycie: nasycenie w obie strony, połówka LSB.
@@ -94,6 +94,8 @@ module tb_fir8;
         @(negedge clk);
         send(2047);                                          // impuls
         repeat (10) send(0);
+        send(128);                                           // połówka LSB: 12648 * 128 / 2048 = 790,5
+        repeat (8) send(0);
         repeat (12) send(1000);                              // skok
         repeat (8) send(0);
         repeat (2) begin                                     // nasycenie: znaki zgodne z h

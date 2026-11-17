@@ -164,16 +164,19 @@ jobs:
           ghdl --version | head -1; iverilog -V 2>&1 | head -1; verilator --version
       - name: cocotb — 3 symulatory × 3 wersje układu
         run: |
+          set -o pipefail                     # kod wyjścia skryptu, nie tee
           cd modules/12-weryfikacja-open-source/cocotb
           python3 run_cocotb.py | tee wynik.txt
           { echo "## cocotb (moduł 12)"; echo '```'; cat wynik.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: VUnit + OSVVM + UVVM (GHDL)
         run: |
+          set -o pipefail
           cd modules/12-weryfikacja-open-source/vunit
           UVVM_HOME=/opt/uvvm python3 run.py -p 4 --xunit-xml wyniki.xml --no-color | tee wynik.txt | grep -E "^(pass|fail|skip) |passed!|failed!"
           { echo "## VUnit (moduł 12)"; echo '```'; sed -n '/==== Summary/,$p' wynik.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Verilator z testbenchem C++
         run: |
+          set -o pipefail
           cd modules/12-weryfikacja-open-source/verilator
           make test
           if make BUG=1 N=100000 test; then echo "BUG=1 nie wykryty"; exit 1; else echo "BUG=1 wykryty (oczekiwane)"; fi

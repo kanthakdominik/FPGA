@@ -2184,7 +2184,113 @@ Wbudowane sekwencje RAL zapisują rejestry całymi słowami (wszystkie bajty wł
 
 ## 12 — Weryfikacja z otwartymi narzędziami
 
-_Pytania pojawią się razem z treścią modułu ([12-weryfikacja-open-source](../modules/12-weryfikacja-open-source/README.md))._
+### [12.01 — cocotb: testbench w Pythonie](../modules/12-weryfikacja-open-source/12.01-cocotb-testbench-w-pythonie.md)
+
+1. **Jak cocotb komunikuje się z symulatorem i jakie ma to konsekwencje dla szybkości?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przez standardowe interfejsy proceduralne symulatorów (VPI, VHPI, FLI): biblioteka cocotb ładowana do symulatora rejestruje wywołania zwrotne na zdarzenia i przekazuje sterowanie do interpretera Pythona. Każde przejście między symulatorem a Pythonem kosztuje, więc test z oczekiwaniem na każde zbocze jest wolniejszy niż testbench w HDL — opłaca się przy złożonych modelach i scenariuszach, a przy bardzo długich symulacjach przenosi się pobudzenia do HDL (np. bufory, BFM w HDL sterowane z Pythona transakcjami).
+</details>
+
+2. **Do czego służy `ReadOnly()`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Czeka na koniec bieżącego kroku czasu, gdy wszystkie przypisania (także nieblokujące i delta-cykle VHDL) są już wykonane. Odczyt w tej fazie daje stabilne, ostateczne wartości — np. wyjścia rejestrów po zboczu — niezależnie od kolejności procesów w symulatorze. Zapisy w tej fazie są zabronione.
+</details>
+
+### [12.02 — VUnit: testy jednostkowe dla VHDL i SystemVeriloga](../modules/12-weryfikacja-open-source/12.02-vunit-testy-jednostkowe-dla-vhdl-i.md)
+
+1. **Co daje VUnit w porównaniu z własnym skryptem uruchamiającym GHDL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Automatyczne wyznaczanie kolejności kompilacji z zależności, kompilację przyrostową, wykrywanie testbenchy i przypadków testowych, izolację testów w osobnych symulacjach, równoległość, konfiguracje generików, raporty JUnit, obsługę wielu symulatorów jednym skryptem oraz biblioteki VHDL (asercje z komunikatami, logowanie, kolejki, komponenty weryfikacyjne).
+</details>
+
+2. **Jak przetestować ten sam testbench dla kilku wartości generika?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W `run.py`: `tb.add_config(name=…, generics={…})` dla całego testbencha albo `tb.test("nazwa").add_config(…)` dla jednego przypadku. Każda konfiguracja to osobny test w raporcie, uruchamiany w osobnej symulacji.
+</details>
+
+### [12.03 — OSVVM i UVVM: metodologie dla VHDL](../modules/12-weryfikacja-open-source/12.03-osvvm-i-uvvm-metodologie-dla-vhdl.md)
+
+1. **Czym jest pokrycie „inteligentne” w OSVVM?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Model pokrycia służy jednocześnie do mierzenia i do generowania pobudzeń: `RandCovPoint` losuje wartość tylko z koszy, które nie osiągnęły jeszcze wymaganej liczby trafień (z uwzględnieniem wag). Pełne pokrycie osiąga się w liczbie transakcji bliskiej liczbie koszy, zamiast czekać, aż losowanie równomierne trafi rzadkie przypadki.
+</details>
+
+2. **Kiedy wybrałbyś UVVM, a kiedy OSVVM?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+UVVM — gdy zespół chce narzuconej architektury środowiska (VVC z kolejkami poleceń, rozdzielenie scenariusza od protokołu, dużo gotowych VVC), np. w większych projektach z wieloma interfejsami i wymaganiami certyfikacyjnymi. OSVVM — gdy liczy się prosty start, swoboda struktury i silne pokrycie funkcjonalne; również ma komponenty weryfikacyjne i raporty. Często decyduje to, co zespół już zna, i dostępność komponentów dla potrzebnych interfejsów.
+</details>
+
+### [12.04 — Verilator: szybka symulacja z C++](../modules/12-weryfikacja-open-source/12.04-verilator-szybka-symulacja-z-c.md)
+
+1. **Czym Verilator różni się od symulatorów zdarzeniowych i jakie ma ograniczenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kompiluje HDL do C++ z harmonogramem wyznaczonym statycznie (z dynamicznym planowaniem dla konstrukcji czasowych od wersji 5), zamiast przetwarzać zdarzenia w czasie wykonania; jest przez to dużo szybszy. Ograniczenia: tylko Verilog/SystemVerilog, logika dwuwartościowa (brak `X`/`Z` jak w symulatorze czterowartościowym), ograniczona obsługa części konstrukcji niesyntezowalnych (choć wersja 5 obsługuje już opóźnienia, klasy, losowanie, a nawet UVM), czas kompilacji przy dużych projektach.
+</details>
+
+2. **Jak w testbenchu C++ zasymulować jeden takt zegara?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Ustawić wejścia przy niskim zegarze i wywołać `eval()`, ustawić `clk = 1` i wywołać `eval()` (rejestry przyjmują wartości), odczytać wyjścia, opcjonalnie zapisać przebiegi `dump()` z czasem; przy kilku zegarach — kolejność zboczy według czasu, z `eval()` po każdej zmianie.
+</details>
+
+### [12.05 — Modele w Pythonie i porównanie bit w bit](../modules/12-weryfikacja-open-source/12.05-modele-w-pythonie-i-porownanie-bit-w-bit.md)
+
+1. **Twój filtr w FPGA różni się od modelu MATLAB o 1 LSB w części próbek. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdzam, czy model jest dokładny co do bitu: czy odtwarza szerokości pośrednie, tryb zaokrąglenia (połówki w górę, do parzystej, obcięcie), kolejność zaokrąglenia i nasycenia, interpretację znaku i stan początkowy. Jeśli model odpowiada specyfikacji, różnica oznacza błąd układu (typowo obcięcie zamiast zaokrąglenia albo zaokrąglenie po złej stronie) — szukam pierwszej niezgodnej próbki i porównuję wartości pośrednie. Nie zwiększam tolerancji.
+</details>
+
+2. **Ile bitów potrzebuje akumulator filtru FIR o N współczynnikach?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Szerokość iloczynu (bity wejścia + bity współczynnika) plus ⌈log₂ N⌉ na sumowanie w najgorszym przypadku; dokładniej — log₂ z sumy wartości bezwzględnych współczynników wyrażonej w jednostkach skali, co dla filtrów o małych współczynnikach pozwala na węższy akumulator. Dla `fir8`: 12 + 16 + 3 = 31 bitów.
+</details>
+
+### [12.06 — Ciągła integracja projektu HDL w GitHub Actions](../modules/12-weryfikacja-open-source/12.06-ciagla-integracja-projektu-hdl-w-github-actions.md)
+
+1. **Jak zorganizowałbyś CI dla projektu FPGA z VHDL i SystemVerilogiem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zadania równoległe: lint, symulacje jednostkowe (VUnit/cocotb, kilka symulatorów), testy systemowe, synteza open source dla szybkiej informacji zwrotnej, synteza i implementacja narzędziami producenta z analizą czasową na własnym runnerze, opcjonalnie testy na sprzęcie. Przypięte wersje narzędzi (kontenery albo paczki z datą), pamięć podręczna, raporty JUnit i pokrycia, artefakty (przebiegi z nieudanych testów, raporty czasowe), kryteria blokujące scalenie zmian. Dłuższe testy i wiele ziaren — w przebiegach nocnych.
+</details>
+
+2. **Test przechodzi lokalnie i nie przechodzi w CI. Gdzie szukasz przyczyny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wersje narzędzi i pakietów (krok wypisujący wersje), różnice środowiska (zmienne, ścieżki, katalog roboczy, wielkość liter w nazwach plików), ziarno losowania, zależność od kolejności testów, limity czasu i zasobów (pamięć, liczba wątków), pliki generowane lokalnie i niezatwierdzone w repozytorium. Odtwarzam przebieg tym samym poleceniem i tymi samymi wersjami (np. w kontenerze).
+</details>
 
 ## 13 — Weryfikacja formalna
 
