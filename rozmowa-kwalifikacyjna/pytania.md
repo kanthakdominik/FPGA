@@ -2998,7 +2998,135 @@ Z plików symulacji (VCD/SAIF) — najdokładniej z symulacji netlisty po rozmie
 
 ## 17 — Uruchamianie i debug na sprzęcie
 
-_Pytania pojawią się razem z treścią modułu ([17-debug-na-sprzecie](../modules/17-debug-na-sprzecie/README.md))._
+### [17.01 — Strategia uruchamiania: od diody do analizatora logicznego](../modules/17-debug-na-sprzecie/17.01-strategia-uruchamiania-od-diody-do-analizatora.md)
+
+1. **Dostajesz nową płytkę z FPGA i gotowy projekt, który „nie działa”. Od czego zaczniesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Od rzeczy najprostszych i niezależnych od projektu: zasilanie (napięcia, prąd), zegar (oscylator, pomiar), łańcuch JTAG (czy układ jest widoczny), konfiguracja (czy bitstream się wgrywa i układ startuje). Potem najprostszy projekt: dioda migająca z każdego zegara, echo przycisków, stan PLL, pomiar częstotliwości. Dopiero gdy fundament jest pewny, uruchamiam bloki projektu po kolei, używając wbudowanych liczników, flag i analizatora logicznego.
+</details>
+
+2. **Co wbudujesz w projekt, żeby łatwiej go debugować na sprzęcie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bicie serca w każdej domenie zegarowej, rejestr wersji, liczniki zdarzeń i błędów, flagi lepkie dla błędów przejściowych, rejestry statusu odczytywane przez JTAG (ISSP, mostek JTAG-to-Avalon/AXI) albo interfejs szeregowy, pętle zwrotne interfejsów, kilka pinów testowych z multiplekserem sygnałów wewnętrznych i miejsce (pamięć, logika) na wbudowany analizator.
+</details>
+
+3. **Jak sprawdzisz, że PLL daje właściwą częstotliwość, bez oscyloskopu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Miernikiem częstotliwości w układzie: licznik taktów zegara PLL w oknie odmierzanym znanym zegarem (np. oscylatorem 50 MHz), z przejściem między domenami przez kod Graya i synchronizator. Wynik odczytuję przez JTAG (In-System Sources and Probes) albo pokazuję na diodach. Dokładność: ±1 takt na okno plus dokładność oscylatora odniesienia.
+</details>
+
+### [17.02 — Wbudowany analizator logiczny: Signal Tap i ILA](../modules/17-debug-na-sprzecie/17.02-wbudowany-analizator-logiczny-signal-tap-i-ila.md)
+
+1. **Jak działa Signal Tap/ILA i ile kosztuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wbudowany w projekt rdzeń: wybrane sygnały są zapisywane w każdym takcie wybranego zegara do bufora kołowego w blokach RAM układu; komparatory sprawdzają warunek wyzwolenia; po wyzwoleniu zapisywana jest jeszcze ustalona liczba próbek, a bufor jest odczytywany przez JTAG i wyświetlany jako przebiegi. Koszt: pamięć (głębokość × liczba sygnałów), logika wyzwalania i hub JTAG, dodatkowe obciążenie badanych sygnałów, ponowna kompilacja przy zmianie sond i możliwa zmiana rozmieszczenia (wpływ na timing).
+</details>
+
+2. **Sygnał, który chcesz obejrzeć, nie pojawia się w Node Finderze. Dlaczego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Synteza go usunęła lub połączyła z innym (stała, logika zoptymalizowana, rejestr zduplikowany/scalony, sygnał wewnątrz bloku DSP lub RAM). Rozwiązania: atrybut zachowania (`keep` dla sieci, `preserve`/`noprune` dla rejestrów w Quartusie, `MARK_DEBUG` w Vivado), wybór odpowiedniego węzła po rozmieszczeniu albo wyprowadzenie sygnału do rejestru, który na pewno zostanie.
+</details>
+
+3. **Błąd występuje raz na kilka minut. Jak go złapać wbudowanym analizatorem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wyzwolenie na objawie (flaga błędu, licznik błędów, nieoczekiwany stan automatu) z dużą liczbą próbek przed wyzwoleniem, żeby zobaczyć przyczynę; jeśli przyczyna jest dużo wcześniej — kwalifikator zapisu (zapis tylko istotnych próbek, np. transakcji) albo bufor segmentowy, wyzwolenie sekwencyjne (najpierw warunek A, potem B), tryb ciągły z automatycznym ponawianiem. Do tego flaga lepka w projekcie, żeby wiedzieć, że błąd w ogóle wystąpił.
+</details>
+
+### [17.03 — In-System Sources and Probes, VIO i JTAG-to-Avalon](../modules/17-debug-na-sprzecie/17.03-in-system-sources-and-probes-vio-i-jtag-to.md)
+
+1. **Do czego służy In-System Sources and Probes (VIO) i czym różni się od Signal Tap (ILA)?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+ISSP/VIO to wirtualne przełączniki i lampki przez JTAG: odczyt bieżącej wartości sygnałów i ustawianie sygnałów sterujących w działającym układzie, bez historii przebiegów. Signal Tap/ILA zapisuje historię sygnałów w buforze w takt zegara projektu i pokazuje przebiegi wokół wyzwolenia, ale niczego nie steruje. Łączy się je: VIO ustawia tryb i wyzwala test, ILA zapisuje reakcję.
+</details>
+
+2. **Jak przetestujesz zestaw rejestrów peryferium, zanim powstanie oprogramowanie procesora?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Podłączam do magistrali peryferium master sterowany przez JTAG — JTAG-to-Avalon Master Bridge (Platform Designer) albo JTAG-to-AXI Master (Vivado) — i piszę skrypt Tcl w System Console/Hardware Manager, który zapisuje i odczytuje rejestry tak jak przyszły sterownik. Równolegle ILA/Signal Tap na magistrali pokazuje przebieg transakcji.
+</details>
+
+3. **Dlaczego odczyt 32-bitowego licznika przez ISSP może dać wartość, której licznik nigdy nie miał?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sonda jest próbkowana przez logikę JTAG w chwili niezwiązanej z zegarem licznika; jeśli licznik zmienia się w trakcie przechwytywania, część bitów może pochodzić ze starej, a część z nowej wartości (jak przy przesyłaniu liczby binarnej przez synchronizator). Rozwiązania: zatrzaśnięcie wartości w rejestrze na żądanie i odczyt rejestru, odczyt kilkukrotny do zgodności, kod Graya dla liczników.
+</details>
+
+### [17.04 — Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów](../modules/17-debug-na-sprzecie/17.04-pomiary-zewnetrzne-oscyloskop-analizator.md)
+
+1. **Jakiego pasma oscyloskopu potrzebujesz do sygnału zegarowego 50 MHz ze zboczami 1 ns?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Decyduje czas narastania, nie częstotliwość: zbocze 1 ns ma pasmo ok. 0,35 GHz, a żeby zmierzyć je z błędem ok. 5 %, oscyloskop powinien mieć czas narastania ok. 3 razy krótszy, czyli pasmo ok. 1 GHz. Do sprawdzenia samej częstotliwości i wypełnienia wystarczy mniej (np. 250–500 MHz), ale kształt zbocza będzie zniekształcony przez przyrząd. Do tego krótka masa sondy i odpowiednia częstotliwość próbkowania.
+</details>
+
+2. **Na oscyloskopie widzisz silne dzwonienie na zboczach. Jak sprawdzisz, czy jest prawdziwe?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zmieniam sposób pomiaru: krótka sprężynka masy zamiast przewodu, masa przy samym punkcie pomiaru, sonda o mniejszej pojemności (aktywna). Jeśli częstotliwość dzwonienia zmienia się z długością masy — to artefakt sondy (rezonans L przewodu masy z C sondy). Jeśli zostaje — prawdziwe: niedopasowanie linii, brak terminacji, zbyt szybkie zbocze; wtedy terminacja szeregowa, mniejszy prąd i wolniejsze zbocze w ustawieniach I/O.
+</details>
+
+3. **Kiedy ścieżkę na płytce trzeba traktować jak linię przesyłową?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy czas propagacji wzdłuż ścieżki jest porównywalny z czasem narastania zbocza — praktycznie, gdy przekracza ok. 1/6 t_r. W FR4 sygnał biegnie ok. 15 cm/ns, więc przy zboczu 1 ns ścieżki dłuższe niż ok. 2,5 cm wymagają kontrolowanej impedancji i terminacji. Częstotliwość sygnału nie ma tu znaczenia — wolny sygnał z szybkim zboczem odbija się tak samo.
+</details>
+
+### [17.05 — Działa w symulacji, nie działa na płytce — typowe przyczyny](../modules/17-debug-na-sprzecie/17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md)
+
+1. **Projekt działa w symulacji, a na płytce nie. Jakie są możliwe przyczyny i od czego zaczniesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Cztery grupy: kod opisuje inny układ niż synteza (lista czułości, opóźnienia, X-optymizm, dyrektywy, przypisania blokujące, zatrzaski); timing (brak ograniczeń, ujemny zapas, CDC, wejścia/wyjścia bez ograniczeń); świat zewnętrzny inny niż testbench (drgania, asynchroniczne wejścia, uproszczone modele, niepełne pokrycie, integralność sygnałów); złe podłączenie (piny, standardy, polaryzacja, zegar, stary bitstream). Zaczynam od najtańszego: podłączenie i zegary, potem raporty syntezy i timingu, potem obserwacja wnętrza (liczniki, ISSP, Signal Tap) i odtworzenie przebiegu w symulacji.
+</details>
+
+2. **Czym jest X-optymizm i dlaczego jest groźny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy warunek `if` ma wartość X (np. rejestr bez resetu), symulator Veriloga traktuje go jak fałsz i wykonuje gałąź `else`; `case` z X wybiera `default` lub żadną gałąź. Symulacja pokazuje więc konkretną, często poprawnie wyglądającą wartość, zamiast X — błąd brakującego resetu jest ukryty. Sprzęt wybierze dowolną gałąź zależnie od stanu po konfiguracji. Środki: reset rejestrów sterujących, asercje na X (`$isunknown`), symulacja netlisty, narzędzia sprawdzające propagację X.
+</details>
+
+3. **Dlaczego dyrektywa `full_case` jest niebezpieczna?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mówi narzędziu syntezy, że nieopisane wartości selektora nie wystąpią, więc synteza nie buduje zatrzasku ani przypisania domyślnego — ale symulator dyrektywy nie widzi i dla tych wartości zachowuje się inaczej (trzyma poprzednią wartość). Symulacja i sprzęt się rozjeżdżają, a jeśli wartość jednak wystąpi, sprzęt daje wynik nieprzewidywalny. Zamiast dyrektywy: jawne `default` (z przypisaniem albo z X do celów weryfikacji) lub w SystemVerilogu `unique`/`priority case`, które sprawdza też symulator.
+</details>
 
 ## 18 — Pamięci w FPGA
 

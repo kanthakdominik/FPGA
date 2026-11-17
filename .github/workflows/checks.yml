@@ -231,7 +231,7 @@ jobs:
           path: modules/13-weryfikacja-formalna/formal/*_*/engine_0/*.vcd
 
   sta:
-    name: Analiza czasowa, CDC i wydajność (OpenSTA, nextpnr-ecp5, Yosys)
+    name: Analiza czasowa, CDC, wydajność i debug (OpenSTA, nextpnr-ecp5, Yosys)
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -302,6 +302,14 @@ jobs:
           python3 moc.py | tee moc.txt
           python3 eksperymenty.py | tee eksp.txt
           { echo "## Wydajność i moc (moduł 16)"; echo '```'; cat moc.txt eksp.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Debug na sprzęcie — pułapki RTL/netlista, obliczenia pomiarowe, skrypty JTAG (moduł 17)
+        run: |
+          set -o pipefail
+          command -v tclsh > /dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq tcl > /dev/null; }
+          python3 modules/17-debug-na-sprzecie/pomiary/obliczenia.py | tee pomiary.txt
+          (cd modules/17-debug-na-sprzecie/pulapki && python3 porownaj.py) | tee pulapki.txt
+          tclsh modules/17-debug-na-sprzecie/deca/debug/test_skryptow.tcl | tee skrypty.txt
+          { echo "## Debug na sprzęcie (moduł 17)"; echo '```'; cat pulapki.txt; grep -E "OK|BLAD|PASS|FAIL" pomiary.txt skrypty.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4
