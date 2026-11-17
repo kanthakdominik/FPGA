@@ -33,7 +33,7 @@ Standardowa metodologia weryfikacji (IEEE 1800.2) używana w firmach projektują
 
 ## Układ weryfikowany w module
 
-**`axil_regs`** — blok rejestrów z interfejsem AXI4-Lite (podrzędnym): ID, CTRL (kod operacji, zezwolenie przerwania), argumenty OPA i OPB, RESULT (wynik ALU z modułu 10 liczony na bieżąco), STATUS z flagą błędu kasowaną zapisem 1 (W1C), SCRATCH z obsługą WSTRB, adres spoza mapy z odpowiedzią SLVERR, wyjście `irq`. Parametr `BUG` wstrzykuje błąd: `1` — SCRATCH ignoruje WSTRB, `2` — każdy zapis STATUS kasuje flagę. Mapa rejestrów i opis: [11.04](11.04-agent-driver-i-monitor.md#układ-weryfikowany-axil_regs).
+**`axil_regs`** — blok rejestrów z interfejsem AXI4-Lite (podrzędnym): ID, CTRL (kod operacji, zezwolenie przerwania), argumenty OPA i OPB, RESULT (wynik ALU z modułu 10 liczony na bieżąco), STATUS z flagą błędu kasowaną zapisem 1 (W1C), SCRATCH z obsługą WSTRB, adres spoza mapy z odpowiedzią SLVERR, wyjście `irq`. Parametr `BUG` wstrzykuje błąd: `1` — SCRATCH ignoruje WSTRB, `2` — każdy zapis STATUS kasuje flagę. Mapa rejestrów i opis: [11.04](11.04-agent-driver-i-monitor.md#układ-weryfikowany).
 
 ## Kod w module
 
