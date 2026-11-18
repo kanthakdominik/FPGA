@@ -56,12 +56,18 @@ def popraw_link(cel, plik_repo):
         return os.path.relpath(rel_repo, katalog) + kotwica
     if os.path.isdir(pelna) and os.path.exists(os.path.join(pelna, "README.md")):
         rel_repo = os.path.join(rel_repo, "README.md")
+    if rel_repo.endswith(".md") and STRONY and rel_repo not in STRONY:   # .md spoza strony, np. deca/*/README.md
+        if os.path.isdir(pelna):
+            return f"{REPO}/tree/main/{os.path.relpath(pelna, ROOT)}{kotwica}"
+        return f"{REPO}/blob/main/{rel_repo}{kotwica}"
     elif not rel_repo.endswith(".md") or not os.path.exists(pelna):
         rodzaj = "tree" if os.path.isdir(pelna) else "blob"
         return f"{REPO}/{rodzaj}/main/{rel_repo}{kotwica}"       # kod HDL, skrypty, konfiguracja → GitHub
     nowy = os.path.relpath(cel_strony(rel_repo), os.path.dirname(cel_strony(plik_repo)))
     return nowy + kotwica
 
+
+STRONY = set()                                                     # pliki .md kopiowane na stronę
 
 LISTA = re.compile(r"^( *)([-*+]|\d+[.)]) +")
 
@@ -174,6 +180,7 @@ def main():
     pliki = (PLIKI_GLOWNE + glob_md("plytka-deca/*.md") + glob_md("rozmowa-kwalifikacyjna/*.md")
              + glob_md("modules/*/*.md"))
     pliki = [p for p in dict.fromkeys(pliki) if os.path.exists(os.path.join(ROOT, p))]
+    STRONY.update(pliki)
     for p in pliki:
         kopiuj(p)
 
