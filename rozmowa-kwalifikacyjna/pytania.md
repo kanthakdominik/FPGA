@@ -3130,7 +3130,161 @@ Mówi narzędziu syntezy, że nieopisane wartości selektora nie wystąpią, wi�
 
 ## 18 — Pamięci w FPGA
 
-_Pytania pojawią się razem z treścią modułu ([18-pamieci](../modules/18-pamieci/README.md))._
+### [18.01 — Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu](../modules/18-pamieci/18.01-bloki-pamieci-tryby-jedno-i-dwuportowe-odczyt.md)
+
+1. **Dlaczego pamięć z odczytem asynchronicznym nie trafi do bloku M9K?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo M9K ma zawsze rejestrowane wejścia (adres), więc dana pojawia się takt po podaniu adresu — odczyt jest synchroniczny. Opis `assign dout = mem[addr]` wymaga danych w tym samym takcie. W rodzinach z pamięcią rozproszoną (MLAB, LUTRAM) narzędzie użyje LUT jako małej pamięci; w MAX 10 takiej pamięci nie ma, więc powstają rejestry i multiplekser 2^AW:1 na każdy bit.
+</details>
+
+2. **Co zwraca blok pamięci przy odczycie adresu zapisywanego w tym samym takcie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zależy od trybu i portów. Ten sam port: starą zawartość (READ_FIRST/old data), nową daną (WRITE_FIRST/new data) albo poprzednią wartość wyjścia (NO_CHANGE). Dwa porty z jednym zegarem: w M9K „old data” albo „don't care” zależnie od ustawienia. Dwa różne zegary: wynik nieokreślony. Kod HDL wybiera tryb przez sposób opisu, ale przy dwóch zegarach poprawność musi zapewnić protokół, a nie tryb.
+</details>
+
+3. **Masz pamięć 256 × 8 z synchronicznym resetem całej zawartości. Co się stanie w syntezie i jak to poprawić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Blok pamięci nie kasuje zawartości, więc narzędzie zbuduje 2048 przerzutników z resetem i multipleksery odczytu (w eksperymencie Yosysa: 2056 FF, 2307 LUT4 zamiast jednego bloku). Poprawka: bez resetu tablicy; jeśli trzeba zaczynać od zer — inicjalizacja przy konfiguracji (plik), bit ważności na słowo (w rejestrach albo w osobnej małej pamięci) albo automat, który po resecie zapisuje zera adres po adresie.
+</details>
+
+### [18.02 — ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)](../modules/18-pamieci/18.02-rom-i-inicjalizacja-pamieci-z-pliku-mif-hex-mem.md)
+
+1. **Jak przenośnie zainicjalizować pamięć w Verilogu i w VHDL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W Verilogu/SV: `initial $readmemh("plik.hex", mem);` — rozumieją to symulatory i syntezatory Quartus, Vivado, Yosys. W VHDL: funkcja nieczysta czytająca plik przez `textio` w wartości początkowej sygnału pamięci (symulacja, Vivado), a dla Quartusa dodatkowo atrybut `ram_init_file` z plikiem `.mif`; całkowicie przenośnie — pakiet ze stałą tablicą generowany skryptem. Pliki w różnych formatach generuje jeden skrypt z jednego źródła.
+</details>
+
+2. **Czy ROM zawsze trafia do bloku pamięci?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie. ROM z odczytem synchronicznym może trafić do bloku, ale narzędzie wybiera realizację tańszą według swojego modelu kosztów: mała tablica (np. 256 × 8) bywa tańsza w LUT niż zajęcie całego bloku. ROM z odczytem asynchronicznym zawsze jest logiką. Wybór wymusza atrybut (`romstyle = "M9K"` w Quartusie, `rom_style = "block"` w Vivado i Yosysie) albo ustawienie narzędzia.
+</details>
+
+3. **Zmieniłeś tablicę współczynników w pliku .mif. Czy musisz ponownie kompilować projekt?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W Quartusie nie: *Update Memory Initialization File* wczytuje nową zawartość do bazy projektu, a ponowny Assembler generuje `.sof` w kilkadziesiąt sekund, bez syntezy i dopasowania. Na działającym układzie można też podmienić zawartość przez JTAG (*In-System Memory Content Editor*), jeśli pamięć ma włączony identyfikator do edycji. Zawartość pliku nie wpływa na rozmieszczenie ani timing.
+</details>
+
+### [18.03 — Synchroniczna kolejka FIFO i flagi](../modules/18-pamieci/18.03-synchroniczna-kolejka-fifo-i-flagi.md)
+
+1. **Czym różni się FIFO w trybie standardowym od FWFT i jak zbudować FWFT na pamięci blokowej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W standardowym dana pojawia się na wyjściu takt po `rd_en`; w FWFT najstarsza dana już czeka na wyjściu, gdy kolejka nie jest pusta, a `rd_en` ją zdejmuje. Pamięć blokowa ma odczyt synchroniczny, więc FWFT wymaga stopnia wyprzedzenia: rejestr wyjściowy z flagą ważności, ładowany z pamięci, gdy jest pusty albo właśnie zwalniany (`!valid || rd_en`) i pamięć ma dane. `empty = !valid`; pojemność rośnie o jedno słowo; dane pojawiają się na wyjściu 2 takty po zapisie do pustej kolejki.
+</details>
+
+2. **Jak liczysz flagi pełna/pusta w FIFO synchronicznym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Albo licznikiem słów (AW + 1 bitów: +1 przy zapisie, −1 przy odczycie) — pełna przy 2^AW, pusta przy 0 — albo wskaźnikami o jeden bit szerszymi niż adres: równe — pusta, różne tylko najstarszym bitem — pełna. W jednej domenie zegarowej oba sposoby są proste; licznik daje od razu `count` i flagi programowalne.
+</details>
+
+3. **Do czego służy almost_full i jak dobrać próg?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Do zatrzymania producenta, który nie reaguje natychmiast — ma potok, wysyła paczkami albo sygnał wstrzymania dochodzi do niego z opóźnieniem. Próg = głębokość minus maksymalna liczba słów, które producent może jeszcze wysłać po zapaleniu flagi (opóźnienie reakcji w taktach × słowa na takt, plus paczka w toku). Za wysoki próg — przepełnienie; za niski — niewykorzystana głębokość.
+</details>
+
+### [18.04 — Bufory pierścieniowe, ping-pong i bufory linii](../modules/18-pamieci/18.04-bufory-pierscieniowe-ping-pong-i-bufory-linii.md)
+
+1. **Kiedy użyjesz bufora ping-pong zamiast FIFO?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy odbiorca potrzebuje całego bloku i czyta go w innej kolejności niż zapis (FFT z odwróceniem bitów adresu, transpozycja, przeplot, przetwarzanie ramki), albo gdy nadawca i odbiorca pracują na blokach w potoku: jeden wypełnia bank, drugi w tym czasie przetwarza poprzedni. Koszt: dwa razy pamięć bloku i opóźnienie całego bloku. FIFO wystarcza, gdy dane są konsumowane w kolejności zapisu.
+</details>
+
+2. **Jak zbudować okno 3 × 3 na strumieniu pikseli bez pamiętania całego obrazu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa bufory linii (albo jedna pamięć o słowie 2·W) przechowują dwie poprzednie linie: dla każdego nowego piksela odczytuje się piksele z tej samej kolumny z linii −1 i −2, a na ich miejsce zapisuje {linia −1, bieżący}. Daje to kolumnę trzech pikseli; trzy ostatnie kolumny trzyma 6 rejestrów. Pamięć: 2 × szerokość linii × W bitów, plus logika brzegów obrazu.
+</details>
+
+3. **Ile pamięci potrzeba na bufor linii dla filtra 5 × 5 obrazu 1920 × 1080, 24 bity na piksel?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Cztery poprzednie linie × 1920 pikseli × 24 bity = 184 320 bitów (~180 kbit), czyli pojemność 20 bloków M9K (po 9216 bitów). Liczy się jednak organizacja: głębokość 1920 wymaga konfiguracji 2048 × 4 bity, a słowo 4 linii × 24 bity = 96 bitów — razem 96 / 4 = 24 bloki. Dobór szerokości i głębokości bywa ważniejszy niż sama liczba bitów.
+</details>
+
+### [18.05 — Pamięć flash użytkownika w MAX 10 (UFM)](../modules/18-pamieci/18.05-pamiec-flash-uzytkownika-w-max-10-ufm.md)
+
+1. **Dlaczego zapis do flasha wymaga wcześniejszego kasowania?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Komórka flash zapisana (zaprogramowana) ma bit 0; programowanie może tylko wprowadzać ładunek, czyli zmieniać 1 w 0. Powrót do 1 wymaga kasowania, które działa na całym bloku (stronie) naraz. Dlatego zapis nowej wartości w miejsce starej wymaga skasowania strony, a bez tego wynik to AND starej i nowej wartości.
+</details>
+
+2. **Jak przechowywać często zmieniany licznik w pamięci o 10 000 cyklach kasowania?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dziennikiem: strona jako tablica rekordów, każda zmiana to zapis w kolejnym wolnym (skasowanym) słowie, wartość bieżąca — ostatni zapisany rekord; kasowanie dopiero po zapełnieniu strony. Przy 2048 słowach na stronę to 2048 zmian na jeden cykl kasowania. Do tego dwie strony na zmianę (zawsze jedna kompletna kopia), numer sekwencyjny i suma kontrolna rekordu, a zapis tylko przy zdarzeniach, nie okresowo.
+</details>
+
+3. **Czym UFM w MAX 10 różni się od zewnętrznego EEPROM I²C?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+UFM jest w układzie (brak pinów, szybki 32-bitowy odczyt równoległy przez Avalon-MM), ale kasuje się stronami (kilobajty), a nie bajtami, ma 10 000 cykli (EEPROM zwykle 10⁶ cykli i zapis pojedynczego bajtu) i zależy od trybu konfiguracji — ponowne programowanie układu może ją skasować. EEPROM lepiej znosi częste małe zmiany; UFM wygrywa ceną, pojemnością i szybkością odczytu.
+</details>
+
+### [18.06 — ECC i ochrona danych w pamięci](../modules/18-pamieci/18.06-ecc-i-ochrona-danych-w-pamieci.md)
+
+1. **Ile bitów kontrolnych potrzebuje kod SECDED dla 64 bitów danych i dlaczego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kod Hamminga potrzebuje r bitów, gdzie 2^r ≥ k + r + 1: dla k = 64 r = 7 (128 ≥ 72). SECDED dodaje bit parzystości całego słowa, który rozróżnia błąd pojedynczy (parzystość niezgodna) od podwójnego (parzystość zgodna, syndrom niezerowy): razem 8 bitów, słowo 72 bity — stąd moduły pamięci DDR z ECC mają szynę 72-bitową.
+</details>
+
+2. **Jak dekoder SECDED odróżnia błąd pojedynczy od podwójnego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Błąd pojedynczy zmienia parzystość całego słowa (parzystość ogólna = 1), a syndrom wskazuje pozycję (albo 0, gdy błędny jest sam bit parzystości). Błąd podwójny nie zmienia parzystości ogólnej (dwa odwrócone bity), ale syndrom jest niezerowy — XOR dwóch różnych numerów pozycji. Dekoder: parzystość 1 → popraw bit wskazany przez syndrom; parzystość 0 i syndrom ≠ 0 → zgłoś błąd niepoprawialny.
+</details>
+
+3. **Czym jest scrubbing i po co go stosować?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Okresowym czytaniem całej pamięci, poprawianiem słów z pojedynczym błędem i zapisywaniem ich z powrotem. ECC poprawia jeden błąd na słowo; jeśli błędy miękkie gromadzą się w rzadko czytanym słowie, drugi błąd w tym samym słowie czyni je niepoprawialnym. Okres czyszczenia dobiera się do częstości błędów (SER) i wymaganej niezawodności.
+</details>
 
 ## 19 — Arytmetyka i liczby w sprzęcie
 

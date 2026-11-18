@@ -310,6 +310,12 @@ jobs:
           (cd modules/17-debug-na-sprzecie/pulapki && python3 porownaj.py) | tee pulapki.txt
           tclsh modules/17-debug-na-sprzecie/deca/debug/test_skryptow.tcl | tee skrypty.txt
           { echo "## Debug na sprzęcie (moduł 17)"; echo '```'; cat pulapki.txt; grep -E "OK|BLAD|PASS|FAIL" pomiary.txt skrypty.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Pamięci — wnioskowanie bloków pamięci w Yosysie (moduł 18)
+        run: |
+          set -o pipefail
+          cd modules/18-pamieci/pamieci
+          python3 wnioskowanie.py | tee wnioskowanie.txt
+          { echo "## Pamięci — wnioskowanie (moduł 18)"; echo '```'; cat wnioskowanie.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4

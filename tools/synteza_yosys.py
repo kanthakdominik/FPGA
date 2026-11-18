@@ -81,7 +81,10 @@ def main():
                 skrypt = (f"read_verilog {' '.join(str(f) for f in pliki)}; {chparam}"
                           f"synth -flatten -top {top} -lut 4; check -assert; stat; ltp -noff")
                 nazwa = f"{top}[{wariant}]" if wariant else top
-                r = subprocess.run(["yosys", "-p", skrypt], capture_output=True, text=True, timeout=300)
+                # pliki zawartości pamięci ($readmemh) leżą w hdl/dane — Yosys szuka ich względem katalogu roboczego
+                dane = katalog.parent / "dane"
+                r = subprocess.run(["yosys", "-p", skrypt], capture_output=True, text=True, timeout=300,
+                                   cwd=dane if dane.is_dir() else None)
                 if r.returncode != 0:
                     bledy += 1
                     print(f"  FAIL  {nazwa}")
