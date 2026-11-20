@@ -1,0 +1,46 @@
+// Mapa rejestrów z 21.02 w SystemRDL 2.0 (21.05). Z tego opisu PeakRDL generuje blok rejestrów
+// w SystemVerilogu (peakrdl regblock), nagłówek C (peakrdl c-header) i dokumentację HTML (peakrdl html);
+// sprawdz.py porównuje adresy z ręcznie napisanym rejestry_rdzen.v.
+addrmap rejestry {
+    name = "Rejestry kursu FPGA (21.02)";
+    desc = "ID, sterowanie, stan, przerwania W1C z maską, rejestr próbny.";
+    default regwidth = 32;
+    default accesswidth = 32;
+
+    reg {
+        name = "Identyfikator";
+        field { sw = r; hw = na; desc = "Stała wersja bloku."; } id[31:0] = 32'h21020001;
+    } ID @ 0x00;
+
+    reg {
+        name = "Sterowanie";
+        field { sw = rw; hw = r; desc = "Wyjście ster do logiki układu."; } ster[31:0] = 0;
+    } STER @ 0x04;
+
+    reg {
+        name = "Stan";
+        field { sw = r; hw = w; desc = "Wejście stan z logiki układu."; } stan[31:0];
+    } STAN @ 0x08;
+
+    reg {
+        name = "Przerwania";
+        field {
+            desc = "Zdarzenia: bit ustawiany przez sprzęt, kasowany zapisem jedynki (W1C).";
+            level intr;
+            sw = rw;
+            onwrite = woclr;
+        } zd[7:0] = 0;
+    } PRZER @ 0x0C;
+
+    reg {
+        name = "Maska przerwań";
+        field { sw = rw; hw = r; desc = "Bit 1 przepuszcza zdarzenie na wyjście irq."; } m[7:0] = 0;
+    } MASKA @ 0x10;
+
+    reg {
+        name = "Skrytka";
+        field { sw = rw; hw = na; desc = "Rejestr próbny bez połączenia ze sprzętem."; } d[31:0] = 0;
+    } SKRYTKA @ 0x14;
+
+    PRZER.zd->enable = MASKA.m;
+};

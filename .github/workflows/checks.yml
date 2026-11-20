@@ -182,6 +182,12 @@ jobs:
           if make BUG=1 N=100000 test; then echo "BUG=1 nie wykryty"; exit 1; else echo "BUG=1 wykryty (oczekiwane)"; fi
           make porownanie | tee porownanie.txt
           { echo "## Szybkość symulatorów (moduł 12)"; echo '```'; cat porownanie.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Mapa rejestrów — SystemRDL i PeakRDL (moduł 21)
+        run: |
+          set -o pipefail
+          pip install -q -r modules/21-magistrale-on-chip/rdl/requirements.txt
+          modules/21-magistrale-on-chip/rdl/generuj.sh | tee wynik-rdl.txt
+          { echo "## SystemRDL i PeakRDL (moduł 21)"; echo '```'; cat wynik-rdl.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty JUnit do pobrania
         if: always()
         uses: actions/upload-artifact@v4

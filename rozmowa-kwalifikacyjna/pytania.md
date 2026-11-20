@@ -3604,7 +3604,161 @@ Gdy zakres kodów jest mały (jak termodioda MAX 10: ok. 370 kodów), najprości
 
 ## 21 — Magistrale i interfejsy na chipie
 
-_Pytania pojawią się razem z treścią modułu ([21-magistrale-on-chip](../modules/21-magistrale-on-chip/README.md))._
+### [21.01 — Strumienie z handshakiem: AXI4-Stream i Avalon-ST](../modules/21-magistrale-on-chip/21.01-strumienie-z-handshakiem-axi4-stream-i-avalon-st.md)
+
+1. **Dlaczego w AXI nadajnik nie może czekać na TREADY z ustawieniem TVALID?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo odbiornik ma prawo czekać na TVALID z ustawieniem TREADY (np. FIFO, które wystawia ready dopiero, gdy ma czym się zająć, albo układ, który przyjmuje dane tylko w określonych chwilach). Gdyby obie strony czekały na siebie, nastąpiłoby zakleszczenie. Specyfikacja rozstrzyga to jednostronnie: zależność wolno mieć tylko w jednym kierunku — ready może zależeć od valid, valid od ready nie.
+</details>
+
+2. **Co to jest skid buffer i kiedy jest potrzebny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bufor z dwoma rejestrami (wyjściowym i zapasowym), który rejestruje zarówno dane, jak i sygnał ready, zachowując przepustowość jednego słowa na takt. Gdy odbiornik zatrzyma strumień, nadajnik dowiaduje się o tym takt później (ready jest z rejestru) — słowo wysłane w tym takcie trafia do rejestru zapasowego zamiast przepaść. Potrzebny, gdy kombinacyjna ścieżka ready przez wiele etapów potoku ogranicza f_max albo gdy interfejs przechodzi przez duży odcinek układu (między regionami, SLR).
+</details>
+
+3. **Jak przekształcić strumień 8-bitowy w 32-bitowy i co zrobić z pakietem, którego długość nie jest wielokrotnością 4?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zbierać bajty w rejestrze, wpisując każdy na kolejną pozycję (pierwszy bajt w bitach 7:0), i wysłać słowo po czwartym bajcie. Gdy przyjdzie bajt z TLAST, słowo wysyła się od razu jako niepełne: TKEEP ma jedynki tylko dla zapisanych bajtów, TLAST = 1, a składanie zaczyna się od nowa. W Avalon-ST zamiast maski podaje się `empty` = liczba pustych bajtów.
+</details>
+
+### [21.02 — Rejestry sterujące: AXI4-Lite i Avalon-MM](../modules/21-magistrale-on-chip/21.02-rejestry-sterujace-axi4-lite-i-avalon-mm.md)
+
+1. **W slave'ie AXI4-Lite dane zapisu przyszły przed adresem. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przyjmuję je (WREADY = 1, jeśli mam wolny rejestr na dane) i zapamiętuję razem z WSTRB, a WREADY opada, dopóki zapis się nie wykona. Gdy przyjdzie adres, mam komplet — wykonuję zapis i wystawiam BVALID. AW i W są w AXI niezależnymi kanałami; slave może też czekać na oba (trzymać ready = 0), ale nie może zakładać, że przyjdą w tym samym takcie, a master nie może uzależniać wystawienia jednego od ready drugiego.
+</details>
+
+2. **Czym różni się SLVERR od DECERR?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+SLVERR zgłasza slave, który dostał transakcję, ale nie może jej wykonać (adres w jego zakresie bez rejestru, błąd urządzenia, zapis do zablokowanego rejestru). DECERR zgłasza interconnect (zwykle wbudowany *default slave*), gdy pod adresem nie ma żadnego slave'a. Dla oprogramowania oba kończą się zwykle wyjątkiem magistrali, ale rozróżnienie mówi, czy błąd jest w mapie adresów systemu, czy w konkretnym bloku.
+</details>
+
+3. **Dlaczego flagi przerwań robi się jako W1C, a nie zwykły rejestr RW?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo przy RW skasowanie jednej flagi wymaga odczytu, zmiany bitu i zapisu — a zdarzenie, które przyjdzie między odczytem i zapisem, zostanie nadpisane zerem i zgubione. W1C kasuje tylko bity zapisane jedynką, pozostałe zostają, a sprzęt nadal może ustawiać nowe. Logika musi przy tym dać pierwszeństwo zdarzeniu przychodzącemu w takcie kasowania.
+</details>
+
+### [21.03 — AXI4 i Avalon-MM z burstami](../modules/21-magistrale-on-chip/21.03-axi4-i-avalon-mm-z-burstami.md)
+
+1. **Podaj adresy burstu WRAP: ARADDR = 0x1C, ARSIZE = 2, ARLEN = 3.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+S = 4 bajty, L = 4 takty, okno = 16 bajtów wyrównane do 16: 0x10–0x1F. Adresy: 0x1C, potem 0x20 przekracza okno → 0x10, dalej 0x14, 0x18. Czyli 0x1C, 0x10, 0x14, 0x18. Tak pamięć podręczna wczytuje linię 16 bajtów, zaczynając od słowa, na które czeka procesor (*critical word first*).
+</details>
+
+2. **Dlaczego burst AXI nie może przekroczyć granicy 4 KB?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo 4 KB to najmniejsza jednostka przydziału przestrzeni adresowej (strona pamięci wirtualnej, minimalny zakres slave'a w interconnectcie). Interconnect dekoduje tylko adres startowy burstu i kieruje cały burst do jednego slave'a; gdyby burst przekroczył granicę, część danych trafiłaby do niewłaściwego urządzenia. Reguła przerzuca na mastera obowiązek dzielenia transferów i upraszcza wszystkie slave'y i dekodery.
+</details>
+
+3. **Do czego służy AXI ID, skoro odpowiedzi i tak wracają do mastera?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pozwala na wiele transakcji w toku i na odpowiedzi poza kolejnością: slave (np. kontroler DDR z bankami) może oddać najpierw dane dostępne szybciej, o ile należą do innego ID. Master używa różnych ID dla niezależnych strumieni (np. odczytu instrukcji i danych), a tego samego, gdy potrzebuje zachowania kolejności. Interconnect dokleja do ID numer mastera, żeby skierować odpowiedź do właściwego źródła.
+</details>
+
+### [21.04 — Wishbone i magistrale otwarte](../modules/21-magistrale-on-chip/21.04-wishbone-i-magistrale-otwarte.md)
+
+1. **Czym różni się Wishbone potokowy od klasycznego i ile wynosi przepustowość każdego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W klasycznym master czeka na ACK przed podaniem następnego żądania — z rejestrowanym ACK to jedno słowo na dwa takty (słowo na takt tylko z ACK kombinacyjnym albo z burstami *registered feedback*). W potokowym żądanie jest przyjęte, gdy slave nie zgłasza STALL, master podaje kolejne od razu, a ACK przychodzą później w kolejności żądań — słowo na takt przy rejestrowanych sygnałach. Potokowy wymaga od mastera liczenia żądań w toku.
+</details>
+
+2. **Jak podłączyć slave'a Wishbone klasycznego do mastera potokowego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wystawić STALL = ¬ACK (przy aktywnym STB): dopóki slave nie odpowie, master widzi „zajęty” i nie uważa żądania za przyjęte ani nie podaje następnego. W takcie ACK STALL = 0, więc żądanie jest przyjęte, a ACK liczy się jako odpowiedź. Przepustowość spada do tempa slave'a klasycznego, ale protokół się zgadza. Odwrotny kierunek (master klasyczny, slave potokowy) wymaga trzymania STB tylko do przyjęcia i czekania na ACK.
+</details>
+
+3. **Dlaczego AXI ma pięć kanałów, a Wishbone jeden? Co daje każde podejście?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wishbone przesyła adres, dane i kierunek razem, a odpowiedzi wracają w kolejności — mało sygnałów, prosta logika, dobre dla małych systemów. AXI rozdziela adres zapisu, dane zapisu, odpowiedź, adres odczytu i dane odczytu, a ID pozwala na odpowiedzi poza kolejnością. Dzięki temu odczyty i zapisy idą równolegle, wiele transakcji może być w toku, a slave z różnym opóźnieniem (DDR) nie blokuje innych — kosztem większej logiki i trudniejszej weryfikacji.
+</details>
+
+### [21.05 — Mapa rejestrów i generatory: SystemRDL, PeakRDL](../modules/21-magistrale-on-chip/21.05-mapa-rejestrow-i-generatory-systemrdl-peakrdl.md)
+
+1. **Po co opisywać rejestry w SystemRDL albo IP-XACT, skoro RTL można napisać ręcznie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo mapa rejestrów jest potrzebna w wielu postaciach — RTL, nagłówki i sterowniki C, dokumentacja, model rejestrów UVM, skrypty testowe — i ręczne utrzymywanie ich spójności prowadzi do błędów, które wychodzą dopiero przy integracji z oprogramowaniem. Opis w jednym języku generuje wszystkie postacie naraz, standaryzuje zachowania pól (W1C, impulsy, liczniki) i pozwala zmieniać magistralę bez zmiany logiki rejestrów.
+</details>
+
+2. **Jak opisać w SystemRDL rejestr flag przerwań z maską?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pole flag jako `intr` (bit lepki ustawiany przez sprzęt) z `sw = rw` i `onwrite = woclr` — zapis jedynki kasuje. Osobny rejestr maski z polem `sw = rw`. Połączenie właściwością `enable` (albo `mask`) pola przerwań: `FLAGI.pole->enable = MASKA.pole;`. Generator tworzy wyjście przerwania rejestru (OR bitów włączonych maską) i wejścia zdarzeń dla sprzętu.
+</details>
+
+3. **Czym różni się generowany blok rejestrów od ręcznie napisanego slave'a, jeśli chodzi o weryfikację?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Generator jest zweryfikowany przez jego autorów dla wszystkich obsługiwanych konstrukcji, więc nie testuje się ponownie protokołu i logiki pól w każdym projekcie — wystarczy test integracji: czy sprzęt poprawnie używa wyjść i wejść `hwif`, czy adresy w oprogramowaniu pochodzą z wygenerowanego nagłówka. Ręczny slave wymaga pełnej weryfikacji protokołu (jak `tb_rejestry` w 21.02). Generator daje też model rejestrów (UVM RAL), z którego testbench korzysta zamiast ręcznych adresów.
+</details>
+
+### [21.06 — Platform Designer i IP Integrator](../modules/21-magistrale-on-chip/21.06-platform-designer-i-ip-integrator.md)
+
+1. **Co musi zawierać opis komponentu dla Platform Designer albo IP Integratora, żeby własny blok z rejestrami dało się podłączyć do procesora?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pliki HDL i moduł najwyższego poziomu; interfejs zegara i resetu (z biegunowością i sposobem zwalniania); interfejs slave'a magistrali (Avalon-MM albo AXI4-Lite) z mapowaniem portów na role sygnałów i własnościami: jednostki adresu, opóźnienie odczytu albo sygnał ważności, maksymalne odczyty w toku, obsługa burstów, związany zegar i reset; interfejs przerwania, jeśli blok je zgłasza; sygnały zewnętrzne jako conduit/external; parametry przekazywane do HDL. Narzędzie wygeneruje interconnect zgodnie z tymi deklaracjami, więc muszą one dokładnie odpowiadać zachowaniu RTL.
+</details>
+
+2. **Jak uruchomić i przetestować nowy blok z rejestrami na płytce, zanim powstanie oprogramowanie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dodać do systemu mastera sterowanego przez JTAG (JTAG to Avalon Master Bridge albo JTAG to AXI Master), połączyć go ze slave'em bloku i skryptem w System Console (albo Vivado Hardware Manager) wykonywać odczyty i zapisy rejestrów pod adresami z mapy: sprawdzić rejestr ID, zapisy i odczyty, reakcję sprzętu. Skrypt można rozbudować do testu regresyjnego. Do obserwacji sygnałów wewnątrz — Signal Tap/ILA wyzwalane dostępem do rejestru.
+</details>
+
+3. **Dlaczego system Platform Designer albo block design trzyma się w repozytorium jako skrypt Tcl?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pliki `.qsys`/`.bd` to XML zależny od wersji narzędzia, z identyfikatorami i informacjami o generacji — różnice między wersjami są nieczytelne, a konflikty przy łączeniu gałęzi trudne do rozwiązania. Skrypt Tcl opisuje intencję (instancje, połączenia, adresy), jest krótki, czytelny w przeglądzie kodu i zwykle działa w nowszych wersjach narzędzia. Wygenerowany system i HDL powstają w budowaniu, jak każdy inny plik pośredni.
+</details>
 
 ## 22 — Wejścia-wyjścia i szybkie interfejsy
 

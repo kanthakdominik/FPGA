@@ -1,0 +1,5 @@
+systemrdl-compiler
+peakrdl
+peakrdl-regblock
+peakrdl-cheader
+peakrdl-html
