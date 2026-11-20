@@ -3446,7 +3446,161 @@ Cięciwa przechodzi przez wartości funkcji na końcach odcinka — dla funkcji 
 
 ## 20 — Interfejsy szeregowe niskiej szybkości
 
-_Pytania pojawią się razem z treścią modułu ([20-interfejsy-szeregowe](../modules/20-interfejsy-szeregowe/README.md))._
+### [20.01 — UART: nadajnik, odbiornik i nadpróbkowanie](../modules/20-interfejsy-szeregowe/20.01-uart-nadajnik-odbiornik-i-nadprobkowanie.md)
+
+1. **Dlaczego odbiornik UART próbkuje 16 razy na bit, skoro bit trzeba odczytać raz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odbiornik nie ma zegara nadajnika — jedyna informacja o fazie to zbocze opadające bitu startu. Nadpróbkowanie pozwala wykryć to zbocze z dokładnością 1/16 bitu i potem odliczać do środka kolejnych bitów, gdzie sygnał jest najstabilniejszy i najdalej od zboczy. Dodatkowo kilka próbek w środku bitu daje decyzję większościową odporną na krótkie zakłócenia, a sprawdzenie środka bitu startu odrzuca fałszywe starty. Bez nadpróbkowania (próbka raz na bit) faza próbkowania byłaby przypadkowa — w najgorszym razie na samym zboczu.
+</details>
+
+2. **Nadajnik ma zegar o 3 % szybszy, odbiornik o 2 % wolniejszy. Czy łącze 8N1 zadziała?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczy się suma, czyli ok. 5 % różnicy. Ostatnia decyzja zapada w środku bitu stopu, ok. 9,5 bitu po zboczu startu: przesunięcie 9,5 · 0,05 ≈ 0,48 bitu — przy niepewności wykrycia startu (1/16) i szerokości okna próbek decyzja wypada na granicy bitu albo za nią. Łącze będzie gubić część bajtów (zależnie od danych — błąd pojawi się, gdy sąsiedni bit ma inną wartość). Typowy budżet to ok. 4 % łącznie, praktycznie ±2 % na stronę.
+</details>
+
+3. **Co to jest błąd ramki i co może go powodować?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W miejscu bitu stopu odbiornik odczytał 0 zamiast 1. Przyczyny: niezgodna szybkość (najczęściej), zakłócenie, odbiornik zsynchronizował się na bit danych zamiast na start (np. podłączony w środku strumienia), stan *break* (nadajnik trzyma linię nisko dłużej niż ramka — używany jako sygnał specjalny, np. w LIN i DMX512). Odbiornik zwykle zgłasza bajt z flagą błędu, a protokół wyższej warstwy decyduje, co dalej.
+</details>
+
+### [20.02 — SPI: master i slave, tryby CPOL/CPHA](../modules/20-interfejsy-szeregowe/20.02-spi-master-i-slave-tryby-cpol-cpha.md)
+
+1. **Czym różnią się tryby SPI 0 i 1? Co się stanie, gdy master i slave mają różne tryby?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Oba mają SCLK w spoczynku niski (CPOL = 0). W trybie 0 dane próbkuje się na zboczu narastającym (wiodącym), a pierwszy bit musi być na linii już po opadnięciu CS; w trybie 1 pierwszy bit wystawia zbocze narastające, a próbkuje się na opadającym. Przy niezgodności strona próbkująca odczytuje bit w chwili, gdy druga go zmienia — wynik zależy od opóźnień: albo dane przesunięte o jeden bit (najstarszy bit zgubiony, na końcu śmieć), albo losowe błędy. Typowy objaw: „prawie dobre” wartości, np. dwukrotnie za duże.
+</details>
+
+2. **Jak odczytać rejestr układu SPI, skoro SPI nie ma kierunku transmisji?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kierunek wynika z protokołu układu, nie z SPI. Zwykle pierwszy bajt zawiera adres i bit odczytu (LIS2DH12: bit 7 = 1 odczyt, bit 6 = autoinkrementacja adresu), slave w tym czasie wysyła nieistotne bity. W kolejnych bajtach master wysyła cokolwiek (zwykle 0x00 albo 0xFF), a slave wysyła zawartość rejestrów. CS musi zostać niski przez całą transakcję. Master po prostu odrzuca bajty odebrane podczas wysyłania adresu.
+</details>
+
+3. **Projektujesz SPI slave w FPGA z zegarem 50 MHz. Do jakiej częstotliwości SCLK może działać wersja z nadpróbkowaniem i co zrobić, gdy potrzeba więcej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wejścia przechodzą przez dwustopniowy synchronizator, potem detektor zbocza i rejestr wyjścia MISO — to 3–4 takty od zbocza SCLK do zmiany MISO. Nowy bit musi być na linii przed następnym zboczem próbkującym mastera, czyli w pół okresu SCLK, z zapasem na opóźnienia pinów. Przy 50 MHz to SCLK rzędu 5–6 MHz. Szybciej: taktować rejestr przesuwny bezpośrednio zboczem SCLK (osobna domena zegarowa z ograniczeniem czasowym), a gotowe słowo przekazywać do domeny systemowej synchronizatorem z potwierdzeniem albo przez asynchroniczne FIFO.
+</details>
+
+### [20.03 — I²C: master, open-drain i rozciąganie zegara](../modules/20-interfejsy-szeregowe/20.03-i2c-master-open-drain-i-rozciaganie-zegara.md)
+
+1. **Jak zrealizować wyjście open-drain w FPGA, które nie ma takich pinów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Buforem trójstanowym, którego wejście danych jest na stałe 0, a sterowane jest tylko włączenie wyjścia: `pin <= '0' when oe = '1' else 'Z'`. Odczyt linii z tego samego pinu, przez synchronizator. Jedynkę daje rezystor podciągający (zewnętrzny albo słabe podciąganie w bloku I/O). Wewnątrz FPGA nie ma linii trójstanowych — bufor powstaje w bloku I/O, a logika operuje osobnymi sygnałami `oe` i `i`. Część rodzin ma też atrybut pinu *open drain*, który robi to samo.
+</details>
+
+2. **Co to jest rozciąganie zegara i jak master musi je obsłużyć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Slave, który potrzebuje czasu (przygotowanie danych, zapis), przytrzymuje SCL w stanie niskim po zboczu opadającym mastera. Master po zwolnieniu SCL nie może założyć, że linia jest wysoka — musi odczytać SCL i zacząć odmierzać czas stanu wysokiego dopiero, gdy linia faktycznie wzrośnie. Inaczej skróci stan wysoki albo ściągnie SCL, zanim slave go zwolnił. Ten sam mechanizm obsługuje wolne narastanie linii i synchronizację zegarów wielu masterów.
+</details>
+
+3. **Dobierz rezystory podciągające dla 400 kHz, 3,3 V i pojemności linii 150 pF.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+t_r ≤ 300 ns w trybie Fm, t_r = 0,8473·R_p·C_b → R_p(max) = 300 ns / (0,8473·150 pF) ≈ 2,36 kΩ. R_p(min) = (3,3 − 0,4) V / 3 mA ≈ 0,97 kΩ. Wybór: 1,5–2,2 kΩ (np. 2,2 kΩ — mniejszy prąd, jeszcze w granicy czasu narastania). Wewnętrzne podciąganie FPGA (dziesiątki kΩ) byłoby o rząd wielkości za słabe.
+</details>
+
+### [20.04 — PWM, enkodery kwadraturowe i serwomechanizmy](../modules/20-interfejsy-szeregowe/20.04-pwm-enkodery-kwadraturowe-i-serwomechanizmy.md)
+
+1. **Co to jest czas martwy i jak go zrealizować w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odstęp, w którym oba tranzystory gałęzi mostka są wyłączone przy każdym przełączeniu — bo tranzystor wyłącza się wolniej, niż włącza, a jednoczesne przewodzenie zwiera zasilanie. W FPGA: z jednego sygnału odniesienia robi się dwa wyjścia; przy każdej zmianie odniesienia oba wyjścia idą w stan wyłączony, licznik odmierza N taktów i dopiero wtedy włącza się wyjście zgodne z nowym odniesieniem. Długość dobiera się z czasu wyłączania tranzystora i opóźnień sterownika z zapasem. Wyjścia powinny być rejestrowane (bez szpilek z logiki kombinacyjnej), a sterownik bramek powinien mieć własną blokadę.
+</details>
+
+2. **Jak określić kierunek obrotu z sygnałów enkodera kwadraturowego i ile kroków na obrót da enkoder 1000 CPR?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+A i B są przesunięte o 90°: przy ruchu w przód A zmienia się przed B, sekwencja stanów (A, B) to 00 → 10 → 11 → 01. Porównanie poprzedniego i bieżącego stanu (tablica 16 przejść) daje +1, −1, brak ruchu albo błąd (zmiana obu bitów). Dekodując każde zbocze A i B (×4), 1000 CPR daje 4000 kroków na obrót. Wejścia trzeba zsynchronizować i przefiltrować.
+</details>
+
+3. **Dlaczego w sterowaniu silnikami stosuje się PWM centrowany zamiast zwykłego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przy PWM wyrównanym do krawędzi wszystkie fazy włączają się na początku okresu — skoki prądu i zakłóceń sumują się, a harmoniczne są większe. W centrowanym impulsy są symetryczne wokół środka okresu, więc fazy o różnych wypełnieniach przełączają w różnych chwilach, widmo prądu jest korzystniejsze, a środek impulsu jest stałym punktem, w którym prąd uzwojenia równa się średniej — tam wyzwala się pomiar prądu przez ADC. Kosztem jest połowa częstotliwości PWM przy tym samym zegarze i liczniku.
+</details>
+
+### [20.05 — Czujniki na DECA: akcelerometr, temperatura i wilgotność](../modules/20-interfejsy-szeregowe/20.05-czujniki-na-deca-akcelerometr-temperatura-i.md)
+
+1. **Uruchamiasz nowy czujnik SPI i dostajesz same 0xFF. Jak szukasz przyczyny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+0xFF zwykle znaczy, że MISO jest w spoczynku wysokim — slave nie odpowiada. Kolejno: zasilanie i reset czujnika (czas rozruchu), czy CS dochodzi do właściwego układu i jest aktywny niskim, czy SCLK ma właściwy poziom spoczynkowy i częstotliwość nie przekracza maksimum, tryb CPOL/CPHA zgodny z kartą, format pierwszego bajtu (bit odczytu!), przypisanie pinów i kierunki buforów w FPGA. Pierwszy odczyt to rejestr identyfikacyjny — znana wartość potwierdza całą ścieżkę. Analizator logiczny albo Signal Tap na liniach SPI rozstrzyga, czy problem jest po stronie FPGA, czy czujnika.
+</details>
+
+2. **Czujnik I²C odpowiada NACK na swój adres co któryś odczyt. Czy to błąd?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Niekoniecznie. Część układów (HDC1000, wiele pamięci EEPROM w trakcie zapisu stron) celowo nie potwierdza adresu, gdy są zajęte — to ich sposób sygnalizacji gotowości (tzw. *acknowledge polling*). Sterownik powinien wtedy wysłać STOP, odczekać i ponowić. Błędem jest NACK stały (zły adres, brak podciągania, czujnik nie zasilony) albo NACK na bajt danych, którego układ powinien przyjąć. Warto liczyć NACK w liczniku diagnostycznym.
+</details>
+
+3. **Jak przeliczyć surowy kod HDC1000 na °C w FPGA bez dzielenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+T = s·165/65536 − 40. Dzielenie przez 2¹⁶ to wzięcie górnych bitów iloczynu, więc wystarczy mnożenie przez stałą 165 (blok DSP albo suma przesunięć: 165 = 128 + 32 + 4 + 1), wybranie bitów [23:16] i odjęcie 40. Wynik jest obcięty do całych stopni; dla zaokrąglenia dodaje się 2¹⁵ przed wybraniem bitów, a dla ułamków bierze się dodatkowe bity iloczynu (format Q, [19.01](../modules/19-arytmetyka/19.01-staloprzecinkowe-formaty-q-skalowanie.md)).
+</details>
+
+### [20.06 — Wbudowany przetwornik ADC w MAX 10](../modules/20-interfejsy-szeregowe/20.06-wbudowany-przetwornik-adc-w-max-10.md)
+
+1. **Rdzeń ADC nie ma sygnału ready po stronie odpowiedzi. Jakie to ma konsekwencje dla projektu logiki odbierającej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odpowiedź jest ważna tylko w takcie `response_valid` — logika musi ją przyjąć bezwarunkowo, bez czekania na dalszy tor. Jeśli konsument danych bywa zajęty (np. pisze do wolnej pamięci albo wysyła UART), między rdzeniem a nim musi być bufor: rejestr ostatniej wartości per kanał (gdy ważna jest tylko najnowsza próbka) albo FIFO o głębokości pokrywającej najdłuższą przerwę konsumenta (gdy liczy się każda próbka). Szybkość rozkazów można ograniczyć, żeby odpowiedzi nie przychodziły szybciej, niż konsument średnio nadąża.
+</details>
+
+2. **Ile bitów rozdzielczości zyskuje się, uśredniając 256 próbek 12-bitowego przetwornika?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dla szumu nieskorelowanego odchylenie maleje √256 = 16 razy, co odpowiada 4 bitom — teoretycznie 16 bitów skutecznych, pod warunkiem że szum na wejściu jest rzędu co najmniej 1 LSB (inaczej wszystkie próbki dają ten sam kod i średnia niczego nie poprawi — wtedy dodaje się celowo szum, *dithering*). Przepustowość spada 256 razy, a błędy systematyczne (INL, przesunięcie, wzmocnienie) zostają.
+</details>
+
+3. **Jak przeliczyć kod czujnika z nieliniową charakterystyką na jednostki w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy zakres kodów jest mały (jak termodioda MAX 10: ok. 370 kodów), najprościej tablica adresowana kodem — jeden blok pamięci, odczyt w jednym takcie. Przy szerokim zakresie: tablica dla wybranych punktów i interpolacja liniowa między nimi (mnożenie i dodawanie, [19.06](../modules/19-arytmetyka/19.06-tablice-i-aproksymacja-funkcji.md)), albo wielomian niskiego stopnia. Zawartość tablicy generuje się skryptem z danych producenta albo liczy funkcją przy elaboracji, a test sprawdza punkty z dokumentacji i monotoniczność.
+</details>
 
 ## 21 — Magistrale i interfejsy na chipie
 
