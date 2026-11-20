@@ -328,6 +328,11 @@ jobs:
           cd modules/19-arytmetyka/arytmetyka
           python3 eksperymenty.py | tee eksperymenty.txt
           { echo "## Arytmetyka — bloki DSP, f_max, koszt (moduł 19)"; echo '```'; cat eksperymenty.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Kodowanie liniowe — 8b/10b i 64b/66b (moduł 22)
+        run: |
+          set -o pipefail
+          python3 modules/22-io-i-szybkie-interfejsy/kodowanie/kodowanie.py | tee wynik-kodowanie.txt
+          { echo "## Kodowanie 8b/10b i 64b/66b (moduł 22)"; echo '```'; cat wynik-kodowanie.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4

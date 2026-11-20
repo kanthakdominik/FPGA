@@ -3762,7 +3762,161 @@ Pliki `.qsys`/`.bd` to XML zależny od wersji narzędzia, z identyfikatorami i i
 
 ## 22 — Wejścia-wyjścia i szybkie interfejsy
 
-_Pytania pojawią się razem z treścią modułu ([22-io-i-szybkie-interfejsy](../modules/22-io-i-szybkie-interfejsy/README.md))._
+### [22.01 — Standardy I/O, terminacja, siła sterowania i slew rate](../modules/22-io-i-szybkie-interfejsy/22.01-standardy-i-o-terminacja-sila-sterowania-i-slew.md)
+
+1. **Sygnał zegara 10 MHz z FPGA na drugą płytkę przez 30 cm kabla taśmowego powoduje podwójne zliczanie. Dlaczego i co zrobić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zbocze FPGA trwa ułamek nanosekundy, a kabel ma kilka ns opóźnienia — to linia transmisyjna. Niedopasowany koniec (wejście CMOS) odbija falę, sygnał dzwoni i przekracza próg kilka razy na jednym zboczu. Rozwiązania: rezystor szeregowy przy nadajniku dobrany do impedancji kabla (minus rezystancja wyjścia), mniejszy prąd i wolny slew rate, przeplot sygnału z masą w kablu, wejście z przerzutnikiem Schmitta, a przy dłuższych połączeniach — sygnał różnicowy (LVDS, RS-422).
+</details>
+
+2. **Czym różni się terminacja szeregowa od równoległej i kiedy wybierasz którą?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Szeregowa: rezystor przy nadajniku, razem z rezystancją wyjścia równy Z0. Fala połowy amplitudy biegnie do końca, odbija się (całkowicie od wejścia o dużej impedancji), daje pełną amplitudę na końcu i jest pochłaniana przy źródle. Nie pobiera prądu statycznego, ale pełny sygnał jest tylko na końcu linii — dobra dla połączeń punkt–punkt. Równoległa: rezystor Z0 na końcu do masy, VCC albo VTT — brak odbicia i pełny sygnał wszędzie, ale prąd statyczny; stosowana w magistralach z wieloma odbiornikami i w standardach typu SSTL (pamięci DDR).
+</details>
+
+3. **Dlaczego nie ustawić maksymalnej siły sterowania i najszybszego slew rate na wszystkich pinach, żeby mieć największy zapas czasowy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo szybkie, silne zbocza powodują dzwonienie na niedopasowanych liniach, przesłuch na sąsiednie ścieżki, emisję zakłóceń (EMI) i szum jednoczesnego przełączania — prąd wielu wyjść przez indukcyjność wyprowadzeń masy unosi masę układu i może przełączyć wejścia albo zakłócić inne wyjścia. Wybiera się najsłabsze ustawienie, które jeszcze spełnia wymagania czasowe, a szybkie sygnały dopasowuje się impedancyjnie (OCT).
+</details>
+
+### [22.02 — Rejestry DDR w I/O i interfejsy źródłowo-synchroniczne](../modules/22-io-i-szybkie-interfejsy/22.02-rejestry-ddr-w-i-o-i-interfejsy-zrodlowo.md)
+
+1. **Dlaczego zegar dla interfejsu źródłowo-synchronicznego generuje się rejestrem DDR z danymi 1 i 0, a nie wyprowadza bezpośrednio z sieci zegarowej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo wtedy zegar przechodzi przez identyczną ścieżkę jak dane — ten sam typ rejestru w bloku I/O, ten sam bufor wyjściowy — i ma prawie identyczne opóźnienie, niezależnie od rozmieszczenia i temperatury. Wyprowadzenie sieci zegarowej na pin daje inne opóźnienie niż ścieżka danych i nieprzewidywalny przekos. Dodatkowo narzędzie może wtedy poprawnie zdefiniować zegar generowany na pinie i przeanalizować wyjście względem niego.
+</details>
+
+2. **Dane DDR 200 Mb/s, t_SU = 0,6 ns, t_H = 0,4 ns, przekos płytki ±0,5 ns. Jaki jest zapas i gdzie ustawić zegar?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+UI = 5 ns (200 Mb/s → 100 MHz zegar, dwa bity na okres). Okno bez niepewności: 5 − 0,6 − 0,4 = 4,0 ns. Przekos ±0,5 ns zabiera 1,0 ns: zostaje 3,0 ns, czyli ±1,5 ns zapasu, jeśli zegar jest w środku okna — przesunięty względem zmiany danych o t_SU + (UI − t_SU − t_H)/2 = 0,6 + 2,0 = 2,6 ns (czyli o ok. UI/2 z poprawką na różnicę t_SU i t_H). Drgania zegara i danych trzeba jeszcze odjąć.
+</details>
+
+3. **Czym różni się interfejs źródłowo-synchroniczny od systemowo-synchronicznego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W systemowo-synchronicznym obie strony dostają zegar z jednego źródła wspólnego dla systemu, a dane przechodzą między nimi — budżet czasowy obejmuje opóźnienie zegara do obu układów i całą ścieżkę danych, więc przy dużych częstotliwościach przekos zegarów zjada okres. W źródłowo-synchronicznym nadajnik wysyła zegar razem z danymi, równoległymi ścieżkami; liczy się tylko przekos między nimi, nie bezwzględne opóźnienie — dlatego pozwala na znacznie większe szybkości. Kosztem jest osobna domena zegarowa w odbiorniku i przejście danych do zegara systemowego (FIFO).
+</details>
+
+### [22.03 — LVDS i serializacja (SERDES)](../modules/22-io-i-szybkie-interfejsy/22.03-lvds-i-serializacja-serdes.md)
+
+1. **Na czym polega bitslip i dlaczego jest potrzebny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Deserializator dzieli strumień bitów na słowa co N bitów, ale nie wie, który bit jest pierwszym bitem słowa — zależy to od chwili startu licznika i opóźnień. Bitslip przesuwa granicę słowa o jeden bit (pominięcie jednego kroku licznika albo bitu w rejestrze). Automat wyrównania porównuje odebrane słowa ze znanym wzorcem treningowym albo słowem zegara ramki i wydaje bitslip, aż wzorzec pasuje kilka razy z rzędu; najwyżej N prób.
+</details>
+
+2. **Przetwornik ADC wysyła 14-bitowe próbki po parze LVDS z zegarem bitowym DCO i zegarem ramki FCO. Jak odebrać dane w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+DCO (zwykle DDR) taktuje deserializatory wszystkich par albo służy jako wejście PLL generującego zegar bitowy i słowa z właściwą fazą (w środku bitu). FCO deserializuje się tak samo jak dane; przesuwa się granicę słowa bitslipem (dla wszystkich par jednocześnie), aż odebrane słowo FCO ma znaną postać (np. 7 jedynek i 7 zer). Wtedy dane w każdej parze są wyrównane do granicy próbki. Dodatkowo kalibruje się fazę (opóźnienia) każdej pary, jeśli przekos płytki jest znaczący, i przenosi słowa do zegara systemowego przez FIFO.
+</details>
+
+3. **Czym różni się miękki SERDES w MAX 10 od twardego w AMD 7-series?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W twardym (OSERDESE2/ISERDESE2) rejestr przesuwny i dzielnik są w bloku I/O, pracują z zegarem bitowym z sieci I/O i osiągają 1–1,6 Gb/s; logika użytkownika widzi tylko słowo w zegarze słowa. W miękkim (MAX 10) rejestry przesuwne są w elementach logicznych przy bloku I/O, a IP i PLL zapewniają ich rozmieszczenie i zegary — osiągalna szybkość jest niższa (setki Mb/s), bo ogranicza ją logika ogólnego przeznaczenia. Funkcjonalnie (serializacja, bitslip) oba wyglądają podobnie.
+</details>
+
+### [22.04 — Transceivery wielogigabitowe: 8b/10b, 64b/66b i wyrównanie](../modules/22-io-i-szybkie-interfejsy/22.04-transceivery-wielogigabitowe-8b-10b-64b-66b-i.md)
+
+1. **Po co kodowanie 8b/10b i jaki ma koszt?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zapewnia gęste zbocza (co najwyżej 5 jednakowych bitów z rzędu) dla odzyskiwania zegara, równowagę DC (łącze sprzężone pojemnościowo, brak wędrówki linii bazowej), znaki sterujące poza 256 danymi i przecinek do wyrównania granicy słowa, a do tego wykrywa część błędów. Koszt: 25 % pasma (10 bitów na 8) i trochę logiki. Dlatego szybsze standardy przeszły na 64b/66b i 128b/130b, gdzie narzut jest kilka razy mniejszy, a gęstość zboczy daje skrambler.
+</details>
+
+2. **Jak odbiornik znajduje granicę słowa w 8b/10b, a jak w 64b/66b?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W 8b/10b nadajnik wysyła znaki z przecinkiem (K28.5); wzorzec 0011111/1100000 nie może wystąpić w danych ani na styku znaków, więc gdy odbiornik znajdzie go w strumieniu bitów, wie, gdzie zaczyna się znak, i przesuwa granicę. W 64b/66b nie ma przecinka — odbiornik sprawdza kolejne pozycje: na właściwej pierwsze dwa bity każdego bloku to zawsze 01 albo 10; jeśli przez kilkadziesiąt bloków na danej pozycji nie ma błędnego nagłówka, granica jest znaleziona (inaczej przesuwa się o bit).
+</details>
+
+3. **Dwie płytki mają generatory 156,25 MHz ±100 ppm. Co trzeba zrobić, żeby przesyłać dane bez przerwy między nimi?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zegary mogą różnić się do 200 ppm, czyli o jeden znak na 5000. Odbiornik pracuje w zegarze odzyskanym z danych, a dalej dane muszą trafić do zegara lokalnego — przez bufor elastyczny z korekcją zegara. Nadajnik musi co określoną liczbę znaków (mniej niż 5000, z zapasem) wstawiać znaki wypełnienia, które bufor może usunąć albo powielić, żeby utrzymać zapełnienie. Protokoły to definiują (SKP w PCIe, IDLE w Ethernecie); w łączu własnym trzeba to zaprojektować albo użyć wspólnego zegara referencyjnego.
+</details>
+
+### [22.05 — Przegląd protokołów: PCIe, JESD204, Aurora, SATA](../modules/22-io-i-szybkie-interfejsy/22.05-przeglad-protokolow-pcie-jesd204-aurora-sata.md)
+
+1. **Dlaczego PCIe ma ponawianie pakietów, a JESD204 nie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+PCIe przenosi transakcje między systemami (zapisy do pamięci, rejestrów), gdzie zgubiony albo przekłamany pakiet jest niedopuszczalny — warstwa łącza danych dokłada CRC, numery sekwencji, ACK/NAK i bufor ponowień, za cenę opóźnienia i logiki. JESD204 przenosi ciągły strumień próbek przetwornika: spóźniona, ponowiona próbka byłaby bezużyteczna, a stałe, deterministyczne opóźnienie jest ważniejsze niż poprawianie pojedynczych błędów. Łącze projektuje się więc na odpowiednio niski BER, a nie na ponawianie.
+</details>
+
+2. **Co daje SYSREF w JESD204B podklasy 1?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+SYSREF to sygnał rozprowadzany synchronicznie do wszystkich przetworników i do FPGA, wyznaczający wspólny początek wieloramki lokalnej (LMFC) we wszystkich urządzeniach. Dzięki temu opóźnienie od próbkowania do danych w FPGA jest stałe i znane po każdym uruchomieniu (deterministyczne) i jednakowe dla wszystkich przetworników — co pozwala synchronizować wiele ADC/DAC z dokładnością do próbki. Wymaga spełnienia czasów t_SU/t_H SYSREF względem zegarów urządzeń.
+</details>
+
+3. **Potrzebujesz przesyłać 2 GB/s z FPGA do komputera. Jakie łącze PCIe wybierzesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gen3 ×4 daje ok. 3,94 GB/s po kodowaniu, a po nagłówkach przy ładunku 256 B ok. 3,5 GB/s — zapas prawie dwukrotny, typowy wybór. Gen2 ×8 (4 GB/s po kodowaniu) też wystarczy, ale zużywa dwa razy więcej transceiverów. Gen4 ×2 — jeśli układ obsługuje Gen4. Do tego DMA z dużymi transferami (scatter-gather) i bufor po stronie FPGA pokrywający chwilowe przestoje hosta.
+</details>
+
+### [22.06 — FPGA na płytce PCB: zasilanie, sekwencjonowanie i planowanie pinów](../modules/22-io-i-szybkie-interfejsy/22.06-fpga-na-plytce-pcb-zasilanie-sekwencjonowanie-i.md)
+
+1. **Jak przygotujesz przydział pinów FPGA dla nowej płytki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zbieram listę sygnałów z wymaganiami (standard, szybkość, różnicowe, zegary), przydzielam banki według VCCIO i VREF, zegary umieszczam na dedykowanych pinach zegarowych, pinouty pamięci i transceiverów biorę z generatorów IP, rozkładam szerokie magistrale ze względu na SSN i sąsiedztwo, uwzględniam piny konfiguracji i dwufunkcyjne. Potem tworzę projekt z samymi portami i przypisaniami i kompiluję go — narzędzie sprawdza reguły banków i par. Pinout bez błędów eksportuję do projektanta PCB, przeglądam schemat z *Pin Connection Guidelines* i zostawiam rezerwę oraz punkty testowe.
+</details>
+
+2. **Po co tyle kondensatorów przy FPGA i jak dobrać ich liczbę?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rdzeń zmienia pobór prądu w nanosekundach, a regulator reaguje w mikrosekundach — energię na krótkie skoki dostarczają kondensatory, każdy skuteczny w swoim zakresie częstotliwości (duże przy regulatorze, ceramiczne µF w pobliżu, 0,1 µF i mniejsze przy pinach, płaszczyzny i kondensatory w obudowie dla najwyższych). Dobiera się je tak, by impedancja sieci zasilania była niższa od impedancji docelowej (dopuszczalny spadek napięcia / skok prądu) w całym paśmie, korzystając z narzędzi PDN producenta i zaleceń dla danego układu.
+</details>
+
+3. **Czym różni się MAX 10 jedno- i dwuzasilaniowy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wersja jednozasilaniowa ma wewnętrzny regulator i wymaga tylko jednego napięcia 3,0/3,3 V (plus VCCIO), co upraszcza płytkę, ale pobiera więcej mocy (straty regulatora) i ma ograniczenia wydajności. Dwuzasilaniowa (D, jak 10M50DAF484 na DECA) wymaga zewnętrznego 1,2 V dla rdzenia i 2,5 V dla VCCA, ale jest wydajniejsza i oszczędniejsza energetycznie; zakres wejściowy ADC też się różni (2,5 V w dwuzasilaniowej, [20.06](../modules/20-interfejsy-szeregowe/20.06-wbudowany-przetwornik-adc-w-max-10.md)).
+</details>
 
 ## 23 — Pamięci zewnętrzne
 
