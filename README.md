@@ -101,7 +101,7 @@ Zasady:
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
 | 18 | [Pamięci w FPGA](modules/18-pamieci/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
-| 19 | [Arytmetyka i liczby w sprzęcie](modules/19-arytmetyka/README.md) | 🧩💼 | 6 | 16 h | 🔲 szkielet |
+| 19 | [Arytmetyka i liczby w sprzęcie](modules/19-arytmetyka/README.md) | 🧩🛠️💼 | 6 | 16 h | ✅ pełny |
 | 20 | [Interfejsy szeregowe niskiej szybkości](modules/20-interfejsy-szeregowe/README.md) | 🛠️💼 | 6 | 16 h | 🔲 szkielet |
 | 21 | [Magistrale i interfejsy na chipie](modules/21-magistrale-on-chip/README.md) | 🧩💼 | 6 | 16 h | 🔲 szkielet |
 | 22 | [Wejścia-wyjścia i szybkie interfejsy](modules/22-io-i-szybkie-interfejsy/README.md) | 💼 | 6 | 14 h | 🔲 szkielet |

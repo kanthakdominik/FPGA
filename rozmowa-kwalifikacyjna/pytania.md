@@ -3288,7 +3288,161 @@ Okresowym czytaniem całej pamięci, poprawianiem słów z pojedynczym błędem 
 
 ## 19 — Arytmetyka i liczby w sprzęcie
 
-_Pytania pojawią się razem z treścią modułu ([19-arytmetyka](../modules/19-arytmetyka/README.md))._
+### [19.01 — Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie](../modules/19-arytmetyka/19.01-staloprzecinkowe-formaty-q-skalowanie.md)
+
+1. **Mnożysz dwie liczby Q1.15. Jaki jest format wyniku i które bity bierzesz, żeby wrócić do Q1.15?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Iloczyn 32-bitowy w formacie Q2.30. Powrót do Q1.15: usunąć 15 bitów ułamka (z zaokrągleniem) i jeden bit części całkowitej — bity [30:15] po zaokrągleniu. Bit 31 jest potrzebny tylko dla (−1)·(−1) = +1, które nie mieści się w Q1.15: tam trzeba nasycić do 0x7FFF (albo zabronić −1 w jednym z operandów, jak robią niektóre biblioteki).
+</details>
+
+2. **Dlaczego obcinanie bitów w filtrze IIR jest groźniejsze niż w FIR?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Obcięcie w U2 zaokrągla w stronę −∞, dając średni błąd ok. −½ LSB. W FIR błąd przechodzi przez filtr raz i jest ograniczony. W IIR wynik wraca do sprzężenia zwrotnego, więc błąd się kumuluje: powstaje przesunięcie stałej składowej, a przy małych sygnałach cykle graniczne (wyjście oscyluje albo nie wraca do zera po zaniku wejścia). Rozwiązania: zaokrąglenie zbieżne, więcej bitów w pętli, kształtowanie szumu (sprzężenie błędu kwantyzacji).
+</details>
+
+3. **Czy akumulator filtru FIR może się przepełniać w trakcie sumowania?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Może — jeśli działa w kodzie U2 z zawijaniem, a wynik końcowy mieści się w zakresie akumulatora, pośrednie przepełnienia się znoszą (arytmetyka modulo 2ᴺ). Dlatego akumulator zawija, a nasycenie stosuje się dopiero przy zmianie formatu na wyjściu. Bezpiecznie dobiera się szerokość akumulatora jako szerokość iloczynu plus ⌈log₂N⌉ bitów — wtedy nie przepełnia się wcale.
+</details>
+
+### [19.02 — Mnożenie i bloki DSP — potokowanie](../modules/19-arytmetyka/19.02-mnozenie-i-bloki-dsp-potokowanie.md)
+
+1. **Jak zaimplementujesz mnożenie 32 × 32 w FPGA z blokami 18 × 18?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Podział na połówki: a = aₕ·2¹⁶ + aₗ, b analogicznie; a·b = aₕbₕ·2³² + (aₕbₗ + aₗbₕ)·2¹⁶ + aₗbₗ — cztery mnożenia 16 × 16 (każde mieści się w bloku 18 × 18, także dla liczb ze znakiem przy części starszej ze znakiem i młodszej bez znaku rozszerzonej zerem) i sumator 64-bitowy. Do potoku: rejestry na wejściach i wyjściach bloków (w bloku), rejestr za iloczynami częściowymi, sumowanie w jednym albo dwóch stopniach. Opóźnienie 3–4 takty, wynik w każdym takcie.
+</details>
+
+2. **Kiedy warto mnożyć liczby zespolone trzema mnożeniami zamiast czterech?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy brakuje bloków DSP, a logiki jest pod dostatkiem (FFT, korelatory, miksery cyfrowe w wielu kanałach). Trzy mnożenia wymagają pięciu dodawań zamiast dwóch, sum o bit szerszych przed mnożeniem i dodatkowego stopnia potoku. Gdy jeden czynnik jest stały (współczynniki FFT), dwie z trzech sum przed mnożeniem liczy się z góry — koszt spada. W eksperymencie: 3 bloki i 142 LUT zamiast 4 bloków i 76 LUT.
+</details>
+
+3. **Dlaczego dodanie rejestrów za mnożarką 18 × 18 nie podniosło f_max, a za mnożarką 34 × 34 — tak?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Ścieżka krytyczna 18 × 18 to samo opóźnienie bloku między jego rejestrem wejściowym a wyjściowym — kolejne rejestry za blokiem niczego nie skracają, jeśli blok nie ma wewnętrznego rejestru potoku (MREG). W 34 × 34 za blokami jest jeszcze sumator 68-bitowy: rejestr między blokami a sumatorem dzieli ścieżkę na dwie krótsze. Potok pomaga tylko tam, gdzie rozcina rzeczywistą logikę.
+</details>
+
+### [19.03 — Dzielenie i pierwiastek: algorytmy iteracyjne](../modules/19-arytmetyka/19.03-dzielenie-i-pierwiastek-algorytmy-iteracyjne.md)
+
+1. **Jak zaimplementujesz dzielenie 32-bitowe w FPGA bez bloków dzielących?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zależnie od wymaganej przepustowości: (1) iteracyjnie — dzielenie z odtwarzaniem albo bez, bit na takt, 32+ taktów, jeden sumator 33-bitowy; (2) w potoku — 32 stopnie, wynik w każdym takcie, ok. 3·32² przerzutników; (3) podstawa 4 / SRT — 2 bity na takt; (4) przez mnożenie — odwrotność dzielnika z tablicy i dwóch iteracji Newtona–Raphsona, potem mnożenie przez dzielną (kilka bloków DSP, kilka taktów). Do tego definicja przypadków specjalnych: przez zero, przepełnienie dla liczb ze znakiem.
+</details>
+
+2. **Dlaczego reszta z dzielenia liczb ze znakiem ma znak dzielnej?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo iloraz zaokrągla się w stronę zera (jak w C99, Verilogu, VHDL `/`), a tożsamość a = q·b + r musi być zachowana: −7 / 2 = −3, więc r = −7 − (−3·2) = −1. Przy zaokrąglaniu w dół (floor, jak w Pythonie `//`) iloraz byłby −4, a reszta +1 (znak dzielnika — `mod` w VHDL, `%` w Pythonie). W sprzęcie dzieli się moduły i poprawia znaki: iloraz ujemny, gdy znaki różne, reszta ze znakiem dzielnej.
+</details>
+
+3. **Jak policzysz x / 10 bez dzielenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mnożeniem przez przybliżoną odwrotność i przesunięciem: dla 16-bitowego x bez znaku x/10 = (x · 52429) ≫ 19, gdzie 52429 = ⌈2¹⁹/10⌉ — wynik jest dokładny dla wszystkich x < 2¹⁶ (łatwo sprawdzić wyczerpująco; dobór stałej i przesunięcia z dowodem — *Hacker's Delight*, rozdz. 10). W FPGA to jedno mnożenie 16 × 16 bez znaku (mieści się w bloku 18 × 18) i wybór bitów [31:19] iloczynu — bez żadnej logiki dzielącej.
+</details>
+
+### [19.04 — CORDIC](../modules/19-arytmetyka/19.04-cordic.md)
+
+1. **Jak CORDIC liczy sinus bez mnożarek?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Obraca wektor (1/K, 0) o zadany kąt serią obrotów o ±atan(2⁻ⁱ). Dzięki wyborowi kątów tg θᵢ = 2⁻ⁱ każdy obrót to przesunięcia i dodawania: x' = x ∓ (y ≫ i), y' = y ± (x ≫ i), a akumulator kąta odejmuje stałą z tablicy. Kierunek zależy od znaku reszty kąta. Pominięte czynniki cos θᵢ dają stałe wzmocnienie K ≈ 1,647, skompensowane wartością początkową. Po N iteracjach x ≈ cos θ, y ≈ sin θ z dokładnością ok. N bitów.
+</details>
+
+2. **Ile iteracji i jakie szerokości potrzebne są dla 16-bitowego sinusa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Ok. 1 bit na iterację, więc N ≈ 18; ścieżka x, y — 16 bitów + 2 na wzmocnienie K·√2 + log₂N ≈ 4 bity ochronne; kąt — co najmniej N + 2…4 bity, żeby atan(2⁻ᴺ) nie zaokrąglał się do zera (tu 24). Model w eksperymencie: N = 18, A = 24, G = 4 daje błąd 1,1 LSB; N = 14 — 4,5 LSB; A = 18 — 3,4 LSB.
+</details>
+
+3. **Jak policzyć moduł i fazę liczby zespolonej w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+CORDIC w trybie wektorowania: obroty w kierunku przeciwnym do znaku y sprowadzają wektor na oś x — x końcowe = K·|v|, suma kątów = atan2(y, x). Obrót wstępny o ±90° dla x < 0 daje pełny zakres ±180°. Kompensacja K jednym mnożeniem przez 1/K (albo pominięta, jeśli moduł służy do porównań). Alternatywy: |v|² = x² + y² dwoma mnożeniami (bez pierwiastka) albo przybliżenie „alpha max + beta min”.
+</details>
+
+### [19.05 — Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP](../modules/19-arytmetyka/19.05-liczby-zmiennoprzecinkowe-w-fpga-ieee-754-i.md)
+
+1. **Opisz kroki dodawania dwóch liczb binary32 w sprzęcie.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+(1) Rozpakowanie, obsługa NaN, ∞, zer; (2) uporządkowanie operandów tak, by |a| ≥ |b|, różnica wykładników d; (3) przesunięcie mantysy b o d w prawo (przesuwnik beczkowy) z zachowaniem bitów guard/round/sticky; (4) dodanie lub odjęcie mantys zależnie od znaków; (5) normalizacja — przy przeniesieniu przesunięcie o 1 w prawo, przy odejmowaniu licznik zer wiodących i przesunięcie w lewo; (6) zaokrąglenie (połówka do parzystej) i ewentualna ponowna normalizacja; (7) kontrola nadmiaru i niedomiaru. Ścieżka krytyczna: dwa przesuwniki i LZC — dlatego potok 5–10 stopni.
+</details>
+
+2. **Co to są bity guard, round i sticky?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Informacja o odrzucanej części wyniku, wystarczająca do poprawnego zaokrąglenia: guard — pierwszy bit za mantysą, round — drugi, sticky — OR wszystkich dalszych (czy cokolwiek niezerowego zostało odrzucone). Do najbliższej z połówką do parzystej: zaokrąglić w górę, gdy guard = 1 i (round lub sticky = 1 albo najmłodszy bit wyniku = 1). Przy mnożeniu wystarczą guard i sticky, przy dodawaniu round jest potrzebny, bo po odejmowaniu wynik może przesunąć się o bit w lewo.
+</details>
+
+3. **Kiedy w FPGA wybrałbyś liczby zmiennoprzecinkowe zamiast stałoprzecinkowych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy zakres wartości jest nieznany albo bardzo duży i analiza zakresów w każdym węźle byłaby kosztowna lub ryzykowna: inwersja i rozkład macierzy, filtry Kalmana, obliczenia naukowe, uczenie sieci, algorytmy iteracyjne o zmiennej dynamice. Także gdy układ ma hardware'owe FP w DSP (Arria 10, Agilex, Versal) i koszt jest niewielki, albo gdy liczy się czas wdrożenia (HLS z kodu C). Dla torów sygnałowych o znanym zakresie (ADC, audio, radio, obraz) stały przecinek daje to samo za ułamek zasobów i deterministycznie.
+</details>
+
+### [19.06 — Tablice i aproksymacja funkcji](../modules/19-arytmetyka/19.06-tablice-i-aproksymacja-funkcji.md)
+
+1. **Jak zaimplementujesz 16-bitowy log₂ w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Redukcja argumentu: licznik zer wiodących daje część całkowitą (pozycja najstarszej jedynki), a znormalizowana mantysa m ∈ [1, 2) — część ułamkową log₂ m. log₂ m aproksymuje się tablicą z interpolacją liniową (np. 64 odcinki — 1 mnożarka, dwie małe tablice) albo wielomianem 2. stopnia; minimax zamiast cięciwy. Wynik: log₂ x = (pozycja jedynki) + log₂ m w formacie stałoprzecinkowym. Weryfikacja wyczerpująca po wszystkich 65 536 wejściach.
+</details>
+
+2. **Masz 1024 słowa pamięci na funkcję sinus. Jak uzyskać najlepszą dokładność?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wykorzystać symetrię — tablica tylko dla ćwiartki okresu (4 razy większa gęstość). Zamiast samych wartości zapisać współczynniki interpolacji: 512 odcinków × (wartość, nachylenie) z jedną mnożarką — błąd spada z rzędu f′·h/2 do f″·h²/8, czyli o kilka rzędów wielkości (w eksperymencie 128 słów z interpolacją pobiło 4096 słów bez niej). Współczynniki minimax, 2–3 bity ochronne. Alternatywnie tożsamość sin(a + b) = sin a·cos b + cos a·sin b z dwiema mniejszymi tablicami.
+</details>
+
+3. **Czym różni się aproksymacja cięciwą od minimax?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Cięciwa przechodzi przez wartości funkcji na końcach odcinka — dla funkcji wypukłej albo wklęsłej błąd ma jeden znak i największą wartość f″·h²/8 w środku. Minimax minimalizuje największy błąd bezwzględny: prosta przesunięta tak, by błąd osiągał +e i −e na przemian (twierdzenie Czebyszewa o alternansie) — dla prostej to cięciwa przesunięta o połowę odchylenia, czyli błąd o połowę mniejszy. Dla wielomianów wyższych stopni współczynniki minimax liczy algorytm Remeza (Sollya, numpy).
+</details>
 
 ## 20 — Interfejsy szeregowe niskiej szybkości
 
