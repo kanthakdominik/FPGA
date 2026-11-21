@@ -30,9 +30,9 @@ module fir_sym #(
         suma = 40'sd0;
         for (j = 0; j < P; j = j + 1) suma = suma + m[j];
     end
+    /* verilator lint_off UNUSEDSIGNAL */                // młodsze 15 bitów — część ułamkowa
     logic signed [39:0] zaokr;
     assign zaokr = s + 40'sd16384;
-    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [24:0] w;
     assign w = zaokr[39:15];
     /* verilator lint_on UNUSEDSIGNAL */

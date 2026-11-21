@@ -31,10 +31,10 @@ module pf_dec #(
     assign h = wsp[{k[4:0], 4'd0} +: 16];
     logic signed [15:0] xs;
     assign xs = bufor[baza - k];
+    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [39:0] zaokr;
     assign zaokr = acc + 40'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [24:0] w;
     assign w = zaokr[39:15];
     /* verilator lint_on UNUSEDSIGNAL */

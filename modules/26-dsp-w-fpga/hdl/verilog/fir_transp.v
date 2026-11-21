@@ -20,8 +20,8 @@ module fir_transp #(
 
     wire signed [15:0] h0 = wsp[15:0];
     wire signed [39:0] pelny = h0 * x + z[1];
+    /* verilator lint_off UNUSEDSIGNAL */                // młodsze 15 bitów — część ułamkowa
     wire signed [39:0] zaokr = pelny + 40'sd16384;
-    /* verilator lint_off UNUSEDSIGNAL */          // zaokr[14:0] — część ułamkowa
     wire signed [24:0] w = zaokr[39:15];
     /* verilator lint_on UNUSEDSIGNAL */
 

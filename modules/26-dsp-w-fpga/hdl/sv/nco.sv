@@ -14,8 +14,10 @@ module nco (
     output logic                wazne
 );
     logic  [31:0] faza;
+    /* verilator lint_off UNUSEDSIGNAL */                // faza_c[21:0] — poniżej adresu ROM
     logic [31:0] faza_c;
     assign faza_c = faza + 32'h4000_0000;
+    /* verilator lint_on UNUSEDSIGNAL */
     logic [1:0]  qs;
     assign qs = faza[31:30];
     logic [1:0]  qc;

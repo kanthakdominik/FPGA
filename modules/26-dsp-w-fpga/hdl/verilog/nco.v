@@ -14,7 +14,9 @@ module nco (
     output reg                wazne
 );
     reg  [31:0] faza;
+    /* verilator lint_off UNUSEDSIGNAL */                // faza_c[21:0] — poniżej adresu ROM
     wire [31:0] faza_c = faza + 32'h4000_0000;
+    /* verilator lint_on UNUSEDSIGNAL */
     wire [1:0]  qs = faza[31:30];
     wire [1:0]  qc = faza_c[31:30];
     wire [7:0]  as_ = qs[0] ? ~faza[29:22]   : faza[29:22];      // 255 - a = ~a

@@ -50,10 +50,10 @@ module fft64 (
     wire signed [15:0] br = mr[dol];
     wire signed [15:0] bi = mi[dol];
     /* verilator lint_off WIDTHEXPAND */
+    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [32:0] pr = wr * br - wi * bi + 33'sd16384;
     wire signed [32:0] pq = wr * bi + wi * br + 33'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [17:0] tr  = pr[32:15];
     wire signed [17:0] ti  = pq[32:15];
     wire signed [17:0] s1r = ar + tr;

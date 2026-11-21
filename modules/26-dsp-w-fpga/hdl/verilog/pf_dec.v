@@ -29,9 +29,9 @@ module pf_dec #(
     /* verilator lint_off WIDTHEXPAND */
     wire signed [15:0] h  = wsp[{k[4:0], 4'd0} +: 16];
     wire signed [15:0] xs = bufor[baza - k];
+    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [39:0] zaokr = acc + 40'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [24:0] w = zaokr[39:15];
     /* verilator lint_on UNUSEDSIGNAL */
 

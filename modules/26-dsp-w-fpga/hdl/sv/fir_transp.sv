@@ -22,9 +22,9 @@ module fir_transp #(
     assign h0 = wsp[15:0];
     logic signed [39:0] pelny;
     assign pelny = h0 * x + z[1];
+    /* verilator lint_off UNUSEDSIGNAL */                // młodsze 15 bitów — część ułamkowa
     logic signed [39:0] zaokr;
     assign zaokr = pelny + 40'sd16384;
-    /* verilator lint_off UNUSEDSIGNAL */          // zaokr[14:0] — część ułamkowa
     logic signed [24:0] w;
     assign w = zaokr[39:15];
     /* verilator lint_on UNUSEDSIGNAL */

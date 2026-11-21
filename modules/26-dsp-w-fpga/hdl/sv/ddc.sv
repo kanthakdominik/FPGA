@@ -20,12 +20,12 @@ module ddc (
     logic signed [15:0] x1, x2, mi, mq;
     logic               mw;
     /* verilator lint_off WIDTHEXPAND */
+    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [31:0] pi;
     assign pi = x2 * c + 32'sd16384;
     logic signed [31:0] pq;
     assign pq = -(x2 * s) + 32'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [16:0] ri;
     assign ri = pi[31:15];
     logic signed [16:0] rq;

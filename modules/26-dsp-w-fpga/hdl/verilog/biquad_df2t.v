@@ -24,10 +24,10 @@ module biquad_df2t #(
     /* verilator lint_off WIDTHEXPAND */
     reg  signed [39:0] s1, s2;
     wire signed [39:0] v = b0 * x + s1;
-    // kwantyzacja: 14 bitów ułamkowych mniej
+    // kwantyzacja: 14 bitów ułamkowych mniej (młodsze bity v, v_r, v_z odrzucane)
+    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [39:0] v_r = v + 40'sd8192;
     wire signed [39:0] v_z = v + 40'sd16383;                     // dla ujemnych: obcięcie w stronę zera
-    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [25:0] q = (ZAOKR == 0) ? v[39:14] : (ZAOKR == 1) ? v_r[39:14] : (v[39] ? v_z[39:14] : v[39:14]);
     /* verilator lint_on UNUSEDSIGNAL */
     wire signed [15:0] w = (q > 26'sd32767) ? 16'sh7FFF : (q < -26'sd32768) ? 16'sh8000 : q[15:0];

@@ -54,12 +54,12 @@ module fft64 (
     logic signed [15:0] bi;
     assign bi = mi[dol];
     /* verilator lint_off WIDTHEXPAND */
+    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [32:0] pr;
     assign pr = wr * br - wi * bi + 33'sd16384;
     logic signed [32:0] pq;
     assign pq = wr * bi + wi * br + 33'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     logic signed [17:0] tr;
     assign tr = pr[32:15];
     logic signed [17:0] ti;

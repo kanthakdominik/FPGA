@@ -20,10 +20,10 @@ module ddc (
     reg signed [15:0] x1, x2, mi, mq;
     reg               mw;
     /* verilator lint_off WIDTHEXPAND */
+    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [31:0] pi = x2 * c + 32'sd16384;
     wire signed [31:0] pq = -(x2 * s) + 32'sd16384;
     /* verilator lint_on WIDTHEXPAND */
-    /* verilator lint_off UNUSEDSIGNAL */
     wire signed [16:0] ri = pi[31:15];
     wire signed [16:0] rq = pq[31:15];
     /* verilator lint_on UNUSEDSIGNAL */
