@@ -4210,7 +4210,135 @@ Bo daje podobną informację (siłę gradientu) bez mnożarek i bez pierwiastka 
 
 ## 25 — Audio i Ethernet
 
-_Pytania pojawią się razem z treścią modułu ([25-audio-i-ethernet](../modules/25-audio-i-ethernet/README.md))._
+### [25.01 — I²S i kodek audio na DECA](../modules/25-audio-i-ethernet/25.01-i2s-i-kodek-audio-na-deca.md)
+
+1. **Jakie zegary potrzebne są do pracy kodeka audio przez I²S i jak są ze sobą powiązane?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+WCLK (LRCLK) o częstotliwości próbkowania fs, BCLK = fs × liczba bitów w ramce (np. 64 · fs) i zwykle MCLK — zegar przetworników, wielokrotność fs (256 · fs, 512 · fs) albo wejście PLL kodeka. Wszystkie muszą pochodzić z jednego źródła albo być zsynchronizowane, a dzielniki wewnątrz kodeka muszą dawać z MCLK dokładnie fs. Inaczej przetwornik i interfejs „rozjeżdżają się” i co jakiś czas próbka jest gubiona albo powtarzana (trzask).
+</details>
+
+2. **Czym różni się format I²S od left-justified?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W I²S najstarszy bit próbki pojawia się jeden takt BCLK po zmianie WCLK, a WCLK = 0 oznacza kanał lewy. W left-justified MSB pojawia się razem ze zmianą WCLK, a polaryzacja WCLK jest zwykle odwrotna (1 — lewy). Pomylenie formatów przesuwa dane o bit: próbka jest dwukrotnie mniejsza albo większa i z przekłamanym znakiem — dźwięk zniekształcony, ale słyszalny, co utrudnia diagnozę.
+</details>
+
+3. **FPGA ma być masterem I²S. Jak zrealizujesz BCLK, żeby nie mieć problemów z analizą czasową?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+BCLK nie jako zegar logiki, tylko jako sygnał danych: licznik w domenie szybszego zegara (tu 12,5 MHz) i rejestry wyjściowe dla BCLK, WCLK i danych ustawiane razem. Dane zmieniam w fazie odpowiadającej opadającemu BCLK, odbiór próbkuję w fazie po narastającym — w obu przypadkach z zapasem wielu nanosekund, więc wystarczą zwykłe ograniczenia (albo false path przy tak wolnym interfejsie). Logika przetwarzania pracuje w tej samej domenie i dostaje impuls „nowa ramka” zamiast zegara WCLK.
+</details>
+
+### [25.02 — Przetwarzanie dźwięku w czasie rzeczywistym](../modules/25-audio-i-ethernet/25.02-przetwarzanie-dzwieku-w-czasie-rzeczywistym.md)
+
+1. **Dlaczego filtr IIR wysokiego rzędu implementuje się jako kaskadę biquadów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo bieguny wielomianu wysokiego rzędu są bardzo wrażliwe na błędy współczynników: mała kwantyzacja współczynnika w postaci bezpośredniej przesuwa wszystkie bieguny i może wyprowadzić któryś poza okrąg jednostkowy (niestabilność). W kaskadzie każda sekcja realizuje jedną parę biegunów — błąd kwantyzacji wpływa tylko na nią, a zakresy liczb wewnątrz sekcji łatwiej kontrolować (skalowanie między sekcjami). Przy okazji każda sekcja ma ten sam sprzęt, więc łatwo ją multipleksować w czasie.
+</details>
+
+2. **Masz zegar 50 MHz i 8 kanałów audio 48 kHz, każdy z 10 sekcjami biquad. Ile mnożarek potrzebujesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Na próbkę przypada 50 MHz / 48 kHz ≈ 1041 taktów. Potrzeba 8 × 10 × 5 = 400 mnożeń na okres próbki, więc jedna mnożarka wystarczy z zapasem (400 < 1041), jeśli uda się ją zasilać co takt (stany sekcji w pamięci, potok: odczyt stanu, mnożenie, akumulacja, zapis). Dla bezpieczeństwa i prostszego sterowania można użyć dwóch (po 4 kanały). To typowa zaleta FPGA w audio: zasoby liczy się w mnożeniach na sekundę, nie w liczbie filtrów.
+</details>
+
+3. **Co to znaczy, że współczynniki są w formacie Q2.16, i jak zamienić wynik mnożenia z powrotem na próbkę?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczba 18-bitowa ze znakiem interpretowana jako wartość całkowita podzielona przez 2¹⁶: 2 bity na znak i część całkowitą (zakres [−2, 2)), 16 bitów ułamka. Iloczyn próbki całkowitej i współczynnika Q2.16 ma 16 bitów ułamkowych, więc po zsumowaniu iloczynów wynik trzeba przesunąć o 16 bitów w prawo — najpierw dodając 2¹⁵ (zaokrąglenie do najbliższej), potem nasycić do zakresu próbki (24 bity), zanim trafi do rejestru wyjścia i do linii opóźniającej filtra.
+</details>
+
+### [25.03 — Ethernet 10/100: MII, PHY i MAC](../modules/25-audio-i-ethernet/25.03-ethernet-10-100-mii-phy-i-mac.md)
+
+1. **Dlaczego ramka Ethernet ma co najmniej 64 bajty?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z powodu CSMA/CD w Ethernecie współdzielonym (koncentratory, kabel koncentryczny): nadawca wykrywa kolizję tylko w trakcie nadawania, więc ramka musi trwać co najmniej tyle, ile podwójny czas propagacji przez największą dopuszczalną sieć — 512 czasów bitu, czyli 64 bajty. W sieciach przełączanych z pełnym dupleksem kolizji nie ma, ale minimum zostało dla zgodności; krótsze dane uzupełnia się zerami, a odbiornik odrzuca krótsze ramki (*runt*).
+</details>
+
+2. **Jak odbiornik sprawdza FCS, nie wiedząc, gdzie kończą się dane?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczy CRC po wszystkich bajtach ramki łącznie z FCS — dla poprawnej ramki wynik (bez końcowej negacji) jest zawsze ten sam, 0xDEBB20E3 (reszta „magiczna”). Koniec ramki sygnalizuje PHY (RX_DV = 0), więc odbiornik po prostu sprawdza rejestr CRC w tym momencie. Żeby nie przekazać dalej bajtów FCS, MAC opóźnia strumień o 4 bajty i w chwili końca ramki odrzuca to, co zostało w opóźnieniu.
+</details>
+
+3. **Czym różnią się MII, RMII i RGMII?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+MII: 4 bity w każdą stronę, osobne zegary TX_CLK i RX_CLK z PHY, 25 MHz przy 100 Mb/s — 16–18 sygnałów. RMII: 2 bity, jeden wspólny zegar referencyjny 50 MHz (z zewnątrz albo z PHY), połączone CRS i DV — mniej pinów, ale wspólny zegar wymaga uwagi przy rozmieszczeniu. RGMII: 4 bity na obu zboczach zegara 125 MHz dla 1 Gb/s (2,5/25 MHz dla 10/100), zegar źródłowo-synchroniczny z przesunięciem 1,5–2 ns (w PHY, w FPGA albo na płytce).
+</details>
+
+### [25.04 — Ramki Ethernet, ARP, IP i UDP w sprzęcie](../modules/25-audio-i-ethernet/25.04-ramki-ethernet-arp-ip-i-udp-w-sprzecie.md)
+
+1. **Jak liczy się sumę kontrolną nagłówka IPv4 i dlaczego łatwo ją sprawdzić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nagłówek dzieli się na słowa 16-bitowe, pole sumy przyjmuje się jako 0, słowa sumuje w arytmetyce z przeniesieniem cyklicznym (przeniesienie z najstarszego bitu dodaje się do najmłodszego), a wynik neguje. Odbiornik sumuje wszystkie słowa łącznie z polem sumy — dla poprawnego nagłówka wychodzi 0xFFFF (negacja daje 0). Właściwości z RFC 1071: kolejność słów nie ma znaczenia, można liczyć przyrostowo i aktualizować przy zmianie jednego pola (np. TTL w routerze).
+</details>
+
+2. **Po co ARP i co się stanie, jeśli FPGA na niego nie odpowiada?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+ARP tłumaczy adres IP na adres MAC w sieci lokalnej: nadawca rozgłasza zapytanie „kto ma adres X”, właściciel odpowiada swoim MAC. Bez odpowiedzi komputer nie wyśle żadnego pakietu IP do płytki (aplikacja dostanie błąd albo pakiety utkną w kolejce). Dane w drugą stronę mogą dotrzeć, jeśli FPGA zna MAC komputera albo wysyła na adres rozgłoszeniowy; alternatywą jest statyczny wpis w tablicy ARP komputera.
+</details>
+
+3. **Dlaczego strumienie danych z FPGA zwykle idą przez UDP, a nie TCP?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+UDP to stały nagłówek i jedna suma (opcjonalna w IPv4) — automat bez stanu połączenia, przepływność ograniczona tylko łączem, minimalne opóźnienie. TCP wymaga nawiązania połączenia, numeracji bajtów, potwierdzeń, retransmisji z buforem niepotwierdzonych danych, okien i kontroli przeciążenia — w logice to duży projekt albo procesor ze stosem. Ceną UDP jest brak gwarancji dostarczenia: aplikacja numeruje pakiety i wykrywa straty, a w sieci punkt–punkt (płytka podłączona wprost do komputera) straty są rzadkie i zwykle wynikają z przepełnienia bufora po stronie odbiorcy.
+</details>
+
+### [25.05 — Strumień UDP z FPGA do komputera](../modules/25-audio-i-ethernet/25.05-strumien-udp-z-fpga-do-komputera.md)
+
+1. **Ile danych na sekundę można maksymalnie przesłać przez UDP po Ethernecie 100 Mb/s?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przy największym datagramie bez fragmentacji (1472 B danych) na kablu przypada 1472 + 66 = 1538 B (preambuła 8, nagłówki 14 + 20 + 8, FCS 4, przerwa 12), więc 100 · 1472 / 1538 ≈ 95,7 Mb/s, czyli ok. 11,96 MB/s. Przy mniejszych datagramach narzut rośnie (1024 B — 93,9 Mb/s, 64 B — ok. 49 Mb/s). Do tego dochodzi zdolność odbiorcy do przyjęcia tylu pakietów na sekundę (8 tys. pakietów/s przy 1472 B).
+</details>
+
+2. **Strumień z FPGA gubi co setny pakiet. Jak ustalisz, gdzie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Numery pakietów w danych pokazują, które zginęły. Potem porównuję liczniki: na płytce (wysłane), w karcie sieciowej (odebrane, błędy CRC — `ethtool -S`/statystyki interfejsu), w Wiresharku/tcpdump (dotarły do systemu) i w aplikacji. Jeśli Wireshark widzi wszystkie pakiety, a aplikacja nie — przepełnia się bufor gniazda (większy `SO_RCVBUF`, szybszy odbiór). Błędy CRC w karcie — problem po stronie MAC/PHY (FCS, czasy MII). Brak pakietów w karcie bez błędów — płytka ich nie wysłała (np. niedobór danych w FIFO, arbiter).
+</details>
+
+3. **Jak doprowadzić dane z przetwornika ADC (inny zegar) do nadajnika UDP?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przez FIFO dwuzegarowe: zapis w domenie ADC, odczyt w domenie TX_CLK. Nadajnik startuje datagram dopiero, gdy w FIFO jest cały datagram (licznik zapełnienia ≥ N), bo MII nie może czekać w środku ramki. Rozmiar FIFO: co najmniej dwa datagramy plus zapas na czas nadawania odpowiedzi ARP i przerw; przepływność ADC musi być mniejsza niż przepływność danych łącza (ok. 94 Mb/s), inaczej FIFO się przepełni — wtedy licznik przepełnień i numer pakietu w danych pozwalają to wykryć.
+</details>
 
 ## 26 — Cyfrowe przetwarzanie sygnałów w FPGA
 
