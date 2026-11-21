@@ -28,7 +28,7 @@ module fir_sym #(
     reg signed [39:0] suma;
     always @(*) begin
         suma = 40'sd0;
-        for (j = 0; j < P; j = j + 1) suma = suma + m[j];
+        for (j = 0; j < P; j = j + 1) suma = suma + {{7{m[j][32]}}, m[j]};
     end
     /* verilator lint_off UNUSEDSIGNAL */                // młodsze 15 bitów — część ułamkowa
     wire signed [39:0] zaokr = s + 40'sd16384;

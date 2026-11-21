@@ -413,7 +413,7 @@ def main():
             if rozne:
                 print("Pliki niezgodne z modelem:", ", ".join(rozne))
                 sys.exit(1)
-            print("Wszystkie %d pliki zgodne z modelem." % len(pliki))
+            print("Wszystkie pliki zgodne z modelem (%d)." % len(pliki))
     else:
         _, d = generuj(HDL)
         miary(d)

@@ -54,7 +54,7 @@ begin
       rs     <= rs(0) & not KEY(0);
       nacisk <= '0';
       if licz_ms = 49999 then licz_ms <= 0; else licz_ms <= licz_ms + 1; end if;
-      if licz_ms = 0 then                                   -- KEY(1) próbkowany co 1 licz_ms
+      if licz_ms = 0 then                                   -- KEY(1) próbkowany co 1 ms
         k1 <= k1(0) & KEY(1);
         if k1(0) = '0' and k1(1) = '1' then nacisk <= '1'; end if;
       end if;

@@ -65,13 +65,13 @@ module fft64 (
     logic signed [17:0] ti;
     assign ti = pq[32:15];
     logic signed [17:0] s1r;
-    assign s1r = ar + tr;
+    assign s1r = {{2{ar[15]}}, ar} + tr;
     logic signed [17:0] s1i;
-    assign s1i = ai + ti;
+    assign s1i = {{2{ai[15]}}, ai} + ti;
     logic signed [17:0] s2r;
-    assign s2r = ar - tr;
+    assign s2r = {{2{ar[15]}}, ar} - tr;
     logic signed [17:0] s2i;
-    assign s2i = ai - ti;
+    assign s2i = {{2{ai[15]}}, ai} - ti;
     /* verilator lint_on UNUSEDSIGNAL */
 
     always_ff @(posedge clk) begin

@@ -56,10 +56,10 @@ module fft64 (
     /* verilator lint_on WIDTHEXPAND */
     wire signed [17:0] tr  = pr[32:15];
     wire signed [17:0] ti  = pq[32:15];
-    wire signed [17:0] s1r = ar + tr;
-    wire signed [17:0] s1i = ai + ti;
-    wire signed [17:0] s2r = ar - tr;
-    wire signed [17:0] s2i = ai - ti;
+    wire signed [17:0] s1r = {{2{ar[15]}}, ar} + tr;
+    wire signed [17:0] s1i = {{2{ai[15]}}, ai} + ti;
+    wire signed [17:0] s2r = {{2{ar[15]}}, ar} - tr;
+    wire signed [17:0] s2i = {{2{ai[15]}}, ai} - ti;
     /* verilator lint_on UNUSEDSIGNAL */
 
     always @(posedge clk) begin

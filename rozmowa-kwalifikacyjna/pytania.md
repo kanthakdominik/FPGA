@@ -4342,7 +4342,187 @@ Przez FIFO dwuzegarowe: zapis w domenie ADC, odczyt w domenie TX_CLK. Nadajnik s
 
 ## 26 — Cyfrowe przetwarzanie sygnałów w FPGA
 
-_Pytania pojawią się razem z treścią modułu ([26-dsp-w-fpga](../modules/26-dsp-w-fpga/README.md))._
+### [26.01 — Filtry FIR: struktury bezpośrednia, transponowana, symetryczna i systoliczna](../modules/26-dsp-w-fpga/26.01-filtry-fir-struktury-bezposrednia-transponowana.md)
+
+1. **Dlaczego filtr FIR w postaci transponowanej osiąga wyższy zegar niż bezpośredni?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W postaci bezpośredniej wynik to suma N iloczynów obliczana kombinacyjnie po rejestrach linii opóźniającej — ścieżka zawiera mnożenie i łańcuch (albo drzewo) N−1 dodawań. W transponowanej próbka jest mnożona przez wszystkie współczynniki jednocześnie, a między kolejnymi sumatorami są rejestry sum częściowych: ścieżka to jedno mnożenie i jedno dodawanie, niezależnie od N. Ceną jest duże rozgałęzienie wejścia (próbka zasila N mnożarek) — przy długich filtrach powiela się rejestr wejściowy albo stosuje strukturę systoliczną, w której dane i sumy płyną łańcuchem.
+</details>
+
+2. **Filtr 64-współczynnikowy z liniową fazą, 10 MSPS, zegar 200 MHz. Ile mnożarek?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Symetria pozwala liczyć 32 mnożenia na próbkę (sumator wstępny dodaje pary próbek). Na próbkę przypada 200/10 = 20 taktów, więc potrzeba ⌈32/20⌉ = 2 mnożarek pracujących w trybie MAC (każda liczy 16 iloczynów w 16 taktach i akumuluje), plus sumator łączący dwa akumulatory. Bez symetrii — ⌈64/20⌉ = 4. W pełni równoległa transponowana wersja (64 mnożarki) przyjmowałaby próbkę w każdym takcie, czyli 200 MSPS — dziesięć razy więcej, niż trzeba.
+</details>
+
+3. **Dlaczego filtr z symetrycznymi współczynnikami ma liniową fazę i dlaczego to ważne?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odpowiedź częstotliwościowa symetrycznego filtru o długości N daje się zapisać jako e^(−jω(N−1)/2) razy funkcja rzeczywista — faza jest liniową funkcją częstotliwości, czyli wszystkie składowe są opóźnione o tyle samo, (N−1)/2 próbek (opóźnienie grupowe stałe). Kształt impulsu w paśmie przepustowym się nie zmienia — ważne w transmisji danych (brak zniekształceń międzysymbolowych od fazy), w obrazie i w pomiarach. Filtry IIR nie mogą mieć dokładnie liniowej fazy; przy okazji symetria pozwala o połowę zmniejszyć liczbę mnożarek.
+</details>
+
+### [26.02 — Filtry IIR i stabilność w arytmetyce stałoprzecinkowej](../modules/26-dsp-w-fpga/26.02-filtry-iir-i-stabilnosc-w-arytmetyce.md)
+
+1. **Co to jest cykl graniczny w filtrze IIR i jak go uniknąć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To okresowa oscylacja (albo stała wartość różna od zera) na wyjściu filtru IIR przy zerowym wejściu, wywołana kwantyzacją w pętli sprzężenia zwrotnego: nieliniowe zaokrąglanie przy małych amplitudach „kompensuje” tłumienie biegunów, więc sygnał nie gaśnie. Amplituda rośnie, gdy bieguny są blisko okręgu jednostkowego (rzędu ½/(1 − r) LSB). Środki: obcięcie w stronę zera (moduł malejący) w pętli, więcej bitów ułamkowych w pętli (cykl spada poniżej LSB wyjścia), kształtowanie szumu albo dithering. Cykle od przepełnień usuwa nasycenie zamiast zawinięcia.
+</details>
+
+2. **Dlaczego pętli filtru IIR nie można po prostu spotokować i co się robi zamiast tego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wyjście w[n] zależy od w[n−1] — wynik musi wrócić do pętli przed następną próbką. Dodatkowy rejestr w pętli zmienia równanie różnicowe (w[n] zależałoby od w[n−2]), więc filtr staje się innym filtrem. Rozwiązania: przeplot K niezależnych kanałów (każdy kanał ma swoją próbkę co K taktów, więc K rejestrów w pętli jest poprawne), przekształcenie look-ahead (rozwinięcie rekursji tak, by zależność była od w[n−K], kosztem dodatkowych zer i biegunów, które trzeba zredukować), albo zmniejszenie fs względem zegara i wieloetapowe liczenie jedną mnożarką.
+</details>
+
+3. **Dlaczego w stałym przecinku wybiera się często postać transponowaną II albo bezpośrednią I, a nie bezpośrednią II?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W DF-II sygnał wewnętrzny w przechodzi najpierw przez bieguny (część rekursywną), a dopiero potem przez zera — przy biegunach blisko okręgu jego amplituda może być wielokrotnie większa od wejścia i wyjścia, więc stan łatwo się przepełnia albo wymaga skalowania. DF-I ma jeden szeroki akumulator i kwantyzację raz na próbkę, bez stanów pośrednich o dużej dynamice (kosztem 4 rejestrów). DF-II-T ma 2 rejestry, a stany s1, s2 trzymane w pełnej precyzji nie są kwantowane — jedyna kwantyzacja to wyjście; wyjście jest jeden sumator od rejestru, co skraca ścieżkę.
+</details>
+
+### [26.03 — Generatory NCO i DDS](../modules/26-dsp-w-fpga/26.03-generatory-nco-i-dds.md)
+
+1. **Akumulator fazy 32-bitowy, zegar 100 MHz. Jaka jest rozdzielczość częstotliwości i jakie słowo ustawia 10 MHz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rozdzielczość = 100 MHz / 2³² ≈ 0,0233 Hz. ftw = 10 MHz · 2³² / 100 MHz = 0,1 · 2³² = 429 496 729,6 → 429 496 730 (0x1999999A); rzeczywista częstotliwość różni się od 10 MHz o ok. 0,009 Hz. Przy tak dobranym słowie faza wraca do zera dopiero po bardzo długim czasie, więc widmo prążków od obcięcia fazy jest gęste — ich poziom określa liczba bitów fazy w tablicy, nie dokładność ftw.
+</details>
+
+2. **Skąd w widmie DDS biorą się prążki zakłóceń i jak je zmniejszyć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z obcięcia fazy przed tablicą: odrzucone bity tworzą błąd fazy, który jest okresowy (powtarza się z okresem zależnym od ftw), więc modulacja fazy daje dyskretne prążki, a nie szum; ich poziom to ok. −6,02 dB na każdy bit fazy użyty w tablicy. Do tego kwantyzacja amplitudy (słabsza przy 16 bitach) i nieliniowości przetwornika C/A. Środki: więcej bitów fazy (większa tablica, kompresja ćwiartkowa), interpolacja lub korekcja Taylora, dithering fazy (zamienia prążki w szum o podobnej mocy, ale rozłożony), CORDIC z dużą liczbą iteracji.
+</details>
+
+3. **Jak zbudować przetwornik C/A z jednego pinu FPGA i od czego zależy jego jakość?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Modulator sigma-delta: akumulator, do którego co takt dodaje się próbkę (w kodzie z przesunięciem), a przeniesienie jest bitem wyjściowym — średnia gęstość jedynek jest proporcjonalna do próbki, a błąd kwantyzacji przesunięty do wysokich częstotliwości. Pin z filtrem RC (albo filtrem wyższego rzędu) odtwarza sygnał. Jakość zależy od współczynnika nadpróbkowania (zegar / dwukrotne pasmo), rzędu modulatora (1. rząd ma tony jałowe i słabe kształtowanie), filtru analogowego i warunków analogowych pinu: szumu i stabilności zasilania banku I/O, niesymetrii czasów narastania i opadania oraz jittera zegara. Wyższą jakość daje modulator 2. rzędu i bufor z czystym zasilaniem odniesienia.
+</details>
+
+### [26.04 — Decymacja i interpolacja: CIC i filtry wielofazowe](../modules/26-dsp-w-fpga/26.04-decymacja-i-interpolacja-cic-i-filtry.md)
+
+1. **Dlaczego filtr CIC nie potrzebuje mnożarek i dlaczego przepełnienia integratorów mu nie szkodzą?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+CIC to kaskada sum ruchomych o długości RM, a sumę ruchomą da się policzyć rekurencyjnie: integrator (dodaj nową próbkę) i grzebień (odejmij próbkę sprzed RM kroków); wszystkie współczynniki są równe 1, więc zostają same sumatory. Integratory są niestabilne (rosną bez ograniczeń przy składowej stałej), ale arytmetyka uzupełnień do dwóch jest arytmetyką modulo 2ᴮ — jeśli B wystarcza na pomieszczenie poprawnego wyniku całego filtru (B_we + N·log₂(RM)), to różnice liczone w grzebieniach wychodzą poprawne mimo zawinięć po drodze. Warunek: zawinięcie wszędzie, żadnego nasycenia.
+</details>
+
+2. **CIC: N = 5, R = 64, M = 1, wejście 14-bitowe. Ile bitów mają rejestry i co trzeba dodać za filtrem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wzrost słowa N·log₂(RM) = 5·6 = 30 bitów, więc rejestry mają 14 + 30 = 44 bity (przycinanie Hogenauera pozwala zmniejszyć młodsze bity w dalszych stopniach). Wzmocnienie 64⁵ = 2³⁰ kompensuje się przesunięciem o 30. Charakterystyka sinc⁵ mocno opada w paśmie przepustowym, więc za CIC stawia się filtr kompensujący (CFIR) o wzroście wzmocnienia odwrotnym do opadania, zwykle z decymacją przez 2, a potem FIR kształtujący ostateczne pasmo.
+</details>
+
+3. **Ile oszczędza struktura wielofazowa przy decymacji przez 8 filtrem 96-współczynnikowym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bez niej filtr liczy 96 mnożeń na każdą próbkę wejściową, a 7 z 8 wyników jest wyrzucanych. Wielofazowo liczy się tylko zachowywane wyniki: 96 mnożeń na wynik, czyli 12 na próbkę wejściową — 8 razy mniej (M razy). Sprzętowo: 8 podfiltrów po 12 współczynników pracujących z częstotliwością wyjściową, albo jedna mnożarka z 96 taktami na wynik, jeśli zegar jest co najmniej 12 razy szybszy od próbek wejściowych. Symetria współczynników daje kolejne 2×.
+</details>
+
+### [26.05 — FFT w sprzęcie](../modules/26-dsp-w-fpga/26.05-fft-w-sprzecie.md)
+
+1. **Ile mnożeń rzeczywistych wymaga FFT radix-2 dla N = 1024 w porównaniu z DFT?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+FFT: log₂1024 = 10 etapów po 512 motyli = 5120 motyli, każdy z jednym mnożeniem zespolonym = 4 mnożenia rzeczywiste, razem ok. 20 480 (mniej, jeśli pominąć mnożenia przez W⁰ = 1 i W^(N/4) = −j, które są trywialne — radix-4 jeszcze bardziej to wykorzystuje). DFT: 1024² ≈ 1,05 mln mnożeń zespolonych, czyli ok. 4,2 mln rzeczywistych — ponad 200 razy więcej.
+</details>
+
+2. **Masz strumień 100 MSPS z ADC i zegar 200 MHz. Jaką architekturę FFT 1024 wybierzesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Potrzeba przetwarzać 100 M próbek/s bez przerw. Rdzeń iteracyjny z jednym motylem przy 200 MHz wykona ramkę w 5120 taktów, czyli ok. 25,6 µs, a ramka 1024 próbek napływa w 10,24 µs — za wolno. Rozwiązanie: architektura potokowa (np. R2²SDF) przyjmująca próbkę co takt — pracuje przy 200 MHz z 2× zapasem albo przy 100 MHz w tej samej domenie co ADC; ok. log₂N motyli (z mnożeniami zespolonymi tylko w części etapów dla radix-2²) i pamięci opóźniające razem ok. N słów. Alternatywa: kilka rdzeni iteracyjnych z buforami ping-pong, ale potok jest prostszy i tańszy.
+</details>
+
+3. **Dlaczego w FFT z podziałem w czasie wejście jest w kolejności z odwróconymi bitami?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo algorytm rekurencyjnie dzieli ciąg na próbki parzyste i nieparzyste: w pierwszym podziale decyduje najmłodszy bit indeksu, w drugim kolejny itd. Po log₂N podziałach próbka x[n] ląduje na pozycji, której indeks to n zapisane w odwrotnej kolejności bitów. Liczenie w miejscu (wyniki motyla zapisywane tam, skąd przeczytano argumenty) wymaga więc, żeby dane na początku były w tej kolejności — wtedy wynik wychodzi w kolejności naturalnej. W sprzęcie to darmowe: przestawione przewody adresu.
+</details>
+
+### [26.06 — Przetwarzanie I/Q i radio programowalne](../modules/26-dsp-w-fpga/26.06-przetwarzanie-i-q-i-radio-programowalne.md)
+
+1. **Dlaczego w odbiorniku potrzebne są dwie gałęzie I i Q, a nie wystarczy jedna?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jedna gałąź mnoży sygnał przez cos(fc) i daje sygnał rzeczywisty, w którym składowe fc + Δ i fc − Δ trafiają w to samo miejsce |Δ| — nie da się ich rozdzielić, więc kanał nad i pod nośną nakłada się na siebie, a faza sygnału względem nośnej jest niejednoznaczna. Para I + jQ to sygnał zespolony z niesymetrycznym widmem: +Δ i −Δ są rozróżnialne (różnią się kierunkiem obrotu wskazówki), da się odczytać amplitudę i fazę (√(I² + Q²), atan2(Q, I)), a pasmo zespolone o szerokości B wymaga tylko B próbek zespolonych na sekundę.
+</details>
+
+2. **Na wejściu ADC jest sygnał na 70 MHz o paśmie 5 MHz, ADC pracuje przy 100 MSPS. Jak to odebrać w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+70 MHz leży w drugiej strefie Nyquista (50–100 MHz), więc po próbkowaniu pojawia się jako alias przy 100 − 70 = 30 MHz (z odwróconym widmem). DDC z NCO ustawionym na 30 MHz przesuwa go do zera (odwrócenie widma kompensuje się znakiem Q albo NCO na −30 MHz), potem decymacja: np. CIC ↓5 → CFIR ↓2 → FIR ↓2 daje 5 MSPS zespolonych, wystarczające dla pasma 5 MHz z zapasem na zbocza filtru. Przed ADC potrzebny jest analogowy filtr pasmowy wokół 70 MHz, żeby szum i sygnały z innych stref nie nałożyły się na kanał, a ADC musi mieć pasmo wejściowe obejmujące 70 MHz.
+</details>
+
+3. **Co to jest niezrównoważenie I/Q i jak się objawia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W analogowym mieszaczu kwadraturowym gałęzie I i Q mają nieco różne wzmocnienia i przesunięcie fazy różne od dokładnie 90°. Sygnał zespolony zawiera wtedy, oprócz właściwej składowej przy +Δ, jej słabszą kopię lustrzaną przy −Δ (obraz); tłumienie obrazu wynosi typowo 25–40 dB, co dla sygnałów OFDM z wieloma podnośnymi i silnych sąsiednich kanałów jest za mało. Koryguje się to cyfrowo: estymacja błędu wzmocnienia i fazy (np. z korelacji I i Q w czasie) i macierz 2 × 2 na I/Q, plus usuwanie składowej stałej, często w FPGA w czasie rzeczywistym.
+</details>
+
+### [26.07 — Od modelu w Pythonie do RTL — weryfikacja bit w bit](../modules/26-dsp-w-fpga/26.07-od-modelu-w-pythonie-do-rtl-weryfikacja-bit-w.md)
+
+1. **Dlaczego nie porównuje się wyjścia filtru IIR w RTL z modelem zmiennoprzecinkowym z tolerancją?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo w pętli sprzężenia zwrotnego różnica kwantyzacji nie jest ograniczona do ±1 LSB: każda różnica wraca do pętli i może się kumulować, a przy zerowym wejściu model zmiennoprzecinkowy gaśnie do zera, podczas gdy poprawny RTL ma cykl graniczny o amplitudzie kilkudziesięciu LSB. Tolerancji nie da się dobrać tak, żeby przepuszczała poprawny RTL i odrzucała błędny (np. z obcięciem zamiast zaokrąglenia). Model całkowitoliczbowy z tą samą kwantyzacją daje porównanie dokładne: każda różnica to błąd, a zachowanie zmiennoprzecinkowe ocenia się osobno miarami jakości.
+</details>
+
+2. **Jakie różnice między Pythonem a Verilogiem najczęściej psują model bit w bit?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zaokrąglanie: `round()` w Pythonie zaokrągla połówki do parzystej, `int()` obcina w stronę zera, a typowy RTL dodaje połowę i przesuwa (połówki w górę) albo przesuwa bez dodawania (floor). Szerokość: liczby Pythona nie przepełniają się, rejestry RTL zawijają — trzeba jawnie zawijać w modelu. Znak: w Verilogu wynik wyrażenia jest bez znaku, jeśli choć jeden operand jest bez znaku (wycinek wektora, konkatenacja), więc mnożenie i `>>>` dają inne wyniki niż w Pythonie. Do tego kolejność operacji (zaokrąglenie każdego iloczynu vs sumy) i faza decymacji (który wynik jest pierwszy).
+</details>
+
+3. **Jak zorganizować repozytorium, żeby współczynniki filtru nie rozjechały się między modelem, VHDL i Verilogiem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jedno źródło: skrypt modelu generuje wszystkie artefakty — pliki współczynników, moduły ROM albo pakiety stałych w każdym języku, wektory testowe — z nagłówkiem „wygenerowane, nie edytować”. RTL czyta współczynniki z portu, parametru lub wygenerowanego pakietu, nigdy nie wpisuje ich ręcznie. CI uruchamia generator w trybie sprawdzania (generacja do katalogu tymczasowego i porównanie z repozytorium) i wszystkie testbenche — każda niezgodność, także ręczna poprawka w wygenerowanym pliku, zatrzymuje scalanie.
+</details>
 
 ## 27 — Procesory w FPGA i systemy SoC
 
