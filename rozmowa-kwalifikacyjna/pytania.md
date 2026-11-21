@@ -4052,7 +4052,161 @@ Tryb SPI jest częścią specyfikacji dla prostych hostów (mikrokontrolery): je
 
 ## 24 — Wideo i grafika
 
-_Pytania pojawią się razem z treścią modułu ([24-wideo-i-grafika](../modules/24-wideo-i-grafika/README.md))._
+### [24.01 — Sygnał wideo: taktowanie, wygaszanie i zegar piksela](../modules/24-wideo-i-grafika/24.01-sygnal-wideo-taktowanie-wygaszanie-i-zegar.md)
+
+1. **Skąd bierze się 25,175 MHz dla 640×480 przy 60 Hz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z całkowitej liczby pikseli w ramce razy częstotliwość odświeżania: linia ma 800 taktów (640 aktywnych + 16 przedsionka + 96 impulsu + 48 tylnego progu), ramka 525 linii (480 + 10 + 2 + 33), 800 × 525 = 420 000 taktów na ramkę, × 59,94 Hz ≈ 25,175 MHz. Wartość pochodzi z oryginalnego VGA, w którym częstotliwość linii (31,469 kHz) była dwukrotnością telewizyjnej NTSC.
+</details>
+
+2. **Po co cyfrowemu monitorowi wygaszanie, skoro nie ma wiązki do zawrócenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Częściowo z kompatybilności (te same tryby co monitory CRT, ta sama elektronika skalerów), a częściowo dlatego, że w wygaszaniu przesyła się inne dane: HDMI w okresach wysp danych (*data islands*) przenosi dźwięk i ramki informacyjne (InfoFrame), DisplayPort — dane dodatkowe. Gdzie to niepotrzebne, stosuje się skrócone wygaszanie (CVT-RB), co zmniejsza wymagany zegar piksela.
+</details>
+
+3. **Jak przetworzyć 1080p60 w FPGA, którego logika nie zamknie czasowo 148,5 MHz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Przetwarzać dwa (albo cztery) piksele na takt przy połowie (ćwiartce) zegara: generator taktowania liczy pary pikseli, potok i bufory są dwa razy szersze, a serializacja do pełnej szybkości odbywa się w nadajniku (zewnętrznym albo w rejestrach DDR/serializatorach I/O). Druga możliwość — tryb z reduced blanking, który obniża zegar przy tej samej rozdzielczości.
+</details>
+
+### [24.02 — HDMI i DVI: kodowanie TMDS i nadajnik ADV7513 na DECA](../modules/24-wideo-i-grafika/24.02-hdmi-i-dvi-kodowanie-tmds-i-nadajnik-adv7513-na.md)
+
+1. **Po co TMDS koduje 8 bitów na 10 i co robią bity 8 i 9?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Żeby strumień nadawał się do transmisji szeregowej z odtwarzaniem zegara przez łącze sprzężone pojemnościowo: mało zmian (mniej zakłóceń elektromagnetycznych i przesłuchów), zrównoważona liczba jedynek i zer (brak składowej stałej) i możliwość rozpoznania granic symboli. Bit 8 mówi, czy przy minimalizacji zmian użyto XOR czy XNOR; bit 9 — czy bity 7..0 odwrócono, żeby wyrównać bilans jedynek i zer śledzony licznikiem cnt. Znaki sterujące w wygaszaniu mają dużo zmian (7–8) i są nie do pomylenia z danymi (≤ 5).
+</details>
+
+2. **Czym różni się sygnał HDMI od DVI, skoro złącze HDMI–DVI działa bez elektroniki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Warstwa fizyczna (TMDS) i kodowanie pikseli są wspólne, więc obraz przechodzi. HDMI dodaje w wygaszaniu okresy wysp danych z dźwiękiem i ramkami InfoFrame (kodowanie TERC4, sumy kontrolne BCH), preambuły i pasma ochronne przed okresami danych, a także YCbCr, głębszy kolor, CEC i HDCP. Nadajnik HDMI podłączony do monitora DVI powinien przejść w tryb DVI (na podstawie EDID), bo monitor DVI nie zna wysp danych.
+</details>
+
+3. **Monitor po podłączeniu do płytki z ADV7513 pokazuje „brak sygnału”. Co sprawdzasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw konfigurację: czy transakcje I2C dostają ACK (adres 0x72, zasilanie i reset nadajnika), czy zapisano 0x41 i rejestry stałe, czy HPD jest widziany (0x42) — i czy konfiguracja jest powtarzana po podłączeniu kabla. Potem sygnał wejściowy: zegar piksela na pinie, poprawne taktowanie (HS/VS/DE, szerokości impulsów), format wejścia zgodny z 0x15/0x16. Na koniec tryb: czy monitor przyjmuje daną rozdzielczość i odświeżanie (np. 640×480 przy 59,5 zamiast 59,94 Hz) i czy tryb HDMI/DVI pasuje do odbiornika.
+</details>
+
+### [24.03 — Grafika generowana: sprite'y, tekst i linie](../modules/24-wideo-i-grafika/24.03-grafika-generowana-sprite-y-tekst-i-linie.md)
+
+1. **Jak wyświetlić tekst 80×30 znaków na 640×480 bez bufora ramki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Pamięcią znaków (2400 bajtów: kod ASCII na komórkę 8×16) i ROM czcionki (256 znaków × 16 wierszy × 8 bitów = 4 KB). Dla piksela (x, y): komórka (x/8, y/16), adres = wiersz·80 + kolumna → kod znaku → adres w ROM = kod·16 + (y mod 16) → bajt wiersza czcionki → bit (7 − x mod 8). Dwa odczyty pamięci, więc 2 takty opóźnienia, które trzeba wyrównać z synchronizacją i pozostałymi warstwami. Razem ok. 6,5 KB zamiast 300 KB bufora ramki.
+</details>
+
+2. **Wyjaśnij algorytm Bresenhama i dlaczego nadaje się do sprzętu.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Idzie po odcinku krokami jednopikselowymi w osi głównej i decyduje o kroku w osi pobocznej na podstawie całkowitoliczbowego błędu, który mierzy odległość od idealnej prostej. W wersji ogólnej: e = dx + dy, w każdym kroku e2 = 2e, krok w x gdy e2 ≥ dy, krok w y gdy e2 ≤ dx, z odpowiednią aktualizacją e. Tylko dodawania, porównania i przesunięcie o bit — bez mnożenia, dzielenia i liczb ułamkowych — więc w FPGA daje jeden punkt na takt przy niewielkiej logice, a wynik jest dokładny (błąd ≤ ½ piksela).
+</details>
+
+3. **Masz trzy warstwy o opóźnieniach 1, 2 i 4 takty. Jak je złożysz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Opóźniam wyjścia warstw 1- i 2-taktowej rejestrami przesuwnymi do 4 taktów (o 3 i 2 rejestry), sygnały DE/HS/VS też o 4 takty, i dopiero wtedy mikser wybiera kolor według priorytetu. Alternatywnie wysuwam wcześniej współrzędne dla wolniejszej warstwy (podaję jej x + 3), ale to komplikuje brzegi linii; opóźnianie szybszych warstw jest prostsze i pewniejsze.
+</details>
+
+### [24.04 — Bufor ramki w DDR3](../modules/24-wideo-i-grafika/24.04-bufor-ramki-w-ddr3.md)
+
+1. **Na czym polega rozdarcie obrazu i jak mu zapobiega podwójne buforowanie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rozdarcie powstaje, gdy obraz w ramce wyświetlanej zmienia się w trakcie jej skanowania: górna część ekranu pokazuje stary obraz, dolna nowy, więc poruszające się obiekty są „przecięte” poziomą linią. Przy podwójnym buforowaniu autor rysuje zawsze do ramki niewyświetlanej, a zamiana (wybór adresu bazowego czytnika) następuje tylko w wygaszaniu pionowym, między ramkami. Autor po zgłoszeniu zamiany czeka na jej wykonanie, bo dopiero wtedy stara ramka przestaje być czytana.
+</details>
+
+2. **Jak dobrać wielkość bufora po stronie wyświetlania?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tak, żeby pokrył najdłuższy czas, przez który pamięć może nie dostarczać danych, przy tempie zużycia zegara piksela: opóźnienie pierwszego słowa, przerwa na odświeżanie DRAM (np. tRFC co 7,8 µs), obsługa innych masterów (bursty zapisu, procesor) i przełączenia wierszy. Przykład: 1080p (148,5 Mpix/s × 4 B ≈ 600 MB/s w obszarze aktywnym) i maks. 2 µs przerwy → co najmniej ok. 1,2 KB, czyli ponad 300 pikseli; w praktyce bufor jednej–dwóch linii daje zapas i upraszcza skalowanie. Wielkość weryfikuje się licznikiem niedoborów pod pełnym obciążeniem.
+</details>
+
+3. **Jak przekazać informację „zaczęła się nowa linia” z domeny piksela do domeny pamięci?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jako zmianę bitu przełączanego (toggle): w domenie piksela bit zmienia stan przy każdym zdarzeniu, w domenie pamięci przechodzi przez synchronizator dwu-/trzyprzerzutnikowy, a XOR dwóch ostatnich stopni daje impuls. Działa, bo zdarzenia są dużo rzadsze niż oba zegary (co linię). Numer linii nie jest przesyłany — domena pamięci liczy zdarzenia sama; gdyby trzeba było przesłać wartość wielobitową, użyłbym kodu Graya (dla licznika) albo FIFO dwuzegarowego.
+</details>
+
+### [24.05 — Kamera MIPI CSI-2 na DECA](../modules/24-wideo-i-grafika/24.05-kamera-mipi-csi-2-na-deca.md)
+
+1. **Czym różnią się tryby HS i LP w D-PHY i po co są dwa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+HS to szybka transmisja różnicowa o małej amplitudzie (ok. 200 mV, setki Mb/s – Gb/s na pas) z terminacją 100 Ω — dla danych obrazu. LP to wolne (do 10 Mb/s) sygnały jednoprzewodowe 1,2 V bez terminacji, o bardzo małym poborze — do sygnalizacji stanów (np. przejścia na HS, koniec transmisji, tryb uśpienia) i komunikacji pomocniczej. Dzięki temu pas między pakietami nie zużywa prądu na terminacji, a odbiornik dostaje jednoznaczny znak początku transmisji HS.
+</details>
+
+2. **Jak wygląda pakiet długi CSI-2 i jak odbiornik wie, gdzie się kończy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Czterobajtowy nagłówek: Data ID (kanał wirtualny i typ danych, np. RAW10), 16-bitowa liczba bajtów danych (*word count*) i ECC chroniący te 24 bity; potem dokładnie *word count* bajtów danych i dwubajtowe CRC-16. Odbiornik sprawdza i ewentualnie poprawia nagłówek kodem ECC, a potem odlicza bajty według word count — dlatego błąd w nagłówku jest groźny i stąd ECC zamiast samej parzystości. Po stopce nadajnik kończy transmisję HS i pas wraca do LP-11.
+</details>
+
+3. **FPGA nie ma bloku MIPI D-PHY. Jak odebrać obraz z kamery CSI-2?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Trzy drogi: zewnętrzny układ pomostowy (np. konwerter CSI-2 → równoległy, jak na płytkach z TC358748), bierna sieć rezystorów do wejść FPGA (AN 754: tor HS na wejście LVDS z terminacją, tor LP na wejścia 1,2 V; ok. 500–800 Mb/s na pas) albo FPGA z twardym D-PHY (nowsze rodziny). W drugim przypadku logika CSI-2 (wyrównanie, scalanie pasów, ECC, CRC) jest miękka; trzeba pilnować standardów I/O banku i długości ścieżek.
+</details>
+
+### [24.06 — Przetwarzanie obrazu strumieniowo: bufory linii i filtry 3×3](../modules/24-wideo-i-grafika/24.06-przetwarzanie-obrazu-strumieniowo-bufory-linii.md)
+
+1. **Ile pamięci potrzebuje filtr 5×5 dla obrazu 1920×1080, 8 bitów na piksel, i jakie ma opóźnienie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Cztery bufory linii po 1920 × 8 bitów = 61 440 bitów (przy sposobie „pełnej linii” — 2200 pozycji, 70 400 bitów), czyli ok. 8–9 bloków M9K, plus 25 rejestrów 8-bitowych okna. Środek okna jest dwie linie i dwa piksele za najnowszym pikselem, więc opóźnienie to ok. 2 linie (2 × 2200 taktów) plus kilka taktów potoku obliczeń — przy 148,5 MHz ok. 30 µs. Bufora ramki nie potrzeba.
+</details>
+
+2. **Jak obsłużyć brzegi obrazu w filtrze strumieniowym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najprościej zerami: jeśli linie opóźniające obejmują wygaszanie i piksele wygaszania są zerowane, sąsiedzi spoza obrazu automatycznie są zerami. Lepsze dla wielu filtrów jest powielanie skrajnego piksela albo odbicie — wtedy na podstawie pozycji (pierwsza/ostatnia kolumna, pierwszy/ostatni wiersz) multipleksery podstawiają w oknie właściwe piksele zamiast sąsiadów. Można też obciąć wynik (nie wyświetlać brzegowego piksela) — obraz wyjściowy jest wtedy mniejszy o (N − 1) pikseli.
+</details>
+
+3. **Dlaczego Sobel w sprzęcie liczy |Gx| + |Gy| zamiast pierwiastka z sumy kwadratów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo daje podobną informację (siłę gradientu) bez mnożarek i bez pierwiastka — tylko wartości bezwzględne i dodawanie, czyli kilka sumatorów w jednym takcie. Przybliżenie zawyża wynik najwyżej o ok. 41 % dla gradientu ukośnego (dla poziomego i pionowego jest dokładne), co przy progowaniu krawędzi zwykle nie przeszkadza. Gdy potrzeba dokładnej wartości albo kierunku, używa się tablic, algorytmu CORDIC albo przybliżenia max + ½ min.
+</details>
 
 ## 25 — Audio i Ethernet
 
