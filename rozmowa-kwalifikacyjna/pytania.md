@@ -3920,7 +3920,135 @@ Wersja jednozasilaniowa ma wewnętrzny regulator i wymaga tylko jednego napięci
 
 ## 23 — Pamięci zewnętrzne
 
-_Pytania pojawią się razem z treścią modułu ([23-pamieci-zewnetrzne](../modules/23-pamieci-zewnetrzne/README.md))._
+### [23.01 — SDRAM i DDR: jak działają, odświeżanie i opóźnienia](../modules/23-pamieci-zewnetrzne/23.01-sdram-i-ddr-jak-dzialaja-odswiezanie-i.md)
+
+1. **Co dzieje się przy odczycie z DRAM, gdy w banku otwarty jest inny wiersz? Ile to trwa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Konflikt wiersza: kontroler musi zamknąć otwarty wiersz (PRECHARGE, czas tRP), otworzyć nowy (ACTIVATE, tRCD do pierwszego READ), wydać READ i odczekać CL do danych. Dla DDR3-1600 to ok. 13,75 + 13,75 + 13,75 ≈ 41 ns plus czas burstu — trzy razy dłużej niż trafienie w otwarty wiersz (samo CL). Kontroler ukrywa część tego czasu, otwierając wiersze w innych bankach równolegle.
+</details>
+
+2. **Po co DRAM odświeżanie i ile kosztuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Informacja to ładunek w kondensatorze komórki, który ucieka przez upływność — w ciągu dziesiątek milisekund zmieniłby się w nieczytelny. Każdy wiersz trzeba odczytać i zapisać z powrotem co 64 ms (przy wyższej temperaturze częściej). Kontroler wydaje rozkaz REFRESH średnio co 7,8 µs, a pamięć jest wtedy niedostępna przez tRFC (100–350 ns), czyli ok. 2–5 % czasu; dodatkowo wszystkie wiersze muszą być wcześniej zamknięte.
+</details>
+
+3. **Dlaczego DDR4-3200 nie ma dwa razy mniejszego opóźnienia dostępu niż DDR3-1600?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo opóźnienia CL, tRCD, tRP są wyznaczone przez rdzeń pamięci (komórki, wzmacniacze odczytu, dekodery), który nie przyspieszył — wynoszą ok. 13–15 ns w obu generacjach. Wyższa szybkość interfejsu bierze się z prefetchu i szybszego I/O: w taktach CL jest dwa razy większe (np. 22 zamiast 11), ale w nanosekundach podobne. Rośnie przepustowość przy długich transferach, nie szybkość pojedynczego dostępu.
+</details>
+
+### [23.02 — Kontroler DDR3 na MAX 10 (UniPHY)](../modules/23-pamieci-zewnetrzne/23.02-kontroler-ddr3-na-max-10-uniphy.md)
+
+1. **Co robi PHY kontrolera DDR, a co sam kontroler?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Kontroler zamienia żądania z magistrali (odczyt/zapis pod adresem) na rozkazy DDR: otwiera i zamyka wiersze, przestawia kolejność, żeby zwiększyć liczbę trafień, pilnuje parametrów czasowych, wstawia odświeżanie, kalibrację ZQ i sterowanie ODT. PHY to warstwa fizyczna: rejestry DDR i linie opóźniające w blokach I/O, generowanie DQS i zegara pamięci, odbiór danych ze strobem z przesunięciem do środka okna, ścieżka do domeny kontrolera, a przy starcie — kalibracja odczytu i zapisu. Łączy je interfejs AFI (u AMD: odpowiednik DFI).
+</details>
+
+2. **Dlaczego interfejs użytkownika kontrolera DDR3 pracuje na połowie częstotliwości pamięci?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo logika ogólnego przeznaczenia w FPGA nie zamknie czasowo częstotliwości pamięci (300–1200 MHz), a PHY i tak przenosi dane w blokach I/O z dużą szybkością. Interfejs half rate (albo quarter rate w szybszych układach) przesyła na każdy takt wolniejszego zegara dwa (cztery) razy szersze słowo — przepustowość jest ta sama, a logika ma 2–4 razy więcej czasu na takt. Kosztem jest większe opóźnienie i szersze magistrale.
+</details>
+
+3. **Po uruchomieniu na płytce `local_cal_fail = 1`. Jak szukasz przyczyny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Sprawdzam po kolei: zasilanie pamięci i VREF/VTT, zegar referencyjny i blokadę PLL, reset; zgodność parametrów kości (szerokość, CL, CWL, tryb) z rzeczywistą pamięcią; przypisania pinów ze skryptu IP (szczególnie grupy DQ/DQS i polaryzacja zegara); parametry płytki; potem EMIF Debug Toolkit — na którym etapie kalibracji i w której grupie bajtowej jest błąd. Pojedyncza grupa wskazuje na płytkę (lutowanie, ścieżka), wszystkie — na parametry, zegar albo zasilanie. Obniżenie częstotliwości to szybki test, czy problem jest marginesem czasowym.
+</details>
+
+### [23.03 — Pamięci QSPI flash i HyperRAM](../modules/23-pamieci-zewnetrzne/23.03-pamieci-qspi-flash-i-hyperram.md)
+
+1. **Czym różnią się tryby 1-1-1, 1-1-4 i 1-4-4 i ile dają przyspieszenia?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczby mówią, ile linii przenosi rozkaz, adres i dane. 1-1-1 — wszystko szeregowo, 1-1-4 — dane na 4 liniach (4 razy krócej), 1-4-4 — także adres na 4 liniach (6 zamiast 24 cykli). Przyspieszenie całej transakcji zależy od jej długości: rozkaz i cykle puste się nie skracają, więc dla 256 B 1-1-4 daje ok. 3,8× (w testbenchu 8324 vs 2212 taktów), a dla 4 bajtów — niewiele. Tryb quad wymaga bitu QE.
+</details>
+
+2. **Jak zapisać 10 bajtów pod adres 0x1000 w pamięci flash SPI?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jeżeli sektor nie jest skasowany: WREN (06h), SECTOR ERASE 20h z adresem 0x1000, odpytywanie READ STATUS (05h) aż WIP = 0 (dziesiątki–setki ms). Potem WREN, PAGE PROGRAM 02h z adresem 0x1000 i 10 bajtami (w obrębie jednej strony 256 B), odpytywanie WIP (~1 ms). Kasowanie usuwa cały sektor 4 KB — jeśli są w nim inne dane, trzeba je wcześniej odczytać i zapisać z powrotem.
+</details>
+
+3. **Kiedy wybrać HyperRAM zamiast DDR3?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy potrzeba kilku–kilkudziesięciu MB i do kilkuset MB/s, a liczy się liczba pinów, prostota płytki i zasoby FPGA: 12 sygnałów zamiast ok. 45, brak kalibracji i zewnętrznego odświeżania, prosty kontroler bez IP producenta, mniejszy pobór. DDR3 wybiera się przy większej pojemności (setki MB–GB) i przepustowości (GB/s) albo gdy kontroler jest twardym blokiem w układzie.
+</details>
+
+### [23.04 — Arbitraż dostępu do pamięci i DMA](../modules/23-pamieci-zewnetrzne/23.04-arbitraz-dostepu-do-pamieci-i-dma.md)
+
+1. **Na czym polega zagłodzenie i jak mu zapobiega round-robin?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zagłodzenie: master nigdy nie dostaje dostępu, bo zawsze zgłasza się ktoś o wyższym priorytecie. W round-robin po obsłużeniu mastera *i* najwyższy priorytet przechodzi na *i+1*, więc każdy zgłaszający się master zostanie obsłużony najpóźniej po N−1 transferach innych. W teście trzech masterów zgłaszających się stale dostało po ~600 transferów.
+</details>
+
+2. **Pamięć ma opóźnienie odczytu 10 taktów. Jak zbudować DMA, które kopiuje z szybkością 1 słowo na 2 takty?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odczyty potokowe: wystawiać kolejne odczyty bez czekania na dane, mając co najmniej ~10 odczytów w locie, i bufor (FIFO) na tyle słów, ile może być w locie i jeszcze niezapisanych. Odczyt wolno wydać tylko, gdy w buforze jest miejsce na jego odpowiedź (licznik słów w locie + w buforze ≤ głębokość). Zapisy przeplatają się z odczytami; z jednym portem daje to 2 takty na słowo, z osobnymi portami odczytu i zapisu — 1.
+</details>
+
+3. **Jak arbiter wie, któremu masterowi oddać dane odczytu, skoro slave przyjmuje kilka odczytów naraz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Slave Avalon-MM zwraca dane w kolejności przyjęcia rozkazów, więc arbiter przy każdym przyjętym odczycie zapisuje numer mastera do kolejki FIFO, a przy każdym `readdatavalid` zdejmuje numer z czoła i kieruje odpowiedź do tego mastera. Gdy kolejka jest pełna, nie przyjmuje nowych odczytów. W AXI zamiast tego służą identyfikatory transakcji (ID) — odpowiedzi z różnymi ID mogą wracać w innej kolejności.
+</details>
+
+### [23.05 — Karta microSD: tryb SPI i tryb SD](../modules/23-pamieci-zewnetrzne/23.05-karta-microsd-tryb-spi-i-tryb-sd.md)
+
+1. **Opisz inicjalizację karty SD w trybie SPI.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zegar 100–400 kHz, co najmniej 74 takty z CS = 1. CMD0 z CS = 0 — karta wchodzi w tryb SPI i odpowiada R1 = 0x01. CMD8 z argumentem 0x1AA — karta v2 odsyła echo (inaczej starsza karta). Potem pętla CMD55 + ACMD41 z bitem HCS, aż R1 = 0x00 (do ok. 1 s). CMD58 odczytuje OCR: bit CCS mówi, czy to SDHC/SDXC (adresowanie blokami), czy SDSC (bajtami — wtedy jeszcze CMD16 512). Na koniec zegar w górę, do 25 MHz. W testbenchu: 11 rozkazów i 2,4 ms dla SDHC.
+</details>
+
+2. **Czym różni się adresowanie kart SDSC i SDHC i co się stanie przy pomyłce?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+SDSC (do 2 GB) przyjmuje w CMD17/CMD24 adres w bajtach, SDHC/SDXC — numer bloku 512 B. Typ rozpoznaje się po bicie CCS w OCR (CMD58). Pomyłka nie daje błędu: na SDHC adres bajtowy blok × 512 wskazuje blok 512 razy dalej (albo poza pojemnością → błąd adresu), na SDSC numer bloku czyta niewyrównany fragment z początku karty. Dlatego testbench sprawdza obie karty z blokami 5 i 1000.
+</details>
+
+3. **Dlaczego karta działa w trybie SPI z 1 linią danych, skoro ma 4, i ile się na tym traci?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tryb SPI jest częścią specyfikacji dla prostych hostów (mikrokontrolery): jedna linia danych w każdą stronę, prosty protokół bajtowy. Tryb natywny SD używa linii CMD i 4 linii DAT, z osobnym CRC16 na linię, i zegarów do 50 MHz (high speed) albo wyższych w UHS. SPI przy 25 MHz daje do ~3 MB/s, tryb SD 4-bitowy przy 50 MHz — 25 MB/s; do rejestracji danych z dużą szybkością potrzebny jest więc tryb natywny i odczyt/zapis wielu bloków (CMD18/CMD25).
+</details>
 
 ## 24 — Wideo i grafika
 

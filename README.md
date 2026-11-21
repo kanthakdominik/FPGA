@@ -105,7 +105,7 @@ Zasady:
 | 20 | [Interfejsy szeregowe niskiej szybkości](modules/20-interfejsy-szeregowe/README.md) | 🛠️💼 | 6 | 16 h | ✅ pełny |
 | 21 | [Magistrale i interfejsy na chipie](modules/21-magistrale-on-chip/README.md) | 🧩🛠️💼 | 6 | 16 h | ✅ pełny |
 | 22 | [Wejścia-wyjścia i szybkie interfejsy](modules/22-io-i-szybkie-interfejsy/README.md) | 🛠️💼 | 6 | 14 h | ✅ pełny |
-| 23 | [Pamięci zewnętrzne](modules/23-pamieci-zewnetrzne/README.md) | 🛠️💼 | 5 | 16 h | 🔲 szkielet |
+| 23 | [Pamięci zewnętrzne](modules/23-pamieci-zewnetrzne/README.md) | 🛠️💼 | 5 | 16 h | ✅ pełny |
 | 24 | [Wideo i grafika](modules/24-wideo-i-grafika/README.md) | 🛠️ | 6 | 18 h | 🔲 szkielet |
 | 25 | [Audio i Ethernet](modules/25-audio-i-ethernet/README.md) | 🛠️ | 5 | 16 h | 🔲 szkielet |
 
