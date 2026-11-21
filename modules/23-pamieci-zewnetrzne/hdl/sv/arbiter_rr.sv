@@ -35,8 +35,11 @@ module arbiter_rr #(
     logic  [IW-1:0] kol [0:KOL-1];
     logic  [KW-1:0] wz, wo;
     logic  [KW:0]   ile;
+    /* verilator lint_off WIDTHTRUNC */
+    localparam [KW:0] KOLW = KOL;
+    /* verilator lint_on WIDTHTRUNC */
     logic          pelna;
-    assign pelna = (ile == KOL);
+    assign pelna = (ile == KOLW);
     /* verilator lint_off UNUSEDSIGNAL */  // i < N — używane tylko młodsze bity
     integer       k, i;
     /* verilator lint_on UNUSEDSIGNAL */
