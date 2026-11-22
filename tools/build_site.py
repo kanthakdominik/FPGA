@@ -25,7 +25,7 @@ LINK = re.compile(r"(\]\()([^)\s]+)(\))")
 ZNACZNIK = re.compile(r"^<!-- (plik|zakladki): (.+?) -->$", re.M)
 
 PLIKI_GLOWNE = ["README.md", "ROADMAP.md", "RESOURCES.md", "NARZEDZIA.md", "SLOWNICZEK.md", "LICENSE.md",
-                "docs/SZABLON-TEMATU.md", "docs/STYL-KODU.md"]
+                "docs/STYL-KODU.md"]
 STATYCZNE = {"assets": (".svg", ".png", ".jpg", ".jpeg", ".gif", ".webp")}
 JEZYKI = {".vhd": ("vhdl", "VHDL"), ".vhdl": ("vhdl", "VHDL"), ".v": ("verilog", "Verilog"),
           ".sv": ("systemverilog", "SystemVerilog"), ".svh": ("systemverilog", "SystemVerilog"),
@@ -208,7 +208,7 @@ def main():
                     ("Pułapki", "rozmowa-kwalifikacyjna/pulapki.md")], 4)
     nav += ["  - Materiały:"]
     nav += pozycje([("Źródła", "RESOURCES.md"), ("Narzędzia", "NARZEDZIA.md"), ("Słowniczek", "SLOWNICZEK.md"),
-                    ("Styl kodu", "docs/STYL-KODU.md"), ("Szablon tematu", "docs/SZABLON-TEMATU.md"),
+                    ("Styl kodu", "docs/STYL-KODU.md"),
                     ("Licencja", "LICENSE.md")], 4)
 
     os.makedirs(os.path.join(SRC, "javascripts"), exist_ok=True)

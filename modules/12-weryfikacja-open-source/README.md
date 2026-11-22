@@ -41,18 +41,8 @@ Weryfikacja bez drogich licencji: cocotb (testy w Pythonie), VUnit, OSVVM i UVVM
 - [vunit/](vunit/) — testbench VUnit i skrypt `run.py`, który uruchamia też testbenche [osvvm/](osvvm/) i [uvvm/](uvvm/) ([12.02](12.02-vunit-testy-jednostkowe-dla-vhdl-i.md), [12.03](12.03-osvvm-i-uvvm-metodologie-dla-vhdl.md)).
 - [verilator/](verilator/) — testbench C++ i porównanie szybkości symulatorów ([12.04](12.04-verilator-szybka-symulacja-z-c.md)).
 - [requirements.txt](requirements.txt) — wersje pakietów Pythona; w CI zadanie *Weryfikacja open source* ([12.06](12.06-ciagla-integracja-projektu-hdl-w-github-actions.md)).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 12.01 cocotb: testbench w Pythonie
-- [ ] 12.02 VUnit: testy jednostkowe dla VHDL i SystemVeriloga
-- [ ] 12.03 OSVVM i UVVM: metodologie dla VHDL
-- [ ] 12.04 Verilator: szybka symulacja z C++
-- [ ] 12.05 Modele w Pythonie i porównanie bit w bit
-- [ ] 12.06 Ciągła integracja projektu HDL w GitHub Actions

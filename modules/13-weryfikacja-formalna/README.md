@@ -37,18 +37,8 @@ Dowodzenie poprawności zamiast szukania błędów przypadkowymi testami. Moduł
 
 - `hdl/` — `cnt10` i `fifo_sync` z samosprawdzającymi się testbenchami w trzech językach (`vhdl/`, `verilog/`, `sv/`); uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)). Właściwości formalne FIFO — w [hdl/sv/fifo_sync.sv](hdl/sv/fifo_sync.sv) pod `` `ifdef FORMAL ``.
 - [formal/](formal/) — opakowania formalne ([cnt10_formal.sv](formal/cnt10_formal.sv), [cnt10_formal.vhd](formal/cnt10_formal.vhd) z PSL, [alu_hs_formal.sv](formal/alu_hs_formal.sv)), pliki SymbiYosys `.sby` z zadaniami BMC, dowodu, cover i wariantami z błędami, skrypty równoważności Yosysa `.ys`, [sprawdz.py](formal/sprawdz.py) porównujący wszystkie wyniki z oczekiwanymi (także oczekiwane FAIL i UNKNOWN) i [Makefile](formal/Makefile).
-- CI: zadanie *Weryfikacja formalna* w [checks.yml](../../.github/workflows/checks.yml) — OSS CAD Suite, tabela wyników w podsumowaniu przebiegu, ślady VCD jako artefakt.
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 13.01 Dowód zamiast symulacji: BMC, indukcja i cover
-- [ ] 13.02 SymbiYosys: pierwsze dowody
-- [ ] 13.03 Pisanie właściwości: assume, assert, cover
-- [ ] 13.04 Formalna weryfikacja FIFO i interfejsów z handshakiem
-- [ ] 13.05 Sprawdzanie równoważności i metody formalne w przemyśle

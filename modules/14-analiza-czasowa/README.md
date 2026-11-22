@@ -40,19 +40,8 @@ Jak narzędzie sprawdza, czy projekt zadziała z zadaną częstotliwością, i j
 - `hdl/` — `dzielnik_mc` i `spi_master` z samosprawdzającymi się testbenchami w trzech językach (`vhdl/`, `verilog/`, `sv/`); testbenche sprawdzają też warunki, na których opierają się ograniczenia (stabilność argumentów, chwila zapisu wyniku, czasy MOSI względem SCLK). Uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)).
 - [sta/](sta/) — eksperymenty analizy czasowej: synteza do komórek Liberty ([synteza_asic.tcl](sta/synteza_asic.tcl)), skrypty OpenSTA `e01`–`e06` (po jednym na temat), [sprawdz_sta.py](sta/sprawdz_sta.py) porównujący wyniki z oczekiwanymi i zależnościami liczbowymi oraz uruchamiający nextpnr-ecp5 (f_max w trzech klasach szybkości, skład ścieżki krytycznej), [obliczenia.py](sta/obliczenia.py) — każda liczba z przykładów w tekstach.
 - [deca/sta/](deca/sta/) — projekt DECA: `deca_top` w trzech językach (PLL 50 → 100 MHz, dzielnik z N = 8, SPI 25 MHz na złączu P8), ograniczenia [sta.sdc](deca/sta/sta.sdc) (zegary, zegary generowane, wyjątki, interfejs SPI), [raporty.tcl](deca/sta/raporty.tcl) (`make raporty`) i `utworz_projekt.tcl` z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- CI: zadanie *Analiza czasowa, CDC, wydajność i debug* w [checks.yml](../../.github/workflows/checks.yml) — OpenSTA budowany ze źródeł (pamięć podręczna), OSS CAD Suite, tabela wyników w podsumowaniu przebiegu, raporty jako artefakt.
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 14.01 Ścieżki czasowe, setup, hold i zapas (slack)
-- [ ] 14.02 Zegar w praktyce: skew, jitter i niepewność
-- [ ] 14.03 Ograniczenia SDC: zegary, zegary generowane, opóźnienia wejść i wyjść
-- [ ] 14.04 Wyjątki: false path, multicycle, max/min delay
-- [ ] 14.05 Czytanie raportów: Timing Analyzer i Vivado
-- [ ] 14.06 Ograniczenia interfejsów źródłowo-synchronicznych

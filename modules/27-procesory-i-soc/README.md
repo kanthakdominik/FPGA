@@ -44,19 +44,8 @@ Procesor w FPGA: miękki rdzeń Nios V na DECA, własne peryferia ze sterownikie
 - [program/](program/) — [rvasm.py](program/rvasm.py): asembler i symulator RV32I (biblioteka standardowa Pythona; `--sprawdz` w CI), [test.S](program/test.S) — program testowy rdzeni, [deca.S](program/deca.S) — program dla płytki; [program/c](program/c) — program w C (kod startowy, skrypt konsolidatora, sterownik PWM, CRC-32) kompilowany w CI pakietem `gcc-riscv64-unknown-elf` i uruchamiany na `rv_soc` w Icarusie.
 - [deca/rv/](deca/rv/) — własny SoC na DECA: rdzeń potokowy, 8 KB pamięci M9K z programem `deca.S`, licznik na LED[6:0] i PWM na LED[7] ([27.07](27.07-wlasny-procesor-risc-v-od-jednocyklowego-do.md)); `deca_top` w trzech językach, `.sdc`, `utworz_projekt.tcl` z przypisaniami z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
 - [deca/niosv/](deca/niosv/) — system Nios V w Platform Designer ze skryptu (`system.tcl`), komponent `pwm_avl_hw.tcl`, program w C z przerwaniem PWM, kroki BSP i aplikacji w [README](deca/niosv/README.md) ([27.02](27.02-nios-v-risc-v-w-platform-designer-na-deca.md)).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 27.01 Procesor w FPGA: miękki czy twardy
-- [ ] 27.02 Nios V (RISC-V) w Platform Designer na DECA
-- [ ] 27.03 Własny peryferial z rejestrami i sterownik w C
-- [ ] 27.04 Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX
-- [ ] 27.05 Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex
-- [ ] 27.06 Linux na FPGA i podział sprzęt–oprogramowanie
-- [ ] 27.07 Własny procesor RISC-V: od jednocyklowego do potokowego

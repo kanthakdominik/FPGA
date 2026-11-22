@@ -41,11 +41,3 @@ Moduł jest metodyczny, więc zamiast nowych bloków RTL zawiera narzędzia i sz
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 30.01 Specyfikacja i dokumentacja: diagramy blokowe i czasowe (WaveDrom)
-- [ ] 30.02 Zarządzanie rdzeniami IP producenta i własnymi
-- [ ] 30.03 Kontrola wersji: co commitować, a co generować
-- [ ] 30.04 Praca w zespole: przeglądy kodu, standardy i sign-off
-- [ ] 30.05 Kariera w FPGA: role, branże i ścieżki rozwoju

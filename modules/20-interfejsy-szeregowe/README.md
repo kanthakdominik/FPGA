@@ -42,19 +42,8 @@ UART, SPI, I²C, PWM i enkodery — klasyczne zadania rekrutacyjne i podstawa ko
 
 - `hdl/` — moduły i samosprawdzające się testbenche w trzech językach (`vhdl/`, `verilog/`, `sv/`), uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)); testbenche zawierają behawioralne modele czujników (LIS2DH12, LM71, HDC1000), slave'a I²C typu EEPROM z rozciąganiem zegara i rdzenia ADC MAX 10. `hdl/dane/` — [gen_tsd.py](hdl/dane/gen_tsd.py): tablica przeliczenia kodu termodiody z tabeli Intel UG 683596 (`tsd_temp.hex`).
 - `deca/` — projekty dla płytki Arrow DECA: [uart](deca/uart/) (echo przez przejściówkę USB-UART 3,3 V), [czujniki](deca/czujniki/) (trzy czujniki płytki, diody i telemetria UART), [naped](deca/naped/) (PWM z czasem martwym, serwo, enkoder na złączu GPIO), [adc](deca/adc/) (wbudowany ADC i termodioda; rdzenie IP generowane w Quartusie według [README](deca/adc/README.md)). Każdy: `deca_top` w trzech językach, ograniczenia czasowe (`.sdc`) i `utworz_projekt.tcl` z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- CI: testbenche, lint, synteza i kompilacja modułów DECA w zadaniach ogólnych w [checks.yml](../../.github/workflows/checks.yml).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 20.01 UART: nadajnik, odbiornik i nadpróbkowanie
-- [ ] 20.02 SPI: master i slave, tryby CPOL/CPHA
-- [ ] 20.03 I²C: master, open-drain i rozciąganie zegara
-- [ ] 20.04 PWM, enkodery kwadraturowe i serwomechanizmy
-- [ ] 20.05 Czujniki na DECA: akcelerometr, temperatura i wilgotność
-- [ ] 20.06 Wbudowany przetwornik ADC w MAX 10

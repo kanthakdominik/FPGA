@@ -45,19 +45,8 @@ Liczby stałoprzecinkowe z poprawnym zaokrąglaniem i nasyceniem, mnożenie w bl
 - [arytmetyka/](arytmetyka/) — [eksperymenty.py](arytmetyka/eksperymenty.py): synteza Yosysem i rozmieszczenie nextpnr-ecp5 mnożarek, dzielników, CORDIC, mnożarki FP i interpolatora (f_max, LUT, przerzutniki, bloki 18 × 18); [cordic_model.py](arytmetyka/cordic_model.py): model CORDIC bit w bit i tabela błędów dla różnych N, A, G.
 - [deca/mnozenie/](deca/mnozenie/) — test mnożarek na płytce: dwie realizacje mnożenia 34 × 34 i zespolonego porównywane w każdym takcie na danych z LFSR; `make raporty` zapisuje użycie bloków mnożarek i f_max.
 - Projekt DECA: `deca_top` w trzech językach, `.sdc` i `utworz_projekt.tcl` z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- CI: testbenche, lint, synteza i kompilacja modułów DECA w zadaniach ogólnych; eksperymenty w zadaniu *Analiza czasowa, CDC, wydajność i debug* w [checks.yml](../../.github/workflows/checks.yml).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 19.01 Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie
-- [ ] 19.02 Mnożenie i bloki DSP — potokowanie
-- [ ] 19.03 Dzielenie i pierwiastek: algorytmy iteracyjne
-- [ ] 19.04 CORDIC
-- [ ] 19.05 Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP
-- [ ] 19.06 Tablice i aproksymacja funkcji

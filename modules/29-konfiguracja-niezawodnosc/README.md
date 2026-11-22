@@ -39,17 +39,8 @@ Co dzieje się z projektem po wdrożeniu: tryby konfiguracji, zdalna aktualizacj
 
 - `hdl/` — moduły i samosprawdzające się testbenche w trzech językach (`vhdl/`, `verilog/`, `sv/`), uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)): `tb_aktualizacja` (wartość kontrolna CRC-32, model rdzenia z zajętością 531 taktów), `tb_tmr` (cztery wstrzyknięcia: 0 błędów z resynchronizacją, 260 bez), `tb_ecc` (wszystkie błędy pojedyncze i podwójne w 200 słowach, jedno przejście czyszczenia: 20 zapisów zwrotnych, 3 błędy podwójne, zapisy użytkownika zachowane).
 - [deca/obrazy/](deca/obrazy/README.md) — dwa obrazy konfiguracji MAX 10 z jednego źródła (parametr `OBRAZ`), system `system_dual` z rdzeniem Dual Configuration ze skryptu `system.tcl`, przełączanie przyciskiem, odmowa i licznik nadzorujący na przełącznikach; `deca_top` w trzech językach, `.sdc`, `utworz_projekt.tcl` z przypisaniami z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl), `Makefile` z celami `system`, `obraz0`, `obraz1`, `pof` ([29.02](29.02-podwojny-obraz-i-zdalna-aktualizacja-w-max-10.md)). Projekt nie był kompilowany w Quartusie.
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 29.01 Tryby konfiguracji i pamięci konfiguracyjne
-- [ ] 29.02 Podwójny obraz i zdalna aktualizacja w MAX 10
-- [ ] 29.03 Szyfrowanie i ochrona bitstreamu
-- [ ] 29.04 Promieniowanie i SEU: TMR, scrubbing i ECC
-- [ ] 29.05 Bezpieczeństwo funkcjonalne: DO-254, IEC 61508, ISO 26262

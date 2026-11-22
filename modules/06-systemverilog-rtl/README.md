@@ -37,13 +37,3 @@ Syntezowalna część SystemVeriloga (IEEE 1800): konstrukcje, które zastępuj�
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 06.01 logic, always_comb, always_ff i always_latch
-- [ ] 06.02 Typy użytkownika: enum, struct, union, typedef i tablice spakowane
-- [ ] 06.03 Pakiety i parametryzacja typami
-- [ ] 06.04 Interfejsy i modporty
-- [ ] 06.05 unique, priority i bezpieczne instrukcje case
-- [ ] 06.06 Asercje natychmiastowe w kodzie RTL
-- [ ] 06.07 Co z SystemVeriloga obsługują narzędzia syntezy

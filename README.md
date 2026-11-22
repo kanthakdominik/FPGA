@@ -22,7 +22,7 @@ Zasady:
 2. Zainstaluj narzędzia z [NARZEDZIA.md](NARZEDZIA.md) — wszystkie darmowe.
 3. Przejrzyj [RESOURCES.md](RESOURCES.md) — książki, dokumentację i kursy, do których odwołują się tematy.
 4. Poznaj płytkę: [plytka-deca/](plytka-deca/README.md).
-5. Przerabiaj moduły. Każdy temat ma ten sam układ (pełny opis w [docs/SZABLON-TEMATU.md](docs/SZABLON-TEMATU.md)):
+5. Przerabiaj moduły. Każdy temat ma ten sam układ:
 
 | Sekcja | Co zawiera |
 |--------|------------|
@@ -41,7 +41,6 @@ Zasady:
 | **Źródła** | Konkretne rozdziały i sekcje dokumentacji |
 
 6. Do powtórki: każdy moduł ma **ściągę** (`SCIAGA.md`), a przed rozmową kwalifikacyjną są [pytania, zadania projektowe z rozwiązaniami i pułapki](rozmowa-kwalifikacyjna/README.md). Nieznane słowo sprawdzisz w [słowniczku](SLOWNICZEK.md).
-7. Postęp odznaczaj w checklistach (`- [ ]` → `- [x]`) we własnym forku.
 
 ### Oznaczenia
 
@@ -132,18 +131,8 @@ Zasady:
 |---------|-----------|
 | [plytka-deca/](plytka-deca/README.md) | Płytka Arrow DECA i układ MAX 10: zasoby, zegary, peryferia, piny, programowanie, cechy specyficzne dla MAX 10 |
 | [rozmowa-kwalifikacyjna/](rozmowa-kwalifikacyjna/README.md) | Jak wygląda rekrutacja na stanowisko FPGA, zbiór pytań, zadania projektowe na tablicę, pułapki |
-| [docs/](docs/SZABLON-TEMATU.md) | Szablon tematu i [styl kodu](docs/STYL-KODU.md) — zasady dla autorów |
+| [docs/STYL-KODU.md](docs/STYL-KODU.md) | Styl kodu HDL, układ katalogów modułu i zasady testbenchy |
 | [tools/](tools/run_hdl_tests.py) | Skrypty: testbenche (`run_hdl_tests.py`), linki (`check_links.py`), ściągi i zbiór pytań (`zbierz.py`), strona (`build_site.py`) |
-
-## Sprawdzanie materiałów
-
-- **Testbenche** ze wszystkich modułów uruchamia [tools/run_hdl_tests.py](tools/run_hdl_tests.py): VHDL w GHDL, Verilog w Icarus Verilog, SystemVerilog w Verilatorze. Każdy testbench wypisuje `PASS` lub `FAIL`.
-- **Synteza** — każdy moduł Verilog jest syntezowany w Yosysie na LUT4 ([tools/synteza_yosys.py](tools/synteza_yosys.py)): błąd syntezy zatrzymuje CI, a liczby LUT, przerzutników i zatrzasków trafiają do logu.
-- **Linki** między plikami sprawdza [tools/check_links.py](tools/check_links.py).
-- **Moduły nadrzędne DECA** (`deca_top.*`) są kompilowane w tych samych narzędziach razem z kodem z `hdl/` — Quartusa w CI nie ma, ale literówki i błędy typów wychodzą od razu.
-- **Strona** budowana jest przez [tools/build_site.py](tools/build_site.py) i MkDocs Material w trybie `--strict` — błędny link zatrzymuje publikację.
-- Wszystkie sprawdzenia wykonuje GitHub Actions przy każdym pushu ([konfiguracja](.github/workflows/checks.yml)) — wynik w zakładce *Actions*.
-- Projekty na DECA nie są kompilowane w CI (Quartus jest za duży); przy problemie z kompilacją zgłoś to w Issues.
 
 ## Zasady pracy, które naprawdę działają
 

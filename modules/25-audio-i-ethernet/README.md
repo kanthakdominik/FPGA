@@ -40,17 +40,8 @@ Dźwięk i sieć na DECA: kodek audio przez I²S, przetwarzanie dźwięku w czas
 
 - `hdl/` — moduły i samosprawdzające się testbenche w trzech językach (`vhdl/`, `verilog/`, `sv/`), uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)): `tb_i2s` (model kodeka jako slave I²S), `tb_kodek` (model TLV320AIC3254 ze stronami rejestrów), `tb_dzwiek` (biquad bit w bit z modelem i charakterystyka częstotliwościowa, echo), `tb_mii` (pętla nadajnik–odbiornik, FCS na linii), `tb_mdio` (model PHY), `tb_udp` (ramki pole po polu, suma IP, ARP przy dwóch zegarach).
 - [deca/audio/](deca/audio/) — kodek audio DECA: wejście liniowe → biquad → echo → wyjście, wskaźnik poziomu na diodach ([25.01](25.01-i2s-i-kodek-audio-na-deca.md), [25.02](25.02-przetwarzanie-dzwieku-w-czasie-rzeczywistym.md)); [deca/udp/](deca/udp/) — PHY przez MII i MDIO, ARP i strumień datagramów UDP do komputera, z odbiornikiem [odbior_udp.py](deca/udp/odbior_udp.py) ([25.03](25.03-ethernet-10-100-mii-phy-i-mac.md)–[25.05](25.05-strumien-udp-z-fpga-do-komputera.md)); `deca_top` w trzech językach, `.sdc`, `utworz_projekt.tcl` z przypisaniami z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 25.01 I²S i kodek audio na DECA
-- [ ] 25.02 Przetwarzanie dźwięku w czasie rzeczywistym
-- [ ] 25.03 Ethernet 10/100: MII, PHY i MAC
-- [ ] 25.04 Ramki Ethernet, ARP, IP i UDP w sprzęcie
-- [ ] 25.05 Strumień UDP z FPGA do komputera

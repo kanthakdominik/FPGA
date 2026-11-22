@@ -40,20 +40,8 @@ Standardowa metodologia weryfikacji (IEEE 1800.2) używana w firmach projektują
 - `hdl/` — układ `axil_regs` i jego prosty, samosprawdzający się testbench w trzech językach (`vhdl/`, `verilog/`, `sv/`); uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)).
 - `tb/` — środowisko UVM: interfejs z asercjami ([axil_if.sv](tb/axil_if.sv)), agent AXI4-Lite ([axil_pkg.sv](tb/axil_pkg.sv)), model rejestrów ([regs_ral_pkg.sv](tb/regs_ral_pkg.sv)), środowisko ze scoreboardem i pokryciem ([env_pkg.sv](tb/env_pkg.sv)), 7 testów ([tests_pkg.sv](tb/tests_pkg.sv)), moduł górny ([tb_uvm.sv](tb/tb_uvm.sv)).
 - [sim/Makefile](sim/Makefile) — `make TEST=…`, `make regresja`, `make bledy`. Wymaga Verilatora ≥ 5.050 z `z3` (np. [OSS CAD Suite](https://github.com/YosysHQ/oss-cad-suite-build)) i biblioteki [uvm-core](https://github.com/accellera-official/uvm-core) 2020.3.1 (`UVM_HOME`). W CI — zadanie *Weryfikacja SystemVerilog i UVM* ([11.08](11.08-kompletny-przyklad-testbench-uvm-dla-bloku-z.md#uruchomienie)).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 11.01 Po co metodologia: struktura środowiska UVM
-- [ ] 11.02 Komponenty, fazy i fabryka
-- [ ] 11.03 Transakcje, sekwencje i sekwencer
-- [ ] 11.04 Agent, driver i monitor
-- [ ] 11.05 Scoreboard, porty analizy i pokrycie
-- [ ] 11.06 Konfiguracja: uvm_config_db, testy i środowiska
-- [ ] 11.07 Model rejestrów (RAL)
-- [ ] 11.08 Kompletny przykład: testbench UVM dla bloku z AXI4-Lite

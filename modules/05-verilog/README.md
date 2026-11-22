@@ -38,13 +38,3 @@ Verilog (IEEE 1364) — najprostszy z trzech języków i wciąż najczęściej s
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 05.01 Moduły, porty, wire i reg
-- [ ] 05.02 Operatory, liczby, rozmiar i znak
-- [ ] 05.03 assign i always: logika kombinacyjna i sekwencyjna
-- [ ] 05.04 Przypisania blokujące i nieblokujące — reguły Cummingsa
-- [ ] 05.05 Parametry, localparam, generate i instancjonowanie
-- [ ] 05.06 Funkcje, zadania i dyrektywy kompilatora
-- [ ] 05.07 Pułapki Verilogu: niejawne sieci, obcinanie, znak i wyścigi

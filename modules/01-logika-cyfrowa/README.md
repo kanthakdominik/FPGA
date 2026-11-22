@@ -39,14 +39,3 @@ Powtórka techniki cyfrowej pod kątem tego, czego używa się w FPGA na co dzie
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 01.01 Systemy liczbowe, kody i liczby ze znakiem
-- [ ] 01.02 Algebra Boole'a i minimalizacja — co z tego robi syntezator
-- [ ] 01.03 Bloki kombinacyjne: multipleksery, dekodery, enkodery, komparatory
-- [ ] 01.04 Układy arytmetyczne: sumatory, przeniesienia, mnożenie
-- [ ] 01.05 Przerzutniki, zatrzaski i rejestry
-- [ ] 01.06 Parametry czasowe: propagacja, setup, hold, clock-to-out
-- [ ] 01.07 Metastabilność — pierwsze spotkanie
-- [ ] 01.08 Automaty skończone na papierze: Moore i Mealy
