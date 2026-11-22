@@ -33,7 +33,7 @@ module tb_projekt_syntezator;
         for (i = 0; i < n; i = i + 1) @(posedge nowa);
     endtask
 
-    task oczekuj_glosy(input [3:0] wzor, input [8*24-1:0] co);
+    task oczekuj_glosy(input [3:0] wzor, input [8*32-1:0] co);
         if (aktywne !== wzor) begin
             $display("FAIL: %0s: aktywne glosy %b, oczekiwane %b", co, aktywne, wzor); errors = errors + 1;
         end else
@@ -63,7 +63,7 @@ module tb_projekt_syntezator;
         end
     endtask
 
-    task sprawdz_f(input real f_ocz, input [8*24-1:0] co);
+    task sprawdz_f(input real f_ocz, input [8*32-1:0] co);
         if (f_zm < f_ocz * 0.998 || f_zm > f_ocz * 1.002) begin
             $display("FAIL: %0s: %0.2f Hz, oczekiwane %0.2f Hz", co, f_zm, f_ocz); errors = errors + 1;
         end else

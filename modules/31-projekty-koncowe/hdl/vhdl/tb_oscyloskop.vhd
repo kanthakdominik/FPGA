@@ -41,10 +41,10 @@ architecture sim of tb_oscyloskop is
     writeline(output, l);
   end procedure;
 
-  function tri(n : integer) return integer is
+  function tri(m : integer) return integer is
     variable k : integer;
   begin
-    k := ((n mod 200) + 200) mod 200;
+    k := ((m mod 200) + 200) mod 200;
     if k < 100 then return k * 40; else return (200 - k) * 40; end if;
   end function;
 begin

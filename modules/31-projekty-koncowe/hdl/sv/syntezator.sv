@@ -31,16 +31,16 @@ module syntezator #(
     // krok fazy dla nut 120..131; nuta n: TAB[n mod 12] >> (10 - n div 12)
     function [23:0] krok_nuty(input [6:0] n);
         logic [23:0] t;
-        logic [3:0]  okt, s;
+        logic [6:0]  okt, s;
         begin
-            okt = n / 12;
-            s   = n % 12;
+            okt = n / 7'd12;
+            s   = n % 7'd12;
             case (s)
-                4'd0: t = 24'd2876604;  4'd1: t = 24'd3047655;  4'd2: t = 24'd3228878;  4'd3: t = 24'd3420877;
-                4'd4: t = 24'd3624293;  4'd5: t = 24'd3839805;  4'd6: t = 24'd4068132;  4'd7: t = 24'd4310035;
-                4'd8: t = 24'd4566323;  4'd9: t = 24'd4837851;  4'd10: t = 24'd5125525; default: t = 24'd5430304;
+                7'd0: t = 24'd2876604;  7'd1: t = 24'd3047655;  7'd2: t = 24'd3228878;  7'd3: t = 24'd3420877;
+                7'd4: t = 24'd3624293;  7'd5: t = 24'd3839805;  7'd6: t = 24'd4068132;  7'd7: t = 24'd4310035;
+                7'd8: t = 24'd4566323;  7'd9: t = 24'd4837851;  7'd10: t = 24'd5125525; default: t = 24'd5430304;
             endcase
-            krok_nuty = t >> (4'd10 - okt);
+            krok_nuty = t >> (7'd10 - okt);
         end
     endfunction
 
@@ -64,6 +64,8 @@ module syntezator #(
     logic       zd_wsz = 1'b0;
     logic [6:0] zd_n = 7'd0;
     logic [6:0] zd_v = 7'd0;
+    logic [23:0] krok_zd;
+    assign krok_zd = krok_nuty(zd_n);            // poza blokiem sekwencyjnym: zwykła logika kombinacyjna
 
     // wybór głosu dla Note On
     logic [1:0] wyb;
@@ -125,7 +127,7 @@ module syntezator #(
                 stan[wyb]   <= ATAK;
                 g_nuta[wyb] <= zd_n;
                 g_vel[wyb]  <= zd_v;
-                krok[wyb]   <= krok_nuty(zd_n);
+                krok[wyb]   <= krok_zd;
                 if (!znal) kolejny <= kolejny + 2'd1;
             end
             zd_on <= ev_on; zd_off <= ev_off; zd_wsz <= ev_wszystkie;
@@ -158,10 +160,10 @@ module syntezator #(
                 end
                 2'd2: wyj <= iloczyn[31:16];                  // fala × amplituda / 65 536
                 default: begin
-                    acc <= acc + wyj;
+                    acc <= acc + {{2{wyj[15]}}, wyj};
                     if (licz == 4'd15) begin
                         dziala <= 1'b0;
-                        probka <= {acc + wyj, 6'd0};
+                        probka <= {acc + {{2{wyj[15]}}, wyj}, 6'd0};
                         nowa   <= 1'b1;
                     end
                 end
