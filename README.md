@@ -1,8 +1,8 @@
 # FPGA — od bramki do systemu na chipie
 
-Otwarta baza wiedzy o projektowaniu układów FPGA, prowadząca od podstaw logiki cyfrowej do **poziomu zawodowego inżyniera FPGA**: projektowania RTL, weryfikacji (SystemVerilog, UVM, cocotb, metody formalne), analizy czasowej, przejść między domenami zegarowymi, interfejsów, systemów z procesorem i przygotowania do rozmowy kwalifikacyjnej.
+**Wersja do czytania w przeglądarce (wzory, wyszukiwarka, menu modułów, kod w trzech językach przełączany zakładkami): [kanthakdominik.github.io/FPGA](https://kanthakdominik.github.io/FPGA/)**
 
-**Strona kursu:** [kanthakdominik.github.io/FPGA](https://kanthakdominik.github.io/FPGA/) — ta sama treść z menu, wyszukiwarką i kodem w trzech językach przełączanym zakładkami.
+Otwarta baza wiedzy o projektowaniu układów FPGA, prowadząca od podstaw logiki cyfrowej do **poziomu zawodowego inżyniera FPGA**: projektowania RTL, weryfikacji (SystemVerilog, UVM, cocotb, metody formalne), analizy czasowej, przejść między domenami zegarowymi, interfejsów, systemów z procesorem i przygotowania do rozmowy kwalifikacyjnej.
 
 Repozytorium jest pomyślane jako darmowy materiał dla każdego: studenta elektroniki lub informatyki, programisty, który chce przejść do sprzętu, i inżyniera, który chce uporządkować praktykę.
 
