@@ -1,0 +1,35 @@
+{
+  "nazwa": "pwm_avl",
+  "opis": "Peryferium PWM ze slave'em Avalon-MM (moduł 27, 27.03)",
+  "wersja": "1.0.0",
+  "szerokosc": 32,
+  "bity_adresu": 2,
+  "rejestry": [
+    {
+      "nazwa": "STER", "offset": 0, "opis": "Sterowanie",
+      "pola": [
+        {"nazwa": "WL", "bity": [0, 0], "dostep": "RW", "reset": 0, "opis": "włączenie generatora"},
+        {"nazwa": "PRZ", "bity": [1, 1], "dostep": "RW", "reset": 0, "opis": "zezwolenie na przerwanie"}
+      ]
+    },
+    {
+      "nazwa": "OKRES", "offset": 1, "opis": "Długość okresu w taktach (≥ 2), obowiązuje od następnego okresu",
+      "pola": [
+        {"nazwa": "WARTOSC", "bity": [31, 0], "dostep": "RW", "reset": 0, "opis": "liczba taktów okresu"}
+      ]
+    },
+    {
+      "nazwa": "WYPELN", "offset": 2, "opis": "Takty stanu wysokiego (0 — stale 0, ≥ OKRES — stale 1), od następnego okresu",
+      "pola": [
+        {"nazwa": "WARTOSC", "bity": [31, 0], "dostep": "RW", "reset": 0, "opis": "liczba taktów stanu wysokiego"}
+      ]
+    },
+    {
+      "nazwa": "STATUS", "offset": 3, "opis": "Stan; przerwanie = KONIEC & PRZ",
+      "pola": [
+        {"nazwa": "KONIEC", "bity": [0, 0], "dostep": "W1C", "reset": 0, "opis": "koniec okresu, zapis 1 kasuje"},
+        {"nazwa": "WYJSCIE", "bity": [1, 1], "dostep": "RO", "reset": 0, "opis": "bieżący stan wyjścia PWM"}
+      ]
+    }
+  ]
+}

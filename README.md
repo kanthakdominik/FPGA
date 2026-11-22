@@ -122,7 +122,7 @@ Zasady:
 
 | # | Moduł | Oznaczenia | Tematów | Czas | Status |
 |---|-------|------------|---------|------|--------|
-| 30 | [Metodyka i warsztat inżyniera FPGA](modules/30-warsztat-inzyniera/README.md) | 💼 | 5 | 8 h | 🔲 szkielet |
+| 30 | [Metodyka i warsztat inżyniera FPGA](modules/30-warsztat-inzyniera/README.md) | 💼 | 5 | 8 h | ✅ pełny |
 | 31 | [Projekty końcowe na DECA](modules/31-projekty-koncowe/README.md) | 🛠️💼 | 6 | 60 h | 🔲 szkielet |
 <!-- mapa:stop -->
 

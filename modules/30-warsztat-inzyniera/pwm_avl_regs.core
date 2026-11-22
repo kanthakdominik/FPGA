@@ -1,0 +1,36 @@
+CAPI=2:
+# Rdzeń FuseSoC (30.02): mapa rejestrów pwm_avl wygenerowana z rejestry/pwm_avl.json i test integracyjny.
+# Zależy od rdzenia sprzętu (modules/27-procesory-i-soc/pwm_avl.core) — FuseSoC rozwiązuje zależność po nazwie
+# i wersji, tak jak menedżer pakietów.
+#   fusesoc --cores-root modules/27-procesory-i-soc --cores-root modules/30-warsztat-inzyniera \
+#           run --target sim fpga-kurs:peryferia:pwm_avl_regs
+name: fpga-kurs:peryferia:pwm_avl_regs:1.0.0
+description: Stałe rejestrów pwm_avl (Verilog, C) wygenerowane narzędziem rejestry.py i test zgodności ze sprzętem
+
+filesets:
+  rejestry:
+    files:
+      - rejestry/wygenerowane/pwm_avl_regs.vh: {is_include_file: true}
+      - rejestry/wygenerowane/pwm_avl_regs.h: {file_type: cSource, is_include_file: true}
+    file_type: verilogSource
+    depend:
+      - ">=fpga-kurs:peryferia:pwm_avl:1.0.0"
+
+  tb:
+    files:
+      - rejestry/tb_pwm_regs.v
+    file_type: verilogSource
+
+targets:
+  default: &default
+    filesets: [rejestry]
+
+  sim:
+    <<: *default
+    description: tb_pwm_regs — sterownik testowy wyłącznie na wygenerowanych stałych, sprzęt z modułu 27
+    default_tool: icarus
+    filesets_append: [tb]
+    toplevel: tb_pwm_regs
+    tools:
+      icarus:
+        iverilog_options: [-g2005]

@@ -1,0 +1,74 @@
+{
+  "zrodlo": "rejestry/pwm_avl.json",
+  "uwaga": "WYGENEROWANE przez narzedzia/rejestry.py z rejestry/pwm_avl.json — nie edytuj ręcznie",
+  "rejestry": {
+    "STER": {
+      "reg": [
+        {
+          "name": "WL",
+          "bits": 1,
+          "attr": "RW"
+        },
+        {
+          "name": "PRZ",
+          "bits": 1,
+          "attr": "RW"
+        },
+        {
+          "bits": 30
+        }
+      ],
+      "config": {
+        "bits": 32,
+        "lanes": 2
+      }
+    },
+    "OKRES": {
+      "reg": [
+        {
+          "name": "WARTOSC",
+          "bits": 32,
+          "attr": "RW"
+        }
+      ],
+      "config": {
+        "bits": 32,
+        "lanes": 2
+      }
+    },
+    "WYPELN": {
+      "reg": [
+        {
+          "name": "WARTOSC",
+          "bits": 32,
+          "attr": "RW"
+        }
+      ],
+      "config": {
+        "bits": 32,
+        "lanes": 2
+      }
+    },
+    "STATUS": {
+      "reg": [
+        {
+          "name": "KONIEC",
+          "bits": 1,
+          "attr": "W1C"
+        },
+        {
+          "name": "WYJSCIE",
+          "bits": 1,
+          "attr": "RO"
+        },
+        {
+          "bits": 30
+        }
+      ],
+      "config": {
+        "bits": 32,
+        "lanes": 2
+      }
+    }
+  }
+}

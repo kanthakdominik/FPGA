@@ -49,6 +49,12 @@ jobs:
           pip install -q -r modules/28-hls-i-akceleracja/amaranth/requirements.txt
           make -s -C modules/28-hls-i-akceleracja/amaranth | tee wynik-amaranth.txt
           grep -c '^PASS' wynik-amaranth.txt | grep -q 2
+      - name: Moduł 30 — mapa rejestrów z jednego opisu, diagramy WaveDrom, rdzenie FuseSoC
+        run: |
+          set -o pipefail
+          pip install -q -r modules/30-warsztat-inzyniera/narzedzia/requirements.txt
+          bash modules/30-warsztat-inzyniera/narzedzia/sprawdz.sh | tee wynik-m30.txt
+          { echo "## Warsztat inżyniera (moduł 30)"; echo '```'; cat wynik-m30.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Moduł 09 — wektory testowe zgodne z generatorem
         run: python3 modules/09-symulacja-i-testbench/hdl/dane/gen_mavg4.py --sprawdz
       - name: Moduł 09 — regresja z Makefile i zapis przebiegów

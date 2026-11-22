@@ -5000,7 +5000,135 @@ DO-254 wymaga oceny każdego narzędzia projektowego i weryfikacyjnego. Kwalifik
 
 ## 30 — Metodyka i warsztat inżyniera FPGA
 
-_Pytania pojawią się razem z treścią modułu ([30-warsztat-inzyniera](../modules/30-warsztat-inzyniera/README.md))._
+### [30.01 — Specyfikacja i dokumentacja: diagramy blokowe i czasowe (WaveDrom)](../modules/30-warsztat-inzyniera/30.01-specyfikacja-i-dokumentacja-diagramy-blokowe-i.md)
+
+1. **Jak zapewnisz, że adresy rejestrów w sterowniku C zgadzają się ze sprzętem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jednym źródłem: mapa rejestrów opisana w formacie maszynowym (SystemRDL, IP-XACT albo własny YAML/JSON) i generator, który robi z niej dekoder lub stałe dla RTL, nagłówek C, model rejestrów dla UVM i dokumentację. Generator waliduje opis (nakładające się pola, offsety, wartości po resecie). W CI sprawdzam, że wygenerowane pliki są aktualne, a test integracyjny steruje sprzętem w symulacji wyłącznie przez wygenerowane stałe — każdy rozjazd daje błąd kompilacji albo testu, a nie godzinę szukania na płytce. Tak działa przykład z tego tematu dla `pwm_avl`.
+</details>
+
+2. **Co powinno się znaleźć w specyfikacji interfejsu bloku?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tabela portów z kierunkiem, szerokością, domeną zegara i stanem po resecie; protokół — nazwa i wersja standardu plus odstępstwa (np. brak `byteenable`, readLatency = 1); diagramy czasowe typowych transakcji i przypadków brzegowych (zapis w czasie zajętości, `ready = 0`, przepełnienie); opóźnienia i przepustowość w taktach; zachowanie przy resecie i błędach; relacje między zegarami i miejsca przejść między domenami. Do tego mapa rejestrów, jeśli blok je ma. Wszystko w formie, którą weryfikacja może zamienić w testy i asercje.
+</details>
+
+3. **Dlaczego diagramy czasowe opisuje się tekstem (WaveDrom), a nie rysuje?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Tekst leży w repozytorium obok kodu, ma historię i jest przeglądany razem ze zmianą RTL — zmiana przebiegu jest widoczna w diffie. Renderuje się automatycznie w dokumentacji, więc nie ma rozjazdu „obrazek z zeszłego roku”. Edycja jest szybsza (przesunięcie impulsu o takt to zmiana znaku) i łatwo generować diagramy z symulacji lub skryptów. Rysunek z edytora graficznego jest ładniejszy, ale nikt go nie aktualizuje.
+</details>
+
+### [30.02 — Zarządzanie rdzeniami IP producenta i własnymi](../modules/30-warsztat-inzyniera/30.02-zarzadzanie-rdzeniami-ip-producenta-i-wlasnymi.md)
+
+1. **Co z rdzenia IP producenta trzymasz w repozytorium, a co generujesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W repozytorium plik parametrów (`.ip`/`.qsys` w Quartusie, `.xci`/`.bd` w Vivado) albo — najlepiej — skrypt Tcl, który tworzy IP z parametrami, plus zapis wersji narzędzia. Wygenerowany RTL, modele symulacyjne i pliki pomocnicze generuje przepływ (skrypt, CI) przed syntezą i symulacją. Dzięki temu diff pokazuje zmianę parametrów, a nie tysiące linii wygenerowanego kodu, a przy zmianie wersji narzędzia regeneracja jest jawnym krokiem z regresją. Wyjątek: gdy narzędzie do generowania nie jest dostępne w CI, można przechowywać wygenerowane pliki, ale z kontrolą, że odpowiadają parametrom.
+</details>
+
+2. **Jak współdzielisz własny blok między kilkoma projektami?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Blok ma własne repozytorium (albo katalog w repozytorium biblioteki) z RTL, testami, specyfikacją, CI i wersjami według semver z tagami. Projekty odwołują się do konkretnej wersji — przez menedżer rdzeni (FuseSoC z plikiem `.core` i zależnością z warunkiem wersji), podmoduł git przypięty do tagu albo wewnętrzny rejestr pakietów. Zmiana niezgodna wstecz podnosi wersję główną, więc projekty aktualizują się świadomie. Nigdy nie kopiuję katalogów między projektami.
+</details>
+
+3. **Firma przechodzi na nową wersję Vivado. Jak to zrobisz w trwającym projekcie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Na osobnej gałęzi: sprawdzam informacje o wydaniu i listę zmian IP, aktualizuję IP (raport aktualizacji: zmienione porty i parametry), regeneruję wszystko skryptem, uruchamiam pełną regresję symulacyjną, porównuję raporty syntezy, czasu, zasobów i ostrzeżeń ze starą wersją, testuję bitstream na sprzęcie. Dopiero po tym scalam i zapisuję nową wersję narzędzia w konfiguracji projektu (i w CI). Jeśli projekt jest blisko wydania albo certyfikowany, zostaję przy starej wersji — zmiana narzędzia to zmiana konfiguracji wymagająca ponownej weryfikacji.
+</details>
+
+### [30.03 — Kontrola wersji: co commitować, a co generować](../modules/30-warsztat-inzyniera/30.03-kontrola-wersji-co-commitowac-a-co-generowac.md)
+
+1. **Które pliki projektu Quartusa (albo Vivado) commitujesz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Źródła HDL i testbenche, ograniczenia (`.sdc`/`.xdc`), przypisania pinów, skrypty tworzące projekt i uruchamiające kompilację (Tcl, Makefile), pliki parametrów IP (`.ip`, `.qsys`, `.xci`, `.bd`) albo skrypty Tcl, które je tworzą, pliki inicjalizacji pamięci i ich generatory, źródła programu procesora, dokumentację. Nie commituję baz danych kompilacji (`db/`, `incremental_db/`, `.Xil/`, `*.runs`), raportów, bitstreamów (archiwizuje je CI przy wydaniu), wygenerowanego RTL IP ani plików GUI. Plik `.qsf`/`.xpr` — najlepiej generowany skryptem; jeśli zespół woli go trzymać, to z przeglądem każdej zmiany.
+</details>
+
+2. **Klient zgłasza błąd w urządzeniu sprzed roku. Jak odtworzysz dokładnie ten bitstream?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Z układu odczytuję rejestr wersji: numer wydania i skrót commita (to dlatego się go wbudowuje). W repozytorium robię checkout tagu, z archiwum wydania biorę zapisane wersje narzędzia i IP, uruchamiam kompilację w środowisku z tą samą wersją narzędzia (kontener lub obraz maszyny) skryptem, który był częścią tagu. Wynik porównuję z archiwalnym: suma SHA-256 bitstreamu (jeśli kompilacja jest bit w bit powtarzalna) albo przynajmniej raporty czasowe i zasobów. Jeśli archiwum zawiera sam bitstream, mogę go od razu wgrać na płytkę testową i odtworzyć błąd.
+</details>
+
+3. **Dlaczego projekt tworzony skryptem jest lepszy niż `.qsf` edytowany w GUI?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Skrypt jest krótki i czytelny, a jego zmiany widać w diffie i przeglądzie — `.qsf` zapisywany przez GUI miesza ustawienia, kolejność zmienia się przy każdym zapisie, a przypadkowe kliknięcia trafiają do repozytorium. Skrypt działa tak samo w CI i u każdego członka zespołu, ułatwia przejście na nową wersję narzędzia i budowanie wariantów (parametry, inne układy). Wspólne części — przypisania pinów płytki, ustawienia zegarów — można dołączać z jednego pliku do wielu projektów, jak `plytka-deca/deca_piny.tcl` w tym repozytorium.
+</details>
+
+### [30.04 — Praca w zespole: przeglądy kodu, standardy i sign-off](../modules/30-warsztat-inzyniera/30.04-praca-w-zespole-przeglady-kodu-standardy-i-sign.md)
+
+1. **Na co zwracasz uwagę, przeglądając czyjś kod RTL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zakładam, że CI (testy, lint, synteza) jest zielone, więc nie szukam błędów składni. Sprawdzam zgodność ze specyfikacją i przypadki brzegowe (przepełnienia, `ready = 0`, zapis w czasie zajętości), przejścia między domenami zegara i ich synchronizatory, resety (zwolnienie synchroniczne, które rejestry), automaty (stany niedozwolone, wyjścia w każdym stanie), szerokości i arytmetykę ze znakiem, czy testbench sprawdza przypadki brzegowe, czy jest samosprawdzający, jak zmiana wpływa na zasoby i czas (raport). Na końcu czytelność: nazwy, komentarze „dlaczego”, brak magicznych stałych. Komentarze dzielę na obowiązkowe i sugestie.
+</details>
+
+2. **Co musi być spełnione, żebyś podpisał wydanie bitstreamu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bitstream zbudowany przez CI z oznaczonego tagu, z wersją i skrótem commita w układzie. Pełna regresja symulacyjna PASS, cele pokrycia osiągnięte, testy na sprzęcie dla tej wersji z protokołem. Czas: dodatni zapas setup i hold we wszystkich narożnikach, brak ścieżek bez ograniczeń, każdy wyjątek czasowy przejrzany, raport CDC bez niewyjaśnionych przejść. Ostrzeżenia krytyczne wyjaśnione, zasoby i moc w budżecie, piny zgodne ze schematem. Odstępstwa na piśmie. Archiwum z bitstreamem, raportami, sumami i wersjami narzędzi.
+</details>
+
+3. **Recenzent odrzuca Twoją zmianę z komentarzem, z którym się nie zgadzasz. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw upewniam się, że rozumiem zarzut — dopytuję, jaki scenariusz recenzent ma na myśli; często komentarz wskazuje realny problem, tylko inaczej nazwany. Jeśli nadal się nie zgadzam, odpowiadam merytorycznie: odwołanie do specyfikacji, wynik testu albo symulacji, który pokazuje zachowanie w tym przypadku, ewentualnie dodaję test, który rozstrzyga sprawę. Jeśli to kwestia gustu, a nie poprawności, odwołuję się do standardu kodowania; jeśli standard milczy — proponuję uzupełnić go, zamiast spierać się w każdym przeglądzie. Przy braku porozumienia decyduje prowadzący, a ustalenie zapisujemy.
+</details>
+
+### [30.05 — Kariera w FPGA: role, branże i ścieżki rozwoju](../modules/30-warsztat-inzyniera/30.05-kariera-w-fpga-role-branze-i-sciezki-rozwoju.md)
+
+1. **Opowiedz o projekcie FPGA, z którego jesteś najbardziej zadowolony.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Struktura odpowiedzi (2–3 minuty, potem pytania): problem i wymagania (liczby: przepustowość, opóźnienie, zegar, zasoby), architektura i najważniejsza decyzja z alternatywami, które odrzuciłem i dlaczego, jak weryfikowałem (testbench, pokrycie, test na sprzęcie), najtrudniejszy błąd — jak się objawiał, jak go znalazłem, czego mnie nauczył, wynik (zasoby, zapas czasowy, działanie) i co zrobiłbym inaczej. Rekruter ocenia głębokość zrozumienia i samodzielność, więc mówię o swoich decyzjach, a nie o tym, co zrobił zespół.
+</details>
+
+2. **Dlaczego FPGA, a nie oprogramowanie albo ASIC?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Odpowiedź osobista, ale dobrze, jeśli pokazuje rozumienie miejsca FPGA: współbieżność i deterministyczne opóźnienie, których nie da procesor; elastyczność i krótki cykl zmian, których nie da ASIC (projekt ASIC trwa latami i kosztuje miliony na maski); bezpośredni kontakt ze sprzętem i fizyką sygnałów. Do tego to, co konkretnie lubię w tej pracy: np. zamykanie czasu, debugowanie na sprzęcie, przekładanie algorytmu na potok — najlepiej z przykładem z własnego projektu.
+</details>
+
+3. **Czym różni się praca inżyniera weryfikacji od projektanta RTL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Projektant buduje blok, który spełnia specyfikację w zadanych zasobach i czasie; myśli o architekturze, potokach, czasie i implementacji. Weryfikator próbuje wykazać, że blok nie spełnia specyfikacji: buduje środowisko testowe (UVM, cocotb), modele odniesienia, generatory losowe z ograniczeniami, asercje, pokrycie funkcjonalne, dowody formalne, prowadzi regresje i analizuje luki. Pracuje ze specyfikacji, nie z kodu, i potrzebuje silnych umiejętności programistycznych. Obie role się przenikają — dobry projektant pisze testy i asercje, dobry weryfikator czyta RTL i raporty.
+</details>
 
 ## 31 — Projekty końcowe na DECA
 

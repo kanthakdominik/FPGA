@@ -1,0 +1,61 @@
+# Szablon .gitignore dla projektu FPGA (30.03). Zasada: w repozytorium źródła i skrypty, z których powstaje
+# wszystko inne; poza nim — wszystko, co narzędzie odtworzy. Dopasuj do własnego przepływu.
+
+# --- Quartus (Altera) ---
+db/
+incremental_db/
+qdb/
+output_files/            # .sof, .pof, raporty — wynik kompilacji; wydania archiwizuje CI, nie git
+simulation/
+greybox_tmp/
+tmp-clearbox/
+.qsys_edit/
+*.qws
+*.rpt
+*.summary
+*.smsg
+*.done
+*.jdi
+*.sld
+*.pin
+*.qarlog
+# Projekt tworzony skryptem (utworz_projekt.tcl)? Wtedy także:
+# *.qpf
+# *.qsf
+# Platform Designer: .qsys i .ip — w repozytorium; wygenerowane katalogi — nie:
+# <system>/synthesis/
+# <system>/simulation/
+
+# --- Vivado (AMD) ---
+.Xil/
+*.jou
+*.log
+*.str
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.gen/
+vivado_*.backup.*
+# Projekt tworzony skryptem (build.tcl)? Wtedy także:
+# *.xpr
+# Rdzenie IP: .xci (lub skrypt Tcl, który je tworzy) — w repozytorium; katalogi wygenerowane — nie.
+
+# --- Symulacja ---
+work/
+*.vcd
+*.fst
+*.ghw
+*.wlf
+transcript
+obj_dir/
+*.vvp
+sim_build/
+results.xml
+
+# --- Inne narzędzia ---
+build/                   # FuseSoC, edalize
+__pycache__/
+*.pyc
+.venv/

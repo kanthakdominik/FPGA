@@ -1,0 +1,15 @@
+{
+  "config": {"hscale": 2},
+  "head": {"text": "pwm_avl: zapis OKRES = 10, zapis WYPELN = 3, odczyt STATUS (readLatency = 1)", "tick": 0},
+  "signal": [
+    {"name": "clk", "wave": "p......."},
+    ["Avalon-MM",
+      {"name": "address", "wave": "x=x=x=x.", "data": ["1", "2", "3"]},
+      {"name": "write", "wave": "01010..."},
+      {"name": "writedata", "wave": "x=x=x...", "data": ["10", "3"]},
+      {"name": "read", "wave": "0....10."},
+      {"name": "readdata", "wave": "x.....=x", "data": ["STATUS"]}
+    ]
+  ],
+  "foot": {"text": "dane odczytu w takcie po read: rejestr readdata (readLatency = 1 w komponencie)"}
+}

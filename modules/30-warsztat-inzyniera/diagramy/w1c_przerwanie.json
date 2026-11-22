@@ -1,0 +1,14 @@
+{
+  "config": {"hscale": 2},
+  "head": {"text": "STATUS.KONIEC: ustawienie na końcu okresu, kasowanie zapisem 1 (W1C), irq = KONIEC & PRZ", "tick": 0},
+  "signal": [
+    {"name": "clk", "wave": "p........."},
+    {"name": "STER.PRZ", "wave": "1........."},
+    {"name": "KONIEC", "wave": "0..1....0."},
+    {"name": "irq", "wave": "0..1....0."},
+    {},
+    {"name": "address", "wave": "x......=x.", "data": ["3"]},
+    {"name": "write", "wave": "0......10."},
+    {"name": "writedata", "wave": "x......=x.", "data": ["0x1"]}
+  ]
+}

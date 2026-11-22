@@ -1,0 +1,10 @@
+pwm_avl: zapis OKRES = 10, zapis WYPELN = 3, odczyt STATUS (readLatency = 1)
+             0       1       2       3       4       5       6       7
+clk          /‾‾‾\___/‾‾‾\___/‾‾‾\___/‾‾‾\___/‾‾‾\___/‾‾‾\___/‾‾‾\___/‾‾‾\___
+[Avalon-MM]
+  address    xxxxxxxxX 1     XxxxxxxxX 2     XxxxxxxxX 3     Xxxxxxxxxxxxxxxx
+  write      ________/‾‾‾‾‾‾‾\_______/‾‾‾‾‾‾‾\_______________________________
+  writedata  xxxxxxxxX 10    XxxxxxxxX 3     Xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+  read       ________________________________________/‾‾‾‾‾‾‾\_______________
+  readdata   xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxX STATUSXxxxxxxx
+dane odczytu w takcie po read: rejestr readdata (readLatency = 1 w komponencie)

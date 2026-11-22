@@ -1,0 +1,41 @@
+CAPI=2:
+# Opis rdzenia IP dla FuseSoC (30.02): peryferium pwm_avl jako samodzielny, wersjonowany blok — pliki i cele
+# w jednym miejscu, niezależnie od narzędzia. Rdzeń mapy rejestrów z modułu 30 zależy od tego rdzenia.
+#   fusesoc --cores-root modules/27-procesory-i-soc run --target sim fpga-kurs:peryferia:pwm_avl
+name: fpga-kurs:peryferia:pwm_avl:1.0.0
+description: PWM ze slave'em Avalon-MM, rejestry cienia, flaga W1C i przerwanie (27.03)
+
+filesets:
+  rtl:
+    files:
+      - hdl/verilog/pwm_avl.v
+    file_type: verilogSource
+
+  tb:
+    files:
+      - hdl/verilog/tb_pwm.v
+    file_type: verilogSource
+
+targets:
+  default: &default
+    filesets: [rtl]
+    toplevel: pwm_avl
+
+  sim:
+    <<: *default
+    description: Samosprawdzający się testbench tb_pwm w Icarusie
+    default_tool: icarus
+    filesets_append: [tb]
+    toplevel: tb_pwm
+    tools:
+      icarus:
+        iverilog_options: [-g2005]
+
+  lint:
+    <<: *default
+    description: Verilator --lint-only -Wall
+    default_tool: verilator
+    tools:
+      verilator:
+        mode: lint-only
+        verilator_options: [-Wall]
