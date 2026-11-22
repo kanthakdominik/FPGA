@@ -5132,4 +5132,158 @@ Projektant buduje blok, który spełnia specyfikację w zadanych zasobach i czas
 
 ## 31 — Projekty końcowe na DECA
 
-_Pytania pojawią się razem z treścią modułu ([31-projekty-koncowe](../modules/31-projekty-koncowe/README.md))._
+### [31.01 — Projekt 1: zegar i stoper sterowany komendami przez UART](../modules/31-projekty-koncowe/31.01-projekt-1-zegar-i-stoper-sterowany-komendami.md)
+
+1. **Dlaczego liczniki zegara w BCD, a nie binarne?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bo wynik trafia do człowieka jako cyfry dziesiętne: znaki ASCII to `0x30 | cyfra`, wyświetlacze 7-segmentowe dekodują cyfrę wprost. Licznik binarny wymagałby konwersji (dzielenie przez 10 albo algorytm double dabble) przy każdym wysłaniu. BCD kosztuje kilka LUT na cyfrę (porównanie z 9/5 i przeniesienie), a logika zostaje prosta i szybka.
+</details>
+
+2. **Jak zweryfikowałbyś interpreter komend tekstowych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Testbench zachowuje się jak terminal: nadaje bajty szeregowo w formacie łącza, odbiera odpowiedzi drugą linią, składa linie i porównuje je ze wzorcem. Pokrywam każdą komendę, błędy formatu i zakresu, wielkie i małe litery, przypadki brzegowe stanu (północ, przepełnienie stopera), sytuacje współbieżne (komenda w trakcie odpowiedzi). Czas przyspieszam parametrami, a wartości zależne od czasu porównuję z tolerancją wynikającą z fazy dzielnika. Ten sam test w trzech symulatorach daje pewność, że nie zależy od kolejności zdarzeń.
+</details>
+
+3. **Co się stanie, gdy dwie komendy przyjdą jedna po drugiej, a odpowiedź na pierwszą jeszcze wychodzi? Jak inaczej można to rozwiązać?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W tym projekcie druga komenda jest wykonana, ale jej odpowiedź przepada i ustawia się lepka flaga — świadomy kompromis dla protokołu zapytanie–odpowiedź. Inne rozwiązania: kolejka FIFO bajtów wyjściowych (koszt: pamięć i logika, ale żadna odpowiedź nie ginie), kolejka komend wejściowych (opóźnione wykonanie) albo sterowanie przepływem (RTS/CTS, XON/XOFF), żeby nadawca czekał. Wybór zależy od tego, czy kolejność i kompletność odpowiedzi są ważne dla protokołu.
+</details>
+
+### [31.02 — Projekt 2: oscyloskop na wbudowanym ADC z obrazem przez HDMI](../modules/31-projekty-koncowe/31.02-projekt-2-oscyloskop-na-wbudowanym-adc-z.md)
+
+1. **Jak przekażesz zrzut 512 próbek z domeny zegara ADC do domeny zegara piksela?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Próbki zapisuję do pamięci dwuportowej z dwoma zegarami — każdy port pracuje w swojej domenie, więc same dane nie przechodzą przez logikę CDC. Przez granicę idzie tylko informacja „zrzut gotowy w banku B od adresu P”: B i P są stabilne, przełącznik `gotowy_t` przechodzi przez synchronizator dwóch przerzutników, odbiorca czyta B i P i odsyła przełącznik `potw_t`. Do czasu potwierdzenia nadawca nie zmienia B ani P i pisze tylko do drugiego banku. Alternatywa to asynchroniczna FIFO, ale przy dostępie losowym (rysowanie kolumn) pamięć z dwoma bankami jest prostsza.
+</details>
+
+2. **Dlaczego oscyloskop potrzebuje podglądu przed wyzwoleniem i jak go zrealizować w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Często interesuje nas, co doprowadziło do zdarzenia (np. zakłócenie przed zboczem). Realizacja: zapis ciągły do pamięci kołowej, a po wyzwoleniu tylko `N − PRZED − 1` próbek więcej; początek zrzutu to adres wyzwolenia minus `PRZED`. Trzeba też zebrać pierwsze `PRZED` próbek przed uzbrojeniem, inaczej pierwszy zrzut zawiera nieważne dane.
+</details>
+
+3. **Czym jest tryb auto i dlaczego jest potrzebny?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+W trybie normalnym zrzut powstaje tylko po wyzwoleniu, więc stały sygnał albo sygnał poza poziomem wyzwalania daje pusty ekran. Tryb auto po określonym czasie bez wyzwolenia robi zrzut „na siłę”, żeby użytkownik widział, co się dzieje, i mógł ustawić poziom. W tym projekcie licznik `AUTO` próbek w stanie uzbrojenia i flaga `wyzwolony` informują, skąd pochodzi zrzut.
+</details>
+
+### [31.03 — Projekt 3: syntezator dźwięku sterowany przez UART lub MIDI](../modules/31-projekty-koncowe/31.03-projekt-3-syntezator-dzwieku-sterowany-przez.md)
+
+1. **Jak obliczysz krok akumulatora fazy dla danej częstotliwości i jak dokładna jest wynikowa częstotliwość?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+krok = round(f · 2^N / fs). Przy N = 24 i fs = 48 828 Hz rozdzielczość to fs / 2^N ≈ 2,9 mHz, więc błąd zaokrąglenia kroku jest pomijalny (dla 440 Hz poniżej 0,001 %). W tym projekcie kroki dla oktaw niższych powstają przesunięciem kroku z najwyższej oktawy — to dodatkowo obcina bity, ale przy 24 bitach błąd zostaje w setnych częściach centa. Faktyczna dokładność zależy od oscylatora płytki (np. 50 ppm).
+</details>
+
+2. **Co to jest running status w MIDI i jak wpływa na dekoder?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nadajnik może pominąć bajt statusu, jeśli jest taki sam jak w poprzednim komunikacie kanałowym; odbiornik musi pamiętać ostatni status i traktować bajt danych jako początek nowego komunikatu. Dekoder trzyma więc rejestr statusu, kasuje go przy komunikatach systemowych `F0`–`F7`, nie zmienia przy komunikatach czasu rzeczywistego `F8`–`FF` (te mogą wejść nawet między bajty danych) i liczy bajty danych według typu komunikatu (1 albo 2).
+</details>
+
+3. **Masz 4 głosy i jedną mnożarkę. Jak policzysz wszystkie w czasie jednej próbki i ile głosów zmieścisz maksymalnie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Multipleksuję w czasie: głosy liczone są po kolei, każdy w kilku taktach (tu 4: ADSR i faza, kształt, × obwiednia, × prędkość z akumulacją). Przy 12,5 MHz i fs = 48,8 kHz jest 256 taktów na próbkę, więc teoretycznie 64 głosy po 4 takty. Ograniczeniem staje się wtedy stan głosów (faza, obwiednia, nuta — ok. 60 bitów na głos), który zamiast w rejestrach warto trzymać w pamięci blokowej, oraz zakres sumy.
+</details>
+
+### [31.04 — Projekt 4: system z Nios V, DDR3 i strumieniem UDP](../modules/31-projekty-koncowe/31.04-projekt-4-system-z-nios-v-ddr3-i-strumieniem-udp.md)
+
+1. **Jak zaprojektujesz master Avalon-MM czytający blok danych z DDR3 tak, żeby nigdy nie zgubić danych?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Żądanie liczę jako przyjęte tylko przy `read && !waitrequest`; adres i liczba słów zmieniają się dopiero wtedy. Dane przychodzą z `readdatavalid` w kolejności żądań, ale z dowolnym opóźnieniem, a odbiorca nie może ich wstrzymać, więc muszę mieć na nie miejsce: liczę odczyty w locie i słowa w buforze i zlecam nowy odczyt tylko wtedy, gdy ich suma jest mniejsza od pojemności bufora. Dla wydajności używam burstów (`burstcount`) i dłuższego bufora; testbench z losowym `waitrequest` i opóźnieniem sprawdza, że wynik jest bitowo zgodny z pamięcią.
+</details>
+
+2. **Dlaczego peryferium buforuje całą ramkę przed wysłaniem przez MII?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+MII ma stały rytm 25 MHz × 4 bity i nie pozwala na przerwę w środku ramki: `tx_en` musi trwać bez przerwy od preambuły do FCS. Źródło danych (DDR3 z odświeżaniem, magistrala współdzielona z procesorem) może się wstrzymać na nieprzewidywalny czas. Buforując całą ramkę (do 1518 B) w kolejce asynchronicznej, oddzielam niedeterministyczny odczyt od deterministycznego nadawania i przy okazji przechodzę między domenami zegara. Alternatywa: bufor tylko częściowy z gwarancją przepustowości i najgorszego opóźnienia pamięci — tańszy, ale trudniejszy do udowodnienia.
+</details>
+
+3. **Jak podzielisz pracę między procesor a sprzęt w strumieniu UDP o przepustowości bliskiej 100 Mb/s?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wszystko, co dotyczy każdego bajtu (odczyt bufora, sumy kontrolne, FCS, nadawanie), robi sprzęt; procesor zajmuje się tym, co rzadkie: konfiguracją adresów i portów, przygotowaniem bufora, decyzją, kiedy wysłać, obsługą błędów i ARP. Procesor 50–100 MHz nie nadąży kopiować 12 MB/s bajt po bajcie, a jedno zlecenie na ramkę to kilkanaście instrukcji. Kolejne usprawnienie to podwójne bufory (procesor wypełnia jeden, sprzęt wysyła drugi) albo kolejka deskryptorów, żeby sprzęt nie czekał na procesor między ramkami.
+</details>
+
+### [31.05 — Projekt 5: przetwarzanie obrazu z kamery MIPI w czasie rzeczywistym](../modules/31-projekty-koncowe/31.05-projekt-5-przetwarzanie-obrazu-z-kamery-mipi-w.md)
+
+1. **Jak zrealizujesz filtr 3 × 3 na strumieniu wideo bez bufora ramki?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa bufory linii (pamięć na jedną linię każdy) opóźniają strumień o 1 i 2 linie; z trzech strumieni (bieżący, −1, −2 linie) w rejestrach przesuwnych po 3 próbki powstaje okno 3 × 3, które przesuwa się o piksel na takt. Wynik ma opóźnienie ok. jednej linii i kilku taktów, a sygnały synchronizacji muszą być opóźnione tak samo. Brzegi obsługuje się powielaniem albo zerami. Pamięć: (k − 1) × długość linii × szerokość piksela — dla 3 × 3 przy 640 px i 8 bitach to 2 bloki M9K.
+</details>
+
+2. **Na czym polega demozaikowanie i jakie artefakty daje metoda dwuliniowa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Czujnik z filtrem Bayera mierzy w każdym pikselu tylko jedną składową; demozaikowanie odtwarza dwie brakujące z sąsiadów. Metoda dwuliniowa bierze średnią najbliższych sąsiadów danej barwy (krzyż, przekątne, pary poziome lub pionowe). Jest tania (okno 3 × 3, same sumy), ale na ostrych krawędziach daje kolorowe obwódki i efekt „zamka błyskawicznego”, bo uśrednia przez krawędź. Lepsze metody (Malvar–He–Cutler, metody kierunkowe) korzystają z gradientu zielonej składowej i większego okna.
+</details>
+
+3. **Jak zmienisz tryb potoku wideo w trakcie pracy, żeby nie zepsuć obrazu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rejestr trybu z wejścia (przycisk, rejestr procesora) jest zatrzaskiwany w rejestrze roboczym tylko na początku wygaszania pionowego — tu na zboczu `vs` najpóźniejszej ścieżki, kiedy żadna ścieżka nie niesie pikseli aktywnych. Jeśli wejście przychodzi z innej domeny zegara, najpierw synchronizator (dla wielobitowego — przekazanie z potwierdzeniem). Dodatkowo wszystkie ścieżki multipleksera mają takie samo opóźnienie, więc przełączenie nie przesuwa obrazu.
+</details>
+
+### [31.06 — Projekt 6: własny procesor RISC-V z peryferiami](../modules/31-projekty-koncowe/31.06-projekt-6-wlasny-procesor-risc-v-z-peryferiami.md)
+
+1. **Jak podłączysz peryferium do własnego procesora i na co uważać przy odczycie rejestrów?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mapuję je w przestrzeni adresowej: dekoder po najstarszych bitach adresu wybiera RAM albo peryferium, zapis idzie do rejestru przy `wstrb != 0`, a dane odczytu wybiera multiplekser. Najważniejsze, żeby odczyt peryferium miał dokładnie taką samą latencję jak RAM (tu 1 takt, wybór źródła w stopniu zapisu wyniku), inaczej rdzeń dostanie złe dane. Odczyty z efektem ubocznym (zdejmowanie bajtu z kolejki, kasowanie flagi) mogą się wykonać tylko raz i tylko dla instrukcji, które naprawdę zostaną zatwierdzone — w potoku odczyt musi być po rozstrzygnięciu skoków albo peryferium musi tolerować spekulację.
+</details>
+
+2. **Program ma zmieniać LED co 0,25 s, ale w międzyczasie obsługuje UART. Jak zapewnić równe odstępy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczenie czasu oddaję sprzętowi: licznik swobodny i rejestr porównania ustawiający flagę (albo przerwanie). Następne porównanie wyliczam jako poprzednie + okres, a nie licznik + okres, więc opóźnienie obsługi flagi wpływa tylko na chwilę reakcji, a nie na kolejne odstępy (brak dryfu). Pierwsze porównanie ustawiam tuż przed pętlą główną, po długich operacjach inicjalizacji. Jeśli obsługa może się spóźnić o cały okres, stosuję porównanie ze znakiem różnicy zamiast równości.
+</details>
+
+3. **Jak weryfikujesz jednocześnie sprzęt i program w takim mikrokontrolerze?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Testbench systemowy uruchamia RTL z prawdziwym programem złożonym z repozytorium i sprawdza zachowanie na zewnętrznych wyprowadzeniach: dekoduje UART, mierzy PWM i odstępy LED, wysyła znaki i porównuje echo, a koniec programu sygnalizuje zapis TOHOST. Stałe czasowe w wariancie symulacyjnym są skrócone, logika ta sama. Do tego testy jednostkowe rdzenia (moduł 27: zestaw instrukcji, hazardy) i peryferiów osobno oraz sprawdzenie w CI, że plik programu odpowiada źródłu. Błąd znaleziony tu (odstęp 1987 zamiast 3000) był błędem programu, nie sprzętu — test systemowy wykrywa oba rodzaje.
+</details>
