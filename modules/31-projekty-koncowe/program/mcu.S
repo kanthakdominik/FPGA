@@ -26,13 +26,13 @@ start:
     sw    t0, PWM+8(s1)
     li    t0, 1
     sw    t0, PWM+0(s1)          # PWM włączony, bez przerwania
-    lw    t0, LICZNIK(s1)
+    la    a0, powitanie
+    call  pisz                   # powitanie trwa dłużej niż OKRES_LED w symulacji
+    lw    t0, LICZNIK(s1)        # więc pierwsze porównanie dopiero po nim
     li    t1, OKRES_LED
     add   t0, t0, t1
     sw    t0, POROWN(s1)         # pierwsze porównanie
     li    s2, 0                  # stan LED
-    la    a0, powitanie
-    call  pisz
 
 petla:
     lw    t0, FLAGA(s1)          # minął okres LED?
