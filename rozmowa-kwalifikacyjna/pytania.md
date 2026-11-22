@@ -4526,7 +4526,187 @@ Jedno źródło: skrypt modelu generuje wszystkie artefakty — pliki współczy
 
 ## 27 — Procesory w FPGA i systemy SoC
 
-_Pytania pojawią się razem z treścią modułu ([27-procesory-i-soc](../modules/27-procesory-i-soc/README.md))._
+### [27.01 — Procesor w FPGA: miękki czy twardy](../modules/27-procesory-i-soc/27.01-procesor-w-fpga-miekki-czy-twardy.md)
+
+1. **Kiedy wybierzesz procesor miękki, a kiedy SoC z procesorem twardym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Miękki — gdy procesor obsługuje sterowanie i konfigurację o małej przepustowości, układ nie ma wersji SoC albo ma być tani, potrzebny jest determinizm co do taktu, kilka małych niezależnych procesorów albo własne instrukcje; koszt to zasoby logiki i niski zegar. Twardy — gdy potrzebny jest Linux, sieć, systemy plików, duża moc CPU i gotowe kontrolery (DDR, USB, Ethernet, PCIe) po stronie procesora; FPGA robi wtedy akcelerację i interfejsy. Twardy procesor oznacza droższy układ i złożony przepływ uruchamiania (bootloader, drzewo urządzeń, sterowniki), miękki — samodzielne utrzymanie konfiguracji rdzenia i ograniczoną wydajność.
+</details>
+
+2. **Procesor miękki osiąga 100 MHz, a algorytm w C zajmuje 2000 instrukcji na próbkę. Czy obsłuży strumień 1 MSPS?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie: przy CPI ok. 1,2–1,5 (prosty potok z karami skoków i dostępów do pamięci) 2000 instrukcji to ok. 2400–3000 taktów, czyli 24–30 µs na próbkę — maksymalnie ok. 33–40 tys. próbek/s, 25–30 razy za mało. Trzeba przenieść przetwarzanie próbek do logiki (potok, filtr, akcelerator), procesorowi zostawić konfigurację i wyniki zbiorcze; ewentualnie własne instrukcje albo kilka procesorów, jeśli algorytm się dzieli — ale zwykle logika jest tańsza.
+</details>
+
+3. **Co daje otwarta architektura RISC-V w projektach FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jedną specyfikację zestawu instrukcji z wieloma implementacjami: rdzenie producentów (Nios V, MicroBlaze V, PolarFire SoC) i open source (VexRiscv, NEORV32, PicoRV32, Ibex) używają tego samego kompilatora (GCC, LLVM), debuggera (OpenOCD, GDB) i bibliotek. Rdzeń open source można przenieść między rodzinami i producentami, zweryfikować i zmodyfikować (np. dodać własne instrukcje w przestrzeni kodów custom), a modułowe rozszerzenia (M, C, A, F, Zicsr) pozwalają dobrać koszt do potrzeb. Brak opłat licencyjnych za architekturę; ceną jest samodzielna odpowiedzialność za weryfikację i wsparcie przy rdzeniach open source.
+</details>
+
+### [27.02 — Nios V (RISC-V) w Platform Designer na DECA](../modules/27-procesory-i-soc/27.02-nios-v-risc-v-w-platform-designer-na-deca.md)
+
+1. **Jak program w C „wie”, pod jakim adresem jest peryferium w systemie Platform Designer?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Platform Designer zapisuje opis wygenerowanego systemu w pliku `.sopcinfo`: instancje, adresy bazowe, numery przerwań, parametry. Generator BSP (`niosv-bsp`) czyta ten plik i tworzy `system.h` z makrami w rodzaju `PWM_BASE`, `PWM_IRQ`, `LED_BASE`, a także skrypt konsolidatora z regionami pamięci i listę sterowników dla znanych komponentów. Program używa tych makr; po każdej zmianie systemu (nowy adres, nowe peryferium) BSP trzeba wygenerować ponownie i przebudować aplikację, inaczej adresy w programie są nieaktualne.
+</details>
+
+2. **Do czego służy moduł debugowania w Nios V i jak wpływa na projekt?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Moduł debugowania (zgodny ze specyfikacją debugowania RISC-V) pozwala przez JTAG zatrzymać rdzeń, czytać i zapisywać rejestry i pamięć, ustawiać pułapki i krokować — tak działa `niosv-download` (ładowanie `.elf` i start) oraz debuger w RiscFree/GDB. W systemie to dodatkowy agent `dm_agent`, który musi być osiągalny z obu portów zarządcy, i dodatkowa logika JTAG (zegar `altera_reserved_tck` w ograniczeniach). W produkcie końcowym można go wyłączyć dla oszczędności zasobów i bezpieczeństwa, ale wtedy program musi startować z zainicjowanej pamięci albo z Flash.
+</details>
+
+3. **Peryferium zgłasza przerwanie poziomem. Co musi zrobić procedura obsługi i dlaczego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Musi usunąć przyczynę przerwania w peryferium — zwykle zapisać 1 do bitu flagi w rejestrze statusu (W1C) albo odczytać dane, które kasują flagę — zanim wróci. Przerwanie poziomem jest aktywne tak długo, jak warunek trwa; po powrocie z procedury kontroler przerwań od razu wywołałby ją znowu i program główny nigdy by nie ruszył. Kasowanie powinno być na początku procedury (zdarzenie, które przyjdzie w trakcie obsługi, ustawi flagę ponownie i nie zginie), a zmienne współdzielone z programem głównym muszą być `volatile`.
+</details>
+
+### [27.03 — Własny peryferial z rejestrami i sterownik w C](../modules/27-procesory-i-soc/27.03-wlasny-peryferial-z-rejestrami-i-sterownik-w-c.md)
+
+1. **Dlaczego flagi zdarzeń kasuje się zapisem jedynki (W1C), a nie zwykłym zapisem albo odczytem?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rejestr statusu zwykle ma kilka flag, które sprzęt ustawia niezależnie. Przy zwykłym zapisie program musiałby odczytać rejestr, wyzerować bit i zapisać wynik — między odczytem a zapisem sprzęt może ustawić inną flagę, którą zapis nadpisze zerem (utrata zdarzenia). W1C kasuje tylko bity, w których zapisano 1; reszta jest nietknięta, a operacja jest atomowa z punktu widzenia magistrali. Kasowanie odczytem jest gorsze, bo każdy odczyt (debugger, podgląd, inny wątek) niszczy informację. W RTL dodatkowo ustawienie wygrywa z kasowaniem w tym samym takcie, żeby nowe zdarzenie nie zginęło.
+</details>
+
+2. **Co robi `volatile` w sterowniku i czego nie robi?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Mówi kompilatorowi, że wartość może zmienić się poza programem i że każdy dostęp ma skutki — więc każdy odczyt i zapis w kodzie musi zostać wykonany, w tej liczbie i kolejności względem innych dostępów `volatile`. Bez niego pętla odpytująca flagę po optymalizacji czyta rejestr raz, a zapisy konfiguracyjne mogą zostać połączone albo usunięte. `volatile` nie gwarantuje kolejności względem zwykłych dostępów do pamięci, nie jest barierą dla sprzętu (bufory zapisu, zmiana kolejności w procesorze, pamięć podręczna) i nie daje atomowości odczytu–modyfikacji–zapisu — do tego służą bariery (`fence`), dostęp do regionu niebuforowanego i wyłączanie przerwań albo blokady.
+</details>
+
+3. **Jak zaprojektować zmianę okresu PWM w trakcie pracy, żeby nie było zakłóceń?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rejestry cienia: zapis z magistrali trafia do rejestru „zapisanego”, a licznik używa kopii, która jest aktualizowana tylko na granicy okresu (gdy licznik wraca do zera); przy wyłączonym PWM — od razu. Okres i wypełnienie przepisuje się razem, więc nie powstanie kombinacja nowego okresu ze starym wypełnieniem. Opcjonalnie flaga „zmiana przyjęta” albo przerwanie końca okresu, żeby program wiedział, kiedy może zapisać kolejną wartość. Bez tego zmiana w środku okresu daje skrócony impuls albo okres dłuższy niż oba ustawienia (licznik przekracza nowy, mniejszy okres i liczy do przepełnienia).
+</details>
+
+### [27.04 — Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX](../modules/27-procesory-i-soc/27.04-otwarte-rdzenie-risc-v-picorv32-vexriscv.md)
+
+1. **Jakiego rdzenia RISC-V użyjesz w małym FPGA do sterowania i jak go sprawdzisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Do sterowania o małej wydajności w tanim układzie: PicoRV32 (mały, prosty interfejs, wysoki zegar) albo NEORV32 (gotowe peryferia, bootloader, dokumentacja); przy skrajnym niedoborze logiki SERV. Konfiguracja minimalna: RV32I (+ Zicsr, jeśli potrzebne przerwania), M tylko gdy program dużo mnoży. Sprawdzenie: testy architektoniczne RISC-V (riscv-arch-test przez RISCOF) dla wybranej konfiguracji, program aplikacyjny w symulacji z porównaniem śladu do ISS, test na płytce z konsolą; przy zmianach w rdzeniu — riscv-formal przez RVFI.
+</details>
+
+2. **Czym różni się interfejs pamięci PicoRV32 od magistrali w prostym potokowym rdzeniu z pamięcią blokową?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+PicoRV32 używa uzgadniania: wystawia `mem_valid` z adresem i czeka, aż pamięć odpowie `mem_ready` — pamięć może odpowiedzieć po dowolnej liczbie taktów (wolna pamięć zewnętrzna, peryferium z oczekiwaniem), a rdzeń w tym czasie stoi. Prosty rdzeń potokowy z pamięcią blokową zakłada stałe opóźnienie (adres w takcie t, dane w t+1) i nie ma sygnału gotowości — jest szybszy (dostęp co takt, bez oczekiwania), ale każde wolniejsze urządzenie wymaga dodania wstrzymania potoku (stall od magistrali) albo bufora. W praktyce rdzenie potokowe mają pamięci TCM o stałym opóźnieniu i osobną magistralę z uzgadnianiem dla reszty systemu.
+</details>
+
+3. **Co to jest RVFI i do czego służy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+RISC-V Formal Interface — zestaw sygnałów, które rdzeń wystawia przy każdej wycofanej instrukcji: słowo instrukcji, PC przed i po, numery i wartości rejestrów źródłowych i docelowego, adres, maska i dane dostępu do pamięci. Framework riscv-formal łączy go z modelem ISA zapisanym formalnie i solver (SymbiYosys) dowodzi, że dla każdej sekwencji instrukcji o ograniczonej długości rdzeń zachowuje się zgodnie z ISA — znajduje błędy hazardów, przekazywania i rzadkich przypadków brzegowych. Ten sam interfejs ułatwia porównanie śladu z symulatorem ISS w zwykłej symulacji.
+</details>
+
+### [27.05 — Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex](../modules/27-procesory-i-soc/27.05-uklady-soc-z-twardym-procesorem-zynq-cyclone-v.md)
+
+1. **Którymi portami Zynq połączysz akcelerator, który przetwarza bloki danych w DDR i ma rejestry sterujące?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rejestry sterujące (start, adresy buforów, długość, status) — przez M_AXI_GP0 jako slave AXI4-Lite (procesor jest zarządcą). Dane — akcelerator jako zarządca AXI4 z burstami przez S_AXI_HP (64 bity, kolejki FIFO, bezpośrednio do kontrolera DDR), zwykle przez rdzeń DMA albo własny silnik. Zakończenie — przerwanie przez IRQ_F2P. Jeśli bufory są w pamięci buforowanej procesora, oprogramowanie robi flush/invalidate (albo używa buforów niebuforowanych); przy małych, częstych przesyłach można użyć ACP dla koherencji, kosztem przepustowości.
+</details>
+
+2. **Na czym polega problem koherencji przy DMA i jak go rozwiązać?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Procesor trzyma kopie danych w pamięci podręcznej, a DMA w logice czyta i pisze bezpośrednio DDR. Gdy procesor przygotował dane, mogą one jeszcze nie być w DDR (brudne linie w pamięci podręcznej) — DMA przeczyta stare. Gdy DMA zapisało wynik do DDR, procesor może czytać starą kopię z pamięci podręcznej. Rozwiązania: zapis brudnych linii (flush) przed DMA z pamięci i unieważnienie (invalidate) po DMA do pamięci — w Linuksie przez API DMA; bufory niebuforowane; albo port koherentny (ACP, HPC, ACE), przez który dostęp logiki przechodzi przez kontroler koherencji.
+</details>
+
+3. **Jak uruchamia się Zynq-7000 i kto konfiguruje logikę?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Po resecie BootROM w PS odczytuje tryb uruchamiania z pinów i ładuje FSBL z QSPI, SD albo NAND do OCM. FSBL inicjalizuje zegary, DDR i MIO, opcjonalnie ładuje bitstream do PL przez PCAP, a potem kolejny etap (U-Boot albo aplikację bare metal). U-Boot ładuje jądro Linuksa i drzewo urządzeń. Logikę może skonfigurować FSBL, U-Boot albo działający Linux (FPGA Manager, także rekonfiguracja częściowa). Procesor jest więc „panem” — PL nie działa, dopóki PS go nie skonfiguruje, inaczej niż w Cyclone V SoC, gdzie FPGA można skonfigurować także niezależnie od HPS.
+</details>
+
+### [27.06 — Linux na FPGA i podział sprzęt–oprogramowanie](../modules/27-procesory-i-soc/27.06-linux-na-fpga-i-podzial-sprzetoprogramowanie.md)
+
+1. **Jak aplikacja w Linuksie dostanie się do rejestrów Twojego bloku w FPGA i obsłuży jego przerwanie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw opis w drzewie urządzeń (albo nakładce): adres fizyczny i rozmiar rejestrów (`reg`), przerwanie (`interrupts`) i `compatible`. Dla prototypu: `compatible` dopasowany do sterownika UIO (`generic-uio`/`uio_pdrv_genirq`) — aplikacja otwiera `/dev/uioN`, mapuje rejestry przez `mmap`, czeka na przerwanie blokującym `read()`, kasuje flagę w bloku i odblokowuje przerwanie zapisem do `/dev/uioN`. Dla produktu: sterownik jądra (platform driver) z `probe()`, `devm_platform_ioremap_resource`, `request_irq` i interfejsem dla aplikacji (urządzenie znakowe, sysfs albo podsystem jądra: IIO, PWM, sieć, V4L2). `/dev/mem` tylko do szybkiego testu.
+</details>
+
+2. **Funkcja zajmuje 40% czasu programu. W FPGA będzie 50× szybsza, ale przesłanie danych zajmuje 5% pierwotnego czasu. Ile zyskasz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Bez przesyłu: S = 1/(0,6 + 0,4/50) = 1/0,608 ≈ 1,64. Z przesyłem (jeśli nie nakłada się na obliczenia): 1/(0,6 + 0,008 + 0,05) = 1/0,658 ≈ 1,52. Ograniczeniem jest 60% czasu, które zostaje w oprogramowaniu — nawet nieskończenie szybki akcelerator dałby najwyżej 1/0,6 ≈ 1,67. Żeby zyskać więcej, trzeba przenieść także inne części albo przepisać program (np. potokowe nakładanie przesyłu i obliczeń, przetwarzanie strumieniowe zamiast blokowego).
+</details>
+
+3. **Co to jest FPGA Manager i nakładka drzewa urządzeń?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+FPGA Manager to podsystem jądra Linuksa, który ładuje bitstream do logiki przez sterownik specyficzny dla układu (PCAP w Zynq, menedżer konfiguracji w SoC Altery). FPGA Region i nakładki drzewa urządzeń łączą konfigurację z opisem sprzętu: nakładka wskazuje plik bitstreamu i zawiera węzły urządzeń znajdujących się w nowej logice; jądro wyłącza mosty, ładuje bitstream (cały albo częściowy), włącza mosty i dopiero wtedy tworzy urządzenia i uruchamia ich sterowniki. Dzięki temu logikę można wymieniać w działającym systemie, także częściowo (rekonfiguracja częściowa jednego regionu).
+</details>
+
+### [27.07 — Własny procesor RISC-V: od jednocyklowego do potokowego](../modules/27-procesory-i-soc/27.07-wlasny-procesor-risc-v-od-jednocyklowego-do.md)
+
+1. **Co to jest hazard load-use i dlaczego przekazywanie go nie usuwa?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Instrukcja odczytu z pamięci (np. `lw t2, 0(t0)`) ma dane dopiero na końcu stopnia MEM (w rdzeniu z pamięcią blokową — w WB), a następna instrukcja, która używa `t2`, potrzebuje go na początku EX — czyli wcześniej, niż dane istnieją. Przekazywanie może podać tylko wartość, która już gdzieś jest; tu trzeba wstrzymać instrukcję zależną o 1 takt (bąbelek w EX, IF i ID stoją), po czym dane przechodzą przez przekazywanie z WB. Kompilator zmniejsza koszt, wstawiając między odczyt a użycie niezależną instrukcję (planowanie instrukcji).
+</details>
+
+2. **Ile kosztuje wykonany skok warunkowy w potoku 5-stopniowym i jak to zmniejszyć?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Jeśli skok rozstrzyga się w EX, a potok zakłada „niewykonany”, to po wykonanym skoku dwie instrukcje pobrane z błędnej ścieżki (w IF i ID) trzeba wyrzucić — 2 takty kary; tu 341 wykonanych skoków dało 682 takty z 2742. Zmniejszenie: rozstrzyganie skoków w ID (porównanie i sumator celu wcześniej — 1 takt, ale dłuższa ścieżka ID i więcej przekazywania do ID), predykcja statyczna (skoki wstecz wykonane — pętle), predykcja dynamiczna (liczniki 2-bitowe, BTB z celami skoków), skoki opóźnione (nie w RISC-V) albo instrukcje warunkowe zamiast skoków w kodzie.
+</details>
+
+3. **Jak zweryfikujesz własny rdzeń RISC-V?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wzorcem jest niezależny model zestawu instrukcji (ISS: własny, Spike albo Sail). Program testowy wykonuje się w obu, a porównuje się ślad: wycofane instrukcje (PC, rd, wartość) albo zapisy do pamięci — niezależnie od liczby taktów, więc ten sam test sprawdza rdzeń jednocyklowy i potokowy. Program musi celowo zawierać sekwencje trudne dla potoku (zależności tuż po sobie, load-use, odczyt i zapis tego samego adresu, skoki od świeżo odczytanych danych, x0) i przypadki brzegowe ISA. Do tego testy architektoniczne (riscv-arch-test przez RISCOF), losowe programy (riscv-dv) i weryfikacja formalna przez RVFI (riscv-formal), która znajduje rzadkie błędy hazardów.
+</details>
 
 ## 28 — Synteza wysokiego poziomu (HLS) i akceleracja
 

@@ -26,6 +26,16 @@ jobs:
         run: python3 tools/run_hdl_tests.py --strict
       - name: Lint Verilatorem (-Wall) — moduły od 07 bez ostrzeżeń, starsze tylko raport
         run: python3 tools/lint_hdl.py --strict-od 7
+      - name: Moduł 27 — programy w asemblerze zgodne z plikami pamięci (rvasm.py, ISS)
+        run: python3 modules/27-procesory-i-soc/program/rvasm.py --sprawdz
+      - name: Moduł 27 — program w C (gcc RISC-V) na własnym rdzeniu w symulacji
+        run: |
+          set -o pipefail
+          sudo apt-get install -y gcc-riscv64-unknown-elf
+          riscv64-unknown-elf-gcc --version | head -1
+          make -C modules/27-procesory-i-soc/program/c sym | tee wynik-rv-c.txt
+          grep -q '^PASS' wynik-rv-c.txt
+          { echo "## Program w C na rv_soc (moduł 27)"; echo '```'; cat wynik-rv-c.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Moduł 09 — wektory testowe zgodne z generatorem
         run: python3 modules/09-symulacja-i-testbench/hdl/dane/gen_mavg4.py --sprawdz
       - name: Moduł 09 — regresja z Makefile i zapis przebiegów
