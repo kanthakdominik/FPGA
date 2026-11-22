@@ -4868,7 +4868,135 @@ Najprościej — tymi samymi wektorami i tym samym wzorcem bitowym: symulacja w 
 
 ## 29 — Konfiguracja, bezpieczeństwo i niezawodność
 
-_Pytania pojawią się razem z treścią modułu ([29-konfiguracja-niezawodnosc](../modules/29-konfiguracja-niezawodnosc/README.md))._
+### [29.01 — Tryby konfiguracji i pamięci konfiguracyjne](../modules/29-konfiguracja-niezawodnosc/29.01-tryby-konfiguracji-i-pamieci-konfiguracyjne.md)
+
+1. **Co się dzieje z FPGA SRAM od włączenia zasilania do pracy projektu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Układ czeka na stabilne zasilania (POR), czyści pamięć konfiguracji (pin `nSTATUS`/`INIT_B` niski — host może ten etap przedłużyć), próbkuje piny trybu i ładuje bitstream: nagłówek, ramki konfiguracji z sumą kontrolną każdej ramki — błąd przerywa ładowanie. Potem inicjalizacja: zerowanie rejestrów, zwolnienie globalnych sygnałów zapisu i trójstanu, włączenie wyjść; `DONE` idzie wysoko i projekt działa. Przez cały czas wyjścia są w stanie Z. Ponowna konfiguracja — `nCONFIG`/`PROGRAM_B` w stanie niskim albo rozkaz z logiki.
+</details>
+
+2. **Czym MAX 10 różni się w konfiguracji od Cyclone 10 LP i od PolarFire?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Cyclone 10 LP to klasyczny SRAM: bitstream trzeba załadować z zewnętrznej pamięci (AS) albo z hosta (PS/FPP) przy każdym starcie. MAX 10 ma tę samą komórkę SRAM, ale bitstream przechowuje w wewnętrznym flashu (CFM) i ładuje go sam — nie ma zewnętrznej pamięci ani bitstreamu na płytce, a dwa obrazy w CFM pozwalają na zdalną aktualizację z powrotem do obrazu zapasowego. PolarFire trzyma konfigurację w nieulotnych komórkach, które same sterują przełącznikami — nic się nie ładuje (logika działa od razu po zasilaniu), a konfiguracja nie ulega SEU; za to proces technologiczny i rozmiary są inne niż w wiodących układach SRAM.
+</details>
+
+3. **Wymaganie: układ ma odpowiedzieć po PCIe w ciągu 100 ms od zasilania, bitstream ma 80 Mb. Co robisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Liczę: SPI ×4 przy 100 MHz daje 80·10⁶ / 4·10⁸ = 0,2 s — za długo, a jeszcze dochodzi czas POR. Opcje: kompresja bitstreamu (jeśli logika nie jest pełna, plik maleje znacznie), szersza szyna (SPI ×8 dwiema pamięciami albo BPI ×16), wyższy zegar konfiguracji z zewnętrznego oscylatora, a jeśli to nie wystarcza — konfiguracja dwuetapowa (Tandem w AMD, CvP w Altera): najpierw mały obraz z blokiem PCIe, który zdąży, a reszta logiki ładowana potem, z pamięci albo przez samo łącze PCIe. Do tego sprawdzam, czy układ w ogóle obsługuje taki tryb, i mierzę czas na prototypie.
+</details>
+
+### [29.02 — Podwójny obraz i zdalna aktualizacja w MAX 10](../modules/29-konfiguracja-niezawodnosc/29.02-podwojny-obraz-i-zdalna-aktualizacja-w-max-10.md)
+
+1. **Jak zaprojektujesz zdalną aktualizację FPGA, która nie zostawi urządzenia martwego?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Dwa obrazy: niezmienny obraz złoty i obszar na aplikację. Nowy obraz zapisuję tylko do obszaru aplikacji, po zapisie liczę CRC (lepiej sprawdzam podpis) z odczytu pamięci, a przełączam dopiero przy zgodności. Po przełączeniu działa licznik nadzorujący konfiguracji: nowa aplikacja musi go zerować z miejsca, które dowodzi, że działa; gdy nie wystartuje (błąd CRC przy ładowaniu) albo zawiśnie, układ wraca do obrazu złotego, który zgłasza przyczynę z rejestrów statusu. Zanik zasilania w dowolnym momencie zapisu kończy się startem z obrazu złotego. W MAX 10 robi to tryb dwóch obrazów i Dual Configuration IP, w AMD MultiBoot z fallbackiem.
+</details>
+
+2. **Po co licznik nadzorujący konfiguracji, skoro układ sprawdza CRC bitstreamu przy ładowaniu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+CRC przy ładowaniu wykrywa tylko uszkodzony plik. Obraz może być bitowo poprawny, a mimo to nie działać: błąd w projekcie, inna wersja sprzętu, zła konfiguracja zegarów, oprogramowanie procesora, które się wiesza. Licznik nadzorujący sprawdza zachowanie, nie bity — aplikacja musi go regularnie zerować, a jeśli przestanie, układ wraca do obrazu zapasowego. To jedyna ochrona przed obrazem „poprawnym, ale złym”.
+</details>
+
+3. **Dlaczego moduł czeka 600 taktów zamiast od razu wyzwolić rekonfigurację?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Rdzeń Dual Configuration po zapisie rejestru wejściowego przekazuje go do obwodu zdalnej aktualizacji, co trwa do 531 taktów; w tym czasie ignoruje zapisy (poza zerowaniem licznika). Zapis wyzwalający rekonfigurację wysłany za wcześnie zginąłby i układ zostałby w starym obrazie. Producent zaleca odpytywanie bitu `busy`; stałe czekanie z zapasem jest prostsze, nie zależy od opóźnienia odczytu interfejsu i przy jednorazowej operacji nic nie kosztuje — testbench z modelem rdzenia sprawdza, że odstęp jest większy niż 531 i że żaden zapis nie zginął.
+</details>
+
+### [29.03 — Szyfrowanie i ochrona bitstreamu](../modules/29-konfiguracja-niezawodnosc/29.03-szyfrowanie-i-ochrona-bitstreamu.md)
+
+1. **Bitstream jest zaszyfrowany AES-256. Czy to wystarczy, żeby nikt nie podmienił projektu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Nie. Szyfrowanie zapewnia poufność, nie autentyczność: bez uwierzytelnienia (HMAC, AES-GCM, podpis) można manipulować zaszyfrowanymi blokami albo podać układowi inny zaszyfrowany obraz tym samym kluczem — np. starszą wersję z luką. Potrzebne jest uwierzytelnienie sprawdzane przed użyciem danych, blokada cofania wersji i ochrona klucza. Przykład z praktyki: w 7 Series HMAC był sprawdzany po interpretacji danych, co umożliwiło atak Starbleed i odzyskanie całego bitstreamu.
+</details>
+
+2. **MAX 10 nie uwierzytelnia bitstreamu. Jak zabezpieczysz w nim zdalną aktualizację?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Uwierzytelnienie przenoszę do obrazu złotego: każdy obraz aktualizacji jest podpisany (np. ECDSA lub RSA) kluczem prywatnym trzymanym u producenta, a obraz złoty — w logice albo na procesorze Nios — sprawdza podpis kluczem publicznym przed zapisem do CFM i jeszcze raz z odczytu przed przełączeniem. Obraz jest dodatkowo szyfrowany AES-128 z opcją przyjmowania tylko zaszyfrowanych plików, JTAG Secure i Verify Protect blokują dostęp z zewnątrz, a numer wersji w podpisanym nagłówku chroni przed cofnięciem. Obraz złoty i klucz publiczny muszą być chronione przed zapisem (w 10M50DD — kontrola dostępu do obszarów flasha).
+</details>
+
+3. **Na czym polega atak DPA na szyfrowanie bitstreamu i jak się przed nim bronić?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Atakujący wielokrotnie konfiguruje układ (różnymi bitstreamami lub tym samym) i mierzy chwilowy pobór prądu podczas odszyfrowywania. Pobór zależy od wartości pośrednich AES, więc statystyczna korelacja pomiarów z hipotezami o bajtach klucza pozwala wyznaczyć klucz bajt po bajcie. Obrona: ograniczenie liczby prób (licznik nieudanych konfiguracji kasujący klucz), klucz sesyjny zmieniany w trakcie odszyfrowywania (np. w AES-GCM z rotacją klucza), maskowanie i szum w implementacji, uwierzytelnienie przed odszyfrowaniem, żeby atakujący nie mógł podawać dowolnych danych.
+</details>
+
+### [29.04 — Promieniowanie i SEU: TMR, scrubbing i ECC](../modules/29-konfiguracja-niezawodnosc/29.04-promieniowanie-i-seu-tmr-scrubbing-i-ecc.md)
+
+1. **Na czym polega TMR i dlaczego wersja z resynchronizacją jest lepsza?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Trzy kopie logiki, wynik z głosowania 2 z 3 dla każdego bitu — błąd jednej kopii jest maskowany. Bez resynchronizacji kopie z rejestrami (liczniki, automaty) liczą od własnego stanu, więc trafiona kopia zostaje błędna na zawsze, a kolejne trafienie w inną kopię w tym samym bicie daje błędny wynik — ochrona działa tylko do pierwszego błędu. Z resynchronizacją każda kopia ładuje wynik głosowania, więc błędna kopia wraca do zgodności w następnym takcie; system zawodzi dopiero przy dwóch błędach w różnych kopiach w tym samym takcie. W testbenchu tego tematu przy czterech trafieniach wersja z resynchronizacją nie pomyliła się ani razu, wersja bez niej dała 260 błędnych wyników. Trzeba też pilnować, by synteza nie scaliła kopii i by głosowanie samo nie było pojedynczym punktem awarii.
+</details>
+
+2. **Pamięć ma ECC SECDED. Po co jeszcze scrubbing?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+SECDED poprawia błąd tylko w danych wysłanych na wyjście — słowo w pamięci nadal ma zły bit. Jeśli zanim zostanie nadpisane, w to samo słowo trafi drugi SEU, mamy błąd podwójny: wykryty, ale niepoprawialny, dane są stracone. Słowa rzadko czytane i rzadko zapisywane (tablice konfiguracji, pamięć programu) zbierają błędy najdłużej. Scrubbing okresowo czyta całą pamięć i zapisuje poprawione słowa, więc błędy nie mają czasu się kumulować; okres dobiera się z częstości błędów i rozmiaru pamięci. Trzeba przy tym zadbać, by zapis zwrotny nie nadpisał zapisu użytkownika, który nastąpił w międzyczasie.
+</details>
+
+3. **Jak oszacujesz, czy projekt na FPGA SRAM potrzebuje ochrony przed SEU?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Biorę z raportu niezawodności producenta wskaźnik FIT/Mb dla CRAM i pamięci blokowych, z narzędzia — liczbę bitów istotnych mojego projektu (nie całego CRAM), uwzględniam otoczenie (wysokość, szerokość geograficzna, obudowa) i liczę FIT na urządzenie, a potem na flotę i czas życia. Wynik porównuję z wymaganiem: czy błąd jest groźny (bezpieczeństwo, dane), czy tylko niewygodny (restart). Np. 2000 FIT to raz na kilkadziesiąt lat dla jednej karty, ale co dwa dni dla 10 000 kart w centrum danych. Zależnie od wyniku: nic, wykrywanie CRC z rekonfiguracją, korekcja CRAM w działaniu, ECC na pamięciach, TMR na krytycznym sterowaniu albo układ flash lub rad-hard.
+</details>
+
+### [29.05 — Bezpieczeństwo funkcjonalne: DO-254, IEC 61508, ISO 26262](../modules/29-konfiguracja-niezawodnosc/29.05-bezpieczenstwo-funkcjonalne-do-254-iec-61508.md)
+
+1. **Czym jest weryfikacja oparta na wymaganiach i jak ma się do pokrycia kodu?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Każdy przypadek testowy wywodzi się z konkretnego wymagania (ma jego identyfikator) i sprawdza, czy układ je spełnia, także w warunkach brzegowych i nieprawidłowych danych; macierz śledzenia pokazuje, że każde wymaganie jest pokryte testami, a każdy test — uzasadniony wymaganiem. Pokrycie kodu mierzy się potem: niepokryty kod oznacza brakujące wymaganie, brakujący test albo kod zbędny (do usunięcia lub uzasadnienia). Pokrycie 100 % nie dowodzi poprawności — można wykonać każdą linię i nie sprawdzić żadnego wymagania; dlatego w DO-254 jest narzędziem analizy luk, nie celem.
+</details>
+
+2. **Projekt FPGA ma ASIL D. Jakie mechanizmy zastosujesz i jak pokażesz, że wystarczą?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najpierw sprawdzam, czy układ ma pakiet bezpieczeństwa producenta (FMEDA, podręcznik bezpieczeństwa) — bez niego ASIL D jest praktycznie nieosiągalny. Mechanizmy: wykrywanie i korekcja błędów CRAM z czasem wykrycia mniejszym niż FTTI, ECC z czyszczeniem na pamięciach, porównanie dwóch kopii toru bezpieczeństwa (lub TMR na sterowaniu), sumy kontrolne i liczniki sekwencji na interfejsach, kontrola zegara i zasilania, nadzór zewnętrzny, testy przy starcie i test okresowy samych mechanizmów. Wystarczalność pokazuje FMEDA: dla każdego bloku awaryjność × udział trybów awarii × pokrycie diagnostyczne → SPFM ≥ 99 %, LFM ≥ 90 %, PMHF < 10 FIT, a pokrycie mechanizmów potwierdza kampania wstrzykiwania błędów.
+</details>
+
+3. **Czy narzędzie syntezy trzeba kwalifikować w DO-254?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+DO-254 wymaga oceny każdego narzędzia projektowego i weryfikacyjnego. Kwalifikacja jest potrzebna, gdy wynik narzędzia nie jest niezależnie sprawdzany. Dla syntezy i implementacji typowe podejście to niezależna weryfikacja wyniku: testy w docelowym układzie oparte na wymaganiach (dla DAL A/B wymagane i tak), często uzupełnione symulacją netlisty po implementacji lub sprawdzeniem równoważności — wtedy samo narzędzie nie wymaga kwalifikacji, ale jego wersja i ustawienia są zamrożone w konfiguracji. Inaczej jest z narzędziem weryfikacyjnym, którego wynik („test zaliczony”) przyjmuje się bez dalszej kontroli — tu potrzebna jest ocena, np. historia użycia lub test samego narzędzia.
+</details>
 
 ## 30 — Metodyka i warsztat inżyniera FPGA
 
