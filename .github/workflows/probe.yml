@@ -1,0 +1,46 @@
+name: Probe 31
+on:
+  push:
+    branches: [probe-sv]
+jobs:
+  m31:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      OSS_CAD_SUITE: "2026-11-16"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pamięć podręczna OSS CAD Suite
+        uses: actions/cache@v5
+        with:
+          path: /opt/oss-cad-suite
+          key: oss-cad-suite-linux-x64-${{ env.OSS_CAD_SUITE }}
+      - name: apt
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ghdl iverilog verilator yosys > /dev/null
+      - name: Testy (apt)
+        run: |
+          python3 tools/run_hdl_tests.py modules/31-projekty-koncowe --strict 2>&1 | tail -150 || true
+          python3 tools/lint_hdl.py modules/31-projekty-koncowe --strict 2>&1 | tail -40 || true
+          python3 tools/synteza_yosys.py modules/31-projekty-koncowe --strict 2>&1 | tail -20 || true
+      - name: Testy (OSS)
+        run: |
+          export PATH=/opt/oss-cad-suite/bin:$PATH
+          python3 tools/run_hdl_tests.py modules/31-projekty-koncowe --strict 2>&1 | tail -40 || true
+          true
+      - name: Wyniki testbenchy Verilog (wydruk)
+        run: |
+          d=$(mktemp -d); cp modules/31-projekty-koncowe/hdl/dane/*.hex $d/ 2>/dev/null || true
+          cd $d
+          for tb in $GITHUB_WORKSPACE/modules/31-projekty-koncowe/hdl/verilog/tb_*.v; do
+            n=$(basename $tb .v)
+            iverilog -g2005 -o $n.vvp -s $n $tb $(ls $GITHUB_WORKSPACE/modules/31-projekty-koncowe/hdl/verilog/*.v | grep -v /tb_) && vvp -n $n.vvp | grep -v "^VCD\|finish called" | tail -14
+          done
+      - name: Wyniki testbenchy VHDL (wydruk)
+        run: |
+          d=$(mktemp -d); cp modules/31-projekty-koncowe/hdl/dane/*.hex $d/ 2>/dev/null || true
+          cd $d
+          ghdl -i --std=08 $GITHUB_WORKSPACE/modules/31-projekty-koncowe/hdl/vhdl/*.vhd
+          for tb in $GITHUB_WORKSPACE/modules/31-projekty-koncowe/hdl/vhdl/tb_*.vhd; do
+            n=$(basename $tb .vhd)
+            ghdl -m --std=08 $n > /dev/null && ghdl -r --std=08 $n 2>&1 | tail -4
+          done
