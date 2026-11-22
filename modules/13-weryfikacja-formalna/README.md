@@ -1,6 +1,6 @@
 # 13 — Weryfikacja formalna
 
-> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** weryfikacja · **Szacowany czas:** ok. 12 h · **Status:** ✅ pełny
+> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** weryfikacja · **Szacowany czas:** ok. 12 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Dowodzenie poprawności zamiast szukania błędów przypadkowymi testami. Moduł
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 13.01 | [Dowód zamiast symulacji: BMC, indukcja i cover](13.01-dowod-zamiast-symulacji-bmc-indukcja-i-cover.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 13.02 | [SymbiYosys: pierwsze dowody](13.02-symbiyosys-pierwsze-dowody.md) | VHDL · SystemVerilog | — | ✅ |
-| 13.03 | [Pisanie właściwości: assume, assert, cover](13.03-pisanie-wlasciwosci-assume-assert-cover.md) | SystemVerilog | — | ✅ |
-| 13.04 | [Formalna weryfikacja FIFO i interfejsów z handshakiem](13.04-formalna-weryfikacja-fifo-i-interfejsow-z.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 13.05 | [Sprawdzanie równoważności i metody formalne w przemyśle](13.05-sprawdzanie-rownowaznosci-i-metody-formalne-w.md) | Python / inne | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 13.01 | [Dowód zamiast symulacji: BMC, indukcja i cover](13.01-dowod-zamiast-symulacji-bmc-indukcja-i-cover.md) | VHDL · Verilog · SystemVerilog | — |
+| 13.02 | [SymbiYosys: pierwsze dowody](13.02-symbiyosys-pierwsze-dowody.md) | VHDL · SystemVerilog | — |
+| 13.03 | [Pisanie właściwości: assume, assert, cover](13.03-pisanie-wlasciwosci-assume-assert-cover.md) | SystemVerilog | — |
+| 13.04 | [Formalna weryfikacja FIFO i interfejsów z handshakiem](13.04-formalna-weryfikacja-fifo-i-interfejsow-z.md) | VHDL · Verilog · SystemVerilog | — |
+| 13.05 | [Sprawdzanie równoważności i metody formalne w przemyśle](13.05-sprawdzanie-rownowaznosci-i-metody-formalne-w.md) | Python / inne | — |
 
 ## Po tym module potrafisz
 

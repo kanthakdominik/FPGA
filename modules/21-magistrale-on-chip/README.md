@@ -1,6 +1,6 @@
 # 21 — Magistrale i interfejsy na chipie
 
-> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Jak bloki w dużym projekcie rozmawiają ze sobą: strumienie AXI4-Stream i Aval
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 21.01 | [Strumienie z handshakiem: AXI4-Stream i Avalon-ST](21.01-strumienie-z-handshakiem-axi4-stream-i-avalon-st.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 21.02 | [Rejestry sterujące: AXI4-Lite i Avalon-MM](21.02-rejestry-sterujace-axi4-lite-i-avalon-mm.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 21.03 | [AXI4 i Avalon-MM z burstami](21.03-axi4-i-avalon-mm-z-burstami.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 21.04 | [Wishbone i magistrale otwarte](21.04-wishbone-i-magistrale-otwarte.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 21.05 | [Mapa rejestrów i generatory: SystemRDL, PeakRDL](21.05-mapa-rejestrow-i-generatory-systemrdl-peakrdl.md) | Python / inne | — | ✅ |
-| 21.06 | [Platform Designer i IP Integrator](21.06-platform-designer-i-ip-integrator.md) | — | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 21.01 | [Strumienie z handshakiem: AXI4-Stream i Avalon-ST](21.01-strumienie-z-handshakiem-axi4-stream-i-avalon-st.md) | VHDL · Verilog · SystemVerilog | — |
+| 21.02 | [Rejestry sterujące: AXI4-Lite i Avalon-MM](21.02-rejestry-sterujace-axi4-lite-i-avalon-mm.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 21.03 | [AXI4 i Avalon-MM z burstami](21.03-axi4-i-avalon-mm-z-burstami.md) | VHDL · Verilog · SystemVerilog | — |
+| 21.04 | [Wishbone i magistrale otwarte](21.04-wishbone-i-magistrale-otwarte.md) | VHDL · Verilog · SystemVerilog | — |
+| 21.05 | [Mapa rejestrów i generatory: SystemRDL, PeakRDL](21.05-mapa-rejestrow-i-generatory-systemrdl-peakrdl.md) | Python / inne | — |
+| 21.06 | [Platform Designer i IP Integrator](21.06-platform-designer-i-ip-integrator.md) | — | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -51,9 +51,9 @@ Jak bloki w dużym projekcie rozmawiają ze sobą: strumienie AXI4-Stream i Aval
 
 ## Postęp
 
-- [x] 21.01 Strumienie z handshakiem: AXI4-Stream i Avalon-ST
-- [x] 21.02 Rejestry sterujące: AXI4-Lite i Avalon-MM
-- [x] 21.03 AXI4 i Avalon-MM z burstami
-- [x] 21.04 Wishbone i magistrale otwarte
-- [x] 21.05 Mapa rejestrów i generatory: SystemRDL, PeakRDL
-- [x] 21.06 Platform Designer i IP Integrator
+- [ ] 21.01 Strumienie z handshakiem: AXI4-Stream i Avalon-ST
+- [ ] 21.02 Rejestry sterujące: AXI4-Lite i Avalon-MM
+- [ ] 21.03 AXI4 i Avalon-MM z burstami
+- [ ] 21.04 Wishbone i magistrale otwarte
+- [ ] 21.05 Mapa rejestrów i generatory: SystemRDL, PeakRDL
+- [ ] 21.06 Platform Designer i IP Integrator

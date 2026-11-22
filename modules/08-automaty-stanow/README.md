@@ -1,6 +1,6 @@
 # 08 — Automaty stanów i sterowanie
 
-> **Część II** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h · **Status:** ✅ pełny
+> **Część II** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Automaty stanów to sterowanie w niemal każdym projekcie FPGA. Moduł omawia st
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 08.01 | [Automat Moore'a i Mealy'ego w HDL — style kodowania](08.01-automat-moore-a-i-mealy-ego-w-hdl-style.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 08.02 | [Kodowanie stanów: binarne, one-hot, Graya](08.02-kodowanie-stanow-binarne-one-hot-graya.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 08.03 | [Bezpieczne automaty: stany nielegalne i odzyskiwanie](08.03-bezpieczne-automaty-stany-nielegalne-i.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 08.04 | [Eliminacja drgań styków i wykrywanie zboczy](08.04-eliminacja-drgan-stykow-i-wykrywanie-zboczy.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 08.05 | [Handshake valid/ready i przepływ danych](08.05-handshake-valid-ready-i-przeplyw-danych.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 08.06 | [Ścieżka danych i sterowanie (FSMD) — prosty procesor sekwencyjny](08.06-sciezka-danych-i-sterowanie-fsmd-prosty.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 08.01 | [Automat Moore'a i Mealy'ego w HDL — style kodowania](08.01-automat-moore-a-i-mealy-ego-w-hdl-style.md) | VHDL · Verilog · SystemVerilog | — |
+| 08.02 | [Kodowanie stanów: binarne, one-hot, Graya](08.02-kodowanie-stanow-binarne-one-hot-graya.md) | VHDL · Verilog · SystemVerilog | — |
+| 08.03 | [Bezpieczne automaty: stany nielegalne i odzyskiwanie](08.03-bezpieczne-automaty-stany-nielegalne-i.md) | VHDL · Verilog · SystemVerilog | — |
+| 08.04 | [Eliminacja drgań styków i wykrywanie zboczy](08.04-eliminacja-drgan-stykow-i-wykrywanie-zboczy.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 08.05 | [Handshake valid/ready i przepływ danych](08.05-handshake-valid-ready-i-przeplyw-danych.md) | VHDL · Verilog · SystemVerilog | — |
+| 08.06 | [Ścieżka danych i sterowanie (FSMD) — prosty procesor sekwencyjny](08.06-sciezka-danych-i-sterowanie-fsmd-prosty.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 

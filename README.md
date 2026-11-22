@@ -60,73 +60,71 @@ Zasady:
 <!-- mapa:start -->
 ### I. Fundamenty
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h | ✅ pełny |
-| 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢🛠️💼 | 8 | 14 h | ✅ pełny |
-| 02 | [Architektura układów FPGA](modules/02-architektura-fpga/README.md) | 🟢🛠️💼 | 10 | 12 h | ✅ pełny |
-| 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 00 | [Środowisko pracy i pierwszy projekt](modules/00-srodowisko-pracy/README.md) | 🟢🛠️ | 7 | 8 h |
+| 01 | [Logika cyfrowa dla projektanta FPGA](modules/01-logika-cyfrowa/README.md) | 🟢🛠️💼 | 8 | 14 h |
+| 02 | [Architektura układów FPGA](modules/02-architektura-fpga/README.md) | 🟢🛠️💼 | 10 | 12 h |
+| 03 | [Przepływ projektowy od RTL do bitstreamu](modules/03-przeplyw-projektowy/README.md) | 🟢🛠️💼 | 7 | 10 h |
 
 ### II. Języki opisu sprzętu i wzorce RTL
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 04 | [VHDL](modules/04-vhdl/README.md) | 🧩💼 | 9 | 24 h | ✅ pełny |
-| 05 | [Verilog](modules/05-verilog/README.md) | 🧩🛠️💼 | 7 | 18 h | ✅ pełny |
-| 06 | [SystemVerilog do projektowania](modules/06-systemverilog-rtl/README.md) | 🧩💼 | 7 | 16 h | ✅ pełny |
-| 07 | [Kodowanie pod syntezę — wzorce RTL](modules/07-kodowanie-pod-synteze/README.md) | 🧩🛠️💼 | 9 | 20 h | ✅ pełny |
-| 08 | [Automaty stanów i sterowanie](modules/08-automaty-stanow/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 04 | [VHDL](modules/04-vhdl/README.md) | 🧩💼 | 9 | 24 h |
+| 05 | [Verilog](modules/05-verilog/README.md) | 🧩🛠️💼 | 7 | 18 h |
+| 06 | [SystemVerilog do projektowania](modules/06-systemverilog-rtl/README.md) | 🧩💼 | 7 | 16 h |
+| 07 | [Kodowanie pod syntezę — wzorce RTL](modules/07-kodowanie-pod-synteze/README.md) | 🧩🛠️💼 | 9 | 20 h |
+| 08 | [Automaty stanów i sterowanie](modules/08-automaty-stanow/README.md) | 🧩🛠️💼 | 6 | 14 h |
 
 ### III. Weryfikacja
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 09 | [Symulacja i testbenche](modules/09-symulacja-i-testbench/README.md) | 🔍💼 | 7 | 16 h | ✅ pełny |
-| 10 | [Weryfikacja w SystemVerilogu](modules/10-weryfikacja-systemverilog/README.md) | 🔍💼 | 7 | 24 h | ✅ pełny |
-| 11 | [UVM — Universal Verification Methodology](modules/11-uvm/README.md) | 🔍💼 | 8 | 24 h | ✅ pełny |
-| 12 | [Weryfikacja z otwartymi narzędziami](modules/12-weryfikacja-open-source/README.md) | 🔍 | 6 | 16 h | ✅ pełny |
-| 13 | [Weryfikacja formalna](modules/13-weryfikacja-formalna/README.md) | 🔍💼 | 5 | 12 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 09 | [Symulacja i testbenche](modules/09-symulacja-i-testbench/README.md) | 🔍💼 | 7 | 16 h |
+| 10 | [Weryfikacja w SystemVerilogu](modules/10-weryfikacja-systemverilog/README.md) | 🔍💼 | 7 | 24 h |
+| 11 | [UVM — Universal Verification Methodology](modules/11-uvm/README.md) | 🔍💼 | 8 | 24 h |
+| 12 | [Weryfikacja z otwartymi narzędziami](modules/12-weryfikacja-open-source/README.md) | 🔍 | 6 | 16 h |
+| 13 | [Weryfikacja formalna](modules/13-weryfikacja-formalna/README.md) | 🔍💼 | 5 | 12 h |
 
 ### IV. Czas, zegary i implementacja
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 14 | [Statyczna analiza czasowa (STA)](modules/14-analiza-czasowa/README.md) | 🛠️💼 | 6 | 16 h | ✅ pełny |
-| 15 | [Zegary, reset i przejścia między domenami (CDC)](modules/15-zegary-reset-cdc/README.md) | 🧩🛠️💼 | 7 | 18 h | ✅ pełny |
-| 16 | [Wydajność, zasoby i pobór mocy](modules/16-wydajnosc-zasoby-moc/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
-| 17 | [Uruchamianie i debug na sprzęcie](modules/17-debug-na-sprzecie/README.md) | 🛠️💼 | 5 | 10 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 14 | [Statyczna analiza czasowa (STA)](modules/14-analiza-czasowa/README.md) | 🛠️💼 | 6 | 16 h |
+| 15 | [Zegary, reset i przejścia między domenami (CDC)](modules/15-zegary-reset-cdc/README.md) | 🧩🛠️💼 | 7 | 18 h |
+| 16 | [Wydajność, zasoby i pobór mocy](modules/16-wydajnosc-zasoby-moc/README.md) | 🧩🛠️💼 | 6 | 14 h |
+| 17 | [Uruchamianie i debug na sprzęcie](modules/17-debug-na-sprzecie/README.md) | 🛠️💼 | 5 | 10 h |
 
 ### V. Bloki i interfejsy
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 18 | [Pamięci w FPGA](modules/18-pamieci/README.md) | 🧩🛠️💼 | 6 | 14 h | ✅ pełny |
-| 19 | [Arytmetyka i liczby w sprzęcie](modules/19-arytmetyka/README.md) | 🧩🛠️💼 | 6 | 16 h | ✅ pełny |
-| 20 | [Interfejsy szeregowe niskiej szybkości](modules/20-interfejsy-szeregowe/README.md) | 🛠️💼 | 6 | 16 h | ✅ pełny |
-| 21 | [Magistrale i interfejsy na chipie](modules/21-magistrale-on-chip/README.md) | 🧩🛠️💼 | 6 | 16 h | ✅ pełny |
-| 22 | [Wejścia-wyjścia i szybkie interfejsy](modules/22-io-i-szybkie-interfejsy/README.md) | 🛠️💼 | 6 | 14 h | ✅ pełny |
-| 23 | [Pamięci zewnętrzne](modules/23-pamieci-zewnetrzne/README.md) | 🛠️💼 | 5 | 16 h | ✅ pełny |
-| 24 | [Wideo i grafika](modules/24-wideo-i-grafika/README.md) | 🛠️ | 6 | 18 h | ✅ pełny |
-| 25 | [Audio i Ethernet](modules/25-audio-i-ethernet/README.md) | 🛠️ | 5 | 16 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 18 | [Pamięci w FPGA](modules/18-pamieci/README.md) | 🧩🛠️💼 | 6 | 14 h |
+| 19 | [Arytmetyka i liczby w sprzęcie](modules/19-arytmetyka/README.md) | 🧩🛠️💼 | 6 | 16 h |
+| 20 | [Interfejsy szeregowe niskiej szybkości](modules/20-interfejsy-szeregowe/README.md) | 🛠️💼 | 6 | 16 h |
+| 21 | [Magistrale i interfejsy na chipie](modules/21-magistrale-on-chip/README.md) | 🧩🛠️💼 | 6 | 16 h |
+| 22 | [Wejścia-wyjścia i szybkie interfejsy](modules/22-io-i-szybkie-interfejsy/README.md) | 🛠️💼 | 6 | 14 h |
+| 23 | [Pamięci zewnętrzne](modules/23-pamieci-zewnetrzne/README.md) | 🛠️💼 | 5 | 16 h |
+| 24 | [Wideo i grafika](modules/24-wideo-i-grafika/README.md) | 🛠️ | 6 | 18 h |
+| 25 | [Audio i Ethernet](modules/25-audio-i-ethernet/README.md) | 🛠️ | 5 | 16 h |
 
 ### VI. Systemy i zastosowania
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 26 | [Cyfrowe przetwarzanie sygnałów w FPGA](modules/26-dsp-w-fpga/README.md) | 🧩💼 | 7 | 20 h | ✅ pełny |
-| 27 | [Procesory w FPGA i systemy SoC](modules/27-procesory-i-soc/README.md) | 🧩🛠️💼 | 7 | 22 h | ✅ pełny |
-| 28 | [Synteza wysokiego poziomu (HLS) i akceleracja](modules/28-hls-i-akceleracja/README.md) | 🧩 | 6 | 14 h | ✅ pełny |
-| 29 | [Konfiguracja, bezpieczeństwo i niezawodność](modules/29-konfiguracja-niezawodnosc/README.md) | 🛠️💼 | 5 | 12 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 26 | [Cyfrowe przetwarzanie sygnałów w FPGA](modules/26-dsp-w-fpga/README.md) | 🧩💼 | 7 | 20 h |
+| 27 | [Procesory w FPGA i systemy SoC](modules/27-procesory-i-soc/README.md) | 🧩🛠️💼 | 7 | 22 h |
+| 28 | [Synteza wysokiego poziomu (HLS) i akceleracja](modules/28-hls-i-akceleracja/README.md) | 🧩 | 6 | 14 h |
+| 29 | [Konfiguracja, bezpieczeństwo i niezawodność](modules/29-konfiguracja-niezawodnosc/README.md) | 🛠️💼 | 5 | 12 h |
 
 ### VII. Warsztat i projekty
 
-| # | Moduł | Oznaczenia | Tematów | Czas | Status |
-|---|-------|------------|---------|------|--------|
-| 30 | [Metodyka i warsztat inżyniera FPGA](modules/30-warsztat-inzyniera/README.md) | 💼 | 5 | 8 h | ✅ pełny |
-| 31 | [Projekty końcowe na DECA](modules/31-projekty-koncowe/README.md) | 🛠️💼 | 6 | 60 h | ✅ pełny |
+| # | Moduł | Oznaczenia | Tematów | Czas |
+|---|-------|------------|---------|------|
+| 30 | [Metodyka i warsztat inżyniera FPGA](modules/30-warsztat-inzyniera/README.md) | 💼 | 5 | 8 h |
+| 31 | [Projekty końcowe na DECA](modules/31-projekty-koncowe/README.md) | 🛠️💼 | 6 | 60 h |
 <!-- mapa:stop -->
-
-🔲 szkielet — tylko nagłówki · 🟡 w trakcie · ✅ pełny — notatki, kod w trzech językach z przechodzącymi testbenchami, projekt na DECA, pytania i zadania z odpowiedziami, źródła
 
 ## Pozostałe katalogi
 

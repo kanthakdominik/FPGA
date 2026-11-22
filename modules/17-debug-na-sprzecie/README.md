@@ -1,6 +1,6 @@
 # 17 — Uruchamianie i debug na sprzęcie
 
-> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h · **Status:** ✅ pełny
+> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Co zrobić, gdy projekt działa w symulacji, a na płytce nie. Moduł uczy wbudo
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 17.01 | [Strategia uruchamiania: od diody do analizatora logicznego](17.01-strategia-uruchamiania-od-diody-do-analizatora.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.02 | [Wbudowany analizator logiczny: Signal Tap i ILA](17.02-wbudowany-analizator-logiczny-signal-tap-i-ila.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.03 | [In-System Sources and Probes, VIO i JTAG-to-Avalon](17.03-in-system-sources-and-probes-vio-i-jtag-to.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.04 | [Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów](17.04-pomiary-zewnetrzne-oscyloskop-analizator.md) | Python / inne | 🛠️ | ✅ |
-| 17.05 | [Działa w symulacji, nie działa na płytce — typowe przyczyny](17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md) | Python / inne | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 17.01 | [Strategia uruchamiania: od diody do analizatora logicznego](17.01-strategia-uruchamiania-od-diody-do-analizatora.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.02 | [Wbudowany analizator logiczny: Signal Tap i ILA](17.02-wbudowany-analizator-logiczny-signal-tap-i-ila.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.03 | [In-System Sources and Probes, VIO i JTAG-to-Avalon](17.03-in-system-sources-and-probes-vio-i-jtag-to.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.04 | [Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów](17.04-pomiary-zewnetrzne-oscyloskop-analizator.md) | Python / inne | 🛠️ |
+| 17.05 | [Działa w symulacji, nie działa na płytce — typowe przyczyny](17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md) | Python / inne | — |
 
 ## Po tym module potrafisz
 

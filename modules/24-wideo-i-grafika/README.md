@@ -1,6 +1,6 @@
 # 24 — Wideo i grafika
 
-> **Część V** · **Oznaczenia:** 🛠️ · **Ścieżki:** DECA · **Szacowany czas:** ok. 18 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🛠️ · **Ścieżki:** DECA · **Szacowany czas:** ok. 18 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Generowanie obrazu z FPGA: taktowanie sygnału wideo, wyjście HDMI przez nadajn
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 24.01 | [Sygnał wideo: taktowanie, wygaszanie i zegar piksela](24.01-sygnal-wideo-taktowanie-wygaszanie-i-zegar.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 24.02 | [HDMI i DVI: kodowanie TMDS i nadajnik ADV7513 na DECA](24.02-hdmi-i-dvi-kodowanie-tmds-i-nadajnik-adv7513-na.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 24.03 | [Grafika generowana: sprite'y, tekst i linie](24.03-grafika-generowana-sprite-y-tekst-i-linie.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 24.04 | [Bufor ramki w DDR3](24.04-bufor-ramki-w-ddr3.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 24.05 | [Kamera MIPI CSI-2 na DECA](24.05-kamera-mipi-csi-2-na-deca.md) | — | 🛠️ | ✅ |
-| 24.06 | [Przetwarzanie obrazu strumieniowo: bufory linii i filtry 3×3](24.06-przetwarzanie-obrazu-strumieniowo-bufory-linii.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 24.01 | [Sygnał wideo: taktowanie, wygaszanie i zegar piksela](24.01-sygnal-wideo-taktowanie-wygaszanie-i-zegar.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 24.02 | [HDMI i DVI: kodowanie TMDS i nadajnik ADV7513 na DECA](24.02-hdmi-i-dvi-kodowanie-tmds-i-nadajnik-adv7513-na.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 24.03 | [Grafika generowana: sprite'y, tekst i linie](24.03-grafika-generowana-sprite-y-tekst-i-linie.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 24.04 | [Bufor ramki w DDR3](24.04-bufor-ramki-w-ddr3.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 24.05 | [Kamera MIPI CSI-2 na DECA](24.05-kamera-mipi-csi-2-na-deca.md) | — | 🛠️ |
+| 24.06 | [Przetwarzanie obrazu strumieniowo: bufory linii i filtry 3×3](24.06-przetwarzanie-obrazu-strumieniowo-bufory-linii.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -52,9 +52,9 @@ Generowanie obrazu z FPGA: taktowanie sygnału wideo, wyjście HDMI przez nadajn
 
 ## Postęp
 
-- [x] 24.01 Sygnał wideo: taktowanie, wygaszanie i zegar piksela
-- [x] 24.02 HDMI i DVI: kodowanie TMDS i nadajnik ADV7513 na DECA
-- [x] 24.03 Grafika generowana: sprite'y, tekst i linie
-- [x] 24.04 Bufor ramki w DDR3
-- [x] 24.05 Kamera MIPI CSI-2 na DECA
-- [x] 24.06 Przetwarzanie obrazu strumieniowo: bufory linii i filtry 3×3
+- [ ] 24.01 Sygnał wideo: taktowanie, wygaszanie i zegar piksela
+- [ ] 24.02 HDMI i DVI: kodowanie TMDS i nadajnik ADV7513 na DECA
+- [ ] 24.03 Grafika generowana: sprite'y, tekst i linie
+- [ ] 24.04 Bufor ramki w DDR3
+- [ ] 24.05 Kamera MIPI CSI-2 na DECA
+- [ ] 24.06 Przetwarzanie obrazu strumieniowo: bufory linii i filtry 3×3

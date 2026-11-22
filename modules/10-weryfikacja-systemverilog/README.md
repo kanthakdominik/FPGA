@@ -1,6 +1,6 @@
 # 10 — Weryfikacja w SystemVerilogu
 
-> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** weryfikacja · **Szacowany czas:** ok. 24 h · **Status:** ✅ pełny
+> **Część III** · **Oznaczenia:** 🔍💼 · **Ścieżki:** weryfikacja · **Szacowany czas:** ok. 24 h
 
 ## Po co ten moduł
 
@@ -12,15 +12,15 @@ Weryfikacyjna część SystemVeriloga: programowanie obiektowe, losowanie z ogra
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 10.01 | [Programowanie obiektowe: klasy, dziedziczenie, polimorfizm](10.01-programowanie-obiektowe-klasy-dziedziczenie.md) | SystemVerilog | — | ✅ |
-| 10.02 | [Losowanie z ograniczeniami (constrained random)](10.02-losowanie-z-ograniczeniami-constrained-random.md) | SystemVerilog | — | ✅ |
-| 10.03 | [Pokrycie funkcjonalne: covergroup, coverpoint, cross](10.03-pokrycie-funkcjonalne-covergroup-coverpoint.md) | SystemVerilog | — | ✅ |
-| 10.04 | [Asercje SVA: sekwencje i właściwości](10.04-asercje-sva-sekwencje-i-wlasciwosci.md) | SystemVerilog | — | ✅ |
-| 10.05 | [Testbench warstwowy: driver, monitor, scoreboard](10.05-testbench-warstwowy-driver-monitor-scoreboard.md) | SystemVerilog | — | ✅ |
-| 10.06 | [Komunikacja i współbieżność: mailbox, semafory, zdarzenia, fork-join](10.06-komunikacja-i-wspolbieznosc-mailbox-semafory.md) | SystemVerilog | — | ✅ |
-| 10.07 | [Plan weryfikacji i pokrycie kodu](10.07-plan-weryfikacji-i-pokrycie-kodu.md) | — | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 10.01 | [Programowanie obiektowe: klasy, dziedziczenie, polimorfizm](10.01-programowanie-obiektowe-klasy-dziedziczenie.md) | SystemVerilog | — |
+| 10.02 | [Losowanie z ograniczeniami (constrained random)](10.02-losowanie-z-ograniczeniami-constrained-random.md) | SystemVerilog | — |
+| 10.03 | [Pokrycie funkcjonalne: covergroup, coverpoint, cross](10.03-pokrycie-funkcjonalne-covergroup-coverpoint.md) | SystemVerilog | — |
+| 10.04 | [Asercje SVA: sekwencje i właściwości](10.04-asercje-sva-sekwencje-i-wlasciwosci.md) | SystemVerilog | — |
+| 10.05 | [Testbench warstwowy: driver, monitor, scoreboard](10.05-testbench-warstwowy-driver-monitor-scoreboard.md) | SystemVerilog | — |
+| 10.06 | [Komunikacja i współbieżność: mailbox, semafory, zdarzenia, fork-join](10.06-komunikacja-i-wspolbieznosc-mailbox-semafory.md) | SystemVerilog | — |
+| 10.07 | [Plan weryfikacji i pokrycie kodu](10.07-plan-weryfikacji-i-pokrycie-kodu.md) | — | — |
 
 ## Po tym module potrafisz
 

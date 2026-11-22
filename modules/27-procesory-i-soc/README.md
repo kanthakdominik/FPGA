@@ -1,6 +1,6 @@
 # 27 — Procesory w FPGA i systemy SoC
 
-> **Część VI** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 22 h · **Status:** ✅ pełny
+> **Część VI** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 22 h
 
 ## Po co ten moduł
 
@@ -12,15 +12,15 @@ Procesor w FPGA: miękki rdzeń Nios V na DECA, własne peryferia ze sterownikie
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 27.01 | [Procesor w FPGA: miękki czy twardy](27.01-procesor-w-fpga-miekki-czy-twardy.md) | — | — | ✅ |
-| 27.02 | [Nios V (RISC-V) w Platform Designer na DECA](27.02-nios-v-risc-v-w-platform-designer-na-deca.md) | — | 🛠️ | ✅ |
-| 27.03 | [Własny peryferial z rejestrami i sterownik w C](27.03-wlasny-peryferial-z-rejestrami-i-sterownik-w-c.md) | VHDL · Verilog · SystemVerilog · C | 🛠️ | ✅ |
-| 27.04 | [Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX](27.04-otwarte-rdzenie-risc-v-picorv32-vexriscv.md) | — | 🛠️ | ✅ |
-| 27.05 | [Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex](27.05-uklady-soc-z-twardym-procesorem-zynq-cyclone-v.md) | — | — | ✅ |
-| 27.06 | [Linux na FPGA i podział sprzęt–oprogramowanie](27.06-linux-na-fpga-i-podzial-sprzetoprogramowanie.md) | — | — | ✅ |
-| 27.07 | [Własny procesor RISC-V: od jednocyklowego do potokowego](27.07-wlasny-procesor-risc-v-od-jednocyklowego-do.md) | VHDL · Verilog · SystemVerilog · Python | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 27.01 | [Procesor w FPGA: miękki czy twardy](27.01-procesor-w-fpga-miekki-czy-twardy.md) | — | — |
+| 27.02 | [Nios V (RISC-V) w Platform Designer na DECA](27.02-nios-v-risc-v-w-platform-designer-na-deca.md) | — | 🛠️ |
+| 27.03 | [Własny peryferial z rejestrami i sterownik w C](27.03-wlasny-peryferial-z-rejestrami-i-sterownik-w-c.md) | VHDL · Verilog · SystemVerilog · C | 🛠️ |
+| 27.04 | [Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX](27.04-otwarte-rdzenie-risc-v-picorv32-vexriscv.md) | — | 🛠️ |
+| 27.05 | [Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex](27.05-uklady-soc-z-twardym-procesorem-zynq-cyclone-v.md) | — | — |
+| 27.06 | [Linux na FPGA i podział sprzęt–oprogramowanie](27.06-linux-na-fpga-i-podzial-sprzetoprogramowanie.md) | — | — |
+| 27.07 | [Własny procesor RISC-V: od jednocyklowego do potokowego](27.07-wlasny-procesor-risc-v-od-jednocyklowego-do.md) | VHDL · Verilog · SystemVerilog · Python | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -53,10 +53,10 @@ Procesor w FPGA: miękki rdzeń Nios V na DECA, własne peryferia ze sterownikie
 
 ## Postęp
 
-- [x] 27.01 Procesor w FPGA: miękki czy twardy
-- [x] 27.02 Nios V (RISC-V) w Platform Designer na DECA
-- [x] 27.03 Własny peryferial z rejestrami i sterownik w C
-- [x] 27.04 Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX
-- [x] 27.05 Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex
-- [x] 27.06 Linux na FPGA i podział sprzęt–oprogramowanie
-- [x] 27.07 Własny procesor RISC-V: od jednocyklowego do potokowego
+- [ ] 27.01 Procesor w FPGA: miękki czy twardy
+- [ ] 27.02 Nios V (RISC-V) w Platform Designer na DECA
+- [ ] 27.03 Własny peryferial z rejestrami i sterownik w C
+- [ ] 27.04 Otwarte rdzenie RISC-V: PicoRV32, VexRiscv, NEORV32 i LiteX
+- [ ] 27.05 Układy SoC z twardym procesorem: Zynq, Cyclone V SoC, Agilex
+- [ ] 27.06 Linux na FPGA i podział sprzęt–oprogramowanie
+- [ ] 27.07 Własny procesor RISC-V: od jednocyklowego do potokowego

@@ -1,6 +1,6 @@
 # 23 — Pamięci zewnętrzne
 
-> **Część V** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Jak działają pamięci SDRAM i DDR i jak korzysta się z nich w FPGA. Na DECA u
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 23.01 | [SDRAM i DDR: jak działają, odświeżanie i opóźnienia](23.01-sdram-i-ddr-jak-dzialaja-odswiezanie-i.md) | — | — | ✅ |
-| 23.02 | [Kontroler DDR3 na MAX 10 (UniPHY)](23.02-kontroler-ddr3-na-max-10-uniphy.md) | — | 🛠️ | ✅ |
-| 23.03 | [Pamięci QSPI flash i HyperRAM](23.03-pamieci-qspi-flash-i-hyperram.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 23.04 | [Arbitraż dostępu do pamięci i DMA](23.04-arbitraz-dostepu-do-pamieci-i-dma.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 23.05 | [Karta microSD: tryb SPI i tryb SD](23.05-karta-microsd-tryb-spi-i-tryb-sd.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 23.01 | [SDRAM i DDR: jak działają, odświeżanie i opóźnienia](23.01-sdram-i-ddr-jak-dzialaja-odswiezanie-i.md) | — | — |
+| 23.02 | [Kontroler DDR3 na MAX 10 (UniPHY)](23.02-kontroler-ddr3-na-max-10-uniphy.md) | — | 🛠️ |
+| 23.03 | [Pamięci QSPI flash i HyperRAM](23.03-pamieci-qspi-flash-i-hyperram.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 23.04 | [Arbitraż dostępu do pamięci i DMA](23.04-arbitraz-dostepu-do-pamieci-i-dma.md) | VHDL · Verilog · SystemVerilog | — |
+| 23.05 | [Karta microSD: tryb SPI i tryb SD](23.05-karta-microsd-tryb-spi-i-tryb-sd.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -49,8 +49,8 @@ Jak działają pamięci SDRAM i DDR i jak korzysta się z nich w FPGA. Na DECA u
 
 ## Postęp
 
-- [x] 23.01 SDRAM i DDR: jak działają, odświeżanie i opóźnienia
-- [x] 23.02 Kontroler DDR3 na MAX 10 (UniPHY)
-- [x] 23.03 Pamięci QSPI flash i HyperRAM
-- [x] 23.04 Arbitraż dostępu do pamięci i DMA
-- [x] 23.05 Karta microSD: tryb SPI i tryb SD
+- [ ] 23.01 SDRAM i DDR: jak działają, odświeżanie i opóźnienia
+- [ ] 23.02 Kontroler DDR3 na MAX 10 (UniPHY)
+- [ ] 23.03 Pamięci QSPI flash i HyperRAM
+- [ ] 23.04 Arbitraż dostępu do pamięci i DMA
+- [ ] 23.05 Karta microSD: tryb SPI i tryb SD

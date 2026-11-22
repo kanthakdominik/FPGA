@@ -1,6 +1,6 @@
 # 19 — Arytmetyka i liczby w sprzęcie
 
-> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Liczby stałoprzecinkowe z poprawnym zaokrąglaniem i nasyceniem, mnożenie w bl
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 19.01 | [Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie](19.01-staloprzecinkowe-formaty-q-skalowanie.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 19.02 | [Mnożenie i bloki DSP — potokowanie](19.02-mnozenie-i-bloki-dsp-potokowanie.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 19.03 | [Dzielenie i pierwiastek: algorytmy iteracyjne](19.03-dzielenie-i-pierwiastek-algorytmy-iteracyjne.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 19.04 | [CORDIC](19.04-cordic.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 19.05 | [Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP](19.05-liczby-zmiennoprzecinkowe-w-fpga-ieee-754-i.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 19.06 | [Tablice i aproksymacja funkcji](19.06-tablice-i-aproksymacja-funkcji.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 19.01 | [Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie](19.01-staloprzecinkowe-formaty-q-skalowanie.md) | VHDL · Verilog · SystemVerilog | — |
+| 19.02 | [Mnożenie i bloki DSP — potokowanie](19.02-mnozenie-i-bloki-dsp-potokowanie.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 19.03 | [Dzielenie i pierwiastek: algorytmy iteracyjne](19.03-dzielenie-i-pierwiastek-algorytmy-iteracyjne.md) | VHDL · Verilog · SystemVerilog | — |
+| 19.04 | [CORDIC](19.04-cordic.md) | VHDL · Verilog · SystemVerilog | — |
+| 19.05 | [Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP](19.05-liczby-zmiennoprzecinkowe-w-fpga-ieee-754-i.md) | VHDL · Verilog · SystemVerilog | — |
+| 19.06 | [Tablice i aproksymacja funkcji](19.06-tablice-i-aproksymacja-funkcji.md) | VHDL · Verilog · SystemVerilog | — |
 
 ## Po tym module potrafisz
 
@@ -55,9 +55,9 @@ Liczby stałoprzecinkowe z poprawnym zaokrąglaniem i nasyceniem, mnożenie w bl
 
 ## Postęp
 
-- [x] 19.01 Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie
-- [x] 19.02 Mnożenie i bloki DSP — potokowanie
-- [x] 19.03 Dzielenie i pierwiastek: algorytmy iteracyjne
-- [x] 19.04 CORDIC
-- [x] 19.05 Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP
-- [x] 19.06 Tablice i aproksymacja funkcji
+- [ ] 19.01 Stałoprzecinkowe formaty Q: skalowanie, zaokrąglanie, nasycenie
+- [ ] 19.02 Mnożenie i bloki DSP — potokowanie
+- [ ] 19.03 Dzielenie i pierwiastek: algorytmy iteracyjne
+- [ ] 19.04 CORDIC
+- [ ] 19.05 Liczby zmiennoprzecinkowe w FPGA: IEEE 754 i rdzenie IP
+- [ ] 19.06 Tablice i aproksymacja funkcji

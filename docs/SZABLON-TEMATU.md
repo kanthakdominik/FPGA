@@ -9,7 +9,7 @@ Każdy plik tematu w `modules/NN-nazwa/` ma ten sam układ. Ten dokument opisuje
 ```markdown
 # 07.04 — Liczniki, dzielniki i clock enable
 
-> **Moduł:** [07 — Kodowanie pod syntezę](README.md) · **Kod:** VHDL · Verilog · SystemVerilog · **DECA:** 🛠️ tak · **Status:** ✅ pełny
+> **Moduł:** [07 — Kodowanie pod syntezę](README.md) · **Kod:** VHDL · Verilog · SystemVerilog · **DECA:** 🛠️ tak
 >
 > **Czytaj:**
 >
@@ -91,11 +91,3 @@ python3 tools/zbierz.py           # ściąga modułu i zbiór pytań rekrutacyjn
 python3 tools/run_hdl_tests.py    # testbenche
 python3 tools/check_links.py      # linki
 ```
-
-## Status tematu i modułu
-
-- 🔲 szkielet — tylko nagłówki.
-- 🟡 w trakcie — część sekcji wypełniona.
-- ✅ pełny — wszystkie sekcje, kod w trzech językach (jeśli dotyczy) z przechodzącymi testbenchami, projekt na DECA (jeśli dotyczy), pytania z odpowiedziami, źródła.
-
-Po wypełnieniu tematu zmień status w nagłówku pliku i w tabeli tematów w `README.md` modułu i uruchom `tools/zbierz.py` (ściąga i pytania aktualizują się same). Gdy cały moduł jest gotowy — zmień status w mapie modułów w głównym `README.md`.

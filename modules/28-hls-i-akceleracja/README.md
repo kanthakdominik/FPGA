@@ -1,6 +1,6 @@
 # 28 — Synteza wysokiego poziomu (HLS) i akceleracja
 
-> **Część VI** · **Oznaczenia:** 🧩 · **Ścieżki:** RTL · **Szacowany czas:** ok. 14 h · **Status:** ✅ pełny
+> **Część VI** · **Oznaczenia:** 🧩 · **Ścieżki:** RTL · **Szacowany czas:** ok. 14 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Projektowanie sprzętu w C++ i innych językach wysokiego poziomu: jak działa H
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 28.01 | [Czym jest HLS i kiedy się opłaca](28.01-czym-jest-hls-i-kiedy-sie-oplaca.md) | Python / inne | — | ✅ |
-| 28.02 | [Pętle: potokowanie, rozwijanie i interwał inicjacji (II)](28.02-petle-potokowanie-rozwijanie-i-interwal.md) | Python / inne | — | ✅ |
-| 28.03 | [Interfejsy i pamięć w HLS](28.03-interfejsy-i-pamiec-w-hls.md) | Python / inne | — | ✅ |
-| 28.04 | [Narzędzia: Vitis HLS, oneAPI i Bambu](28.04-narzedzia-vitis-hls-oneapi-i-bambu.md) | Python / inne | — | ✅ |
-| 28.05 | [Akceleracja sieci neuronowych: hls4ml i FINN](28.05-akceleracja-sieci-neuronowych-hls4ml-i-finn.md) | Python / inne | — | ✅ |
-| 28.06 | [Alternatywne języki HDL: Chisel, SpinalHDL, Amaranth, Clash](28.06-alternatywne-jezyki-hdl-chisel-spinalhdl.md) | Python / inne | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 28.01 | [Czym jest HLS i kiedy się opłaca](28.01-czym-jest-hls-i-kiedy-sie-oplaca.md) | Python / inne | — |
+| 28.02 | [Pętle: potokowanie, rozwijanie i interwał inicjacji (II)](28.02-petle-potokowanie-rozwijanie-i-interwal.md) | Python / inne | — |
+| 28.03 | [Interfejsy i pamięć w HLS](28.03-interfejsy-i-pamiec-w-hls.md) | Python / inne | — |
+| 28.04 | [Narzędzia: Vitis HLS, oneAPI i Bambu](28.04-narzedzia-vitis-hls-oneapi-i-bambu.md) | Python / inne | — |
+| 28.05 | [Akceleracja sieci neuronowych: hls4ml i FINN](28.05-akceleracja-sieci-neuronowych-hls4ml-i-finn.md) | Python / inne | — |
+| 28.06 | [Alternatywne języki HDL: Chisel, SpinalHDL, Amaranth, Clash](28.06-alternatywne-jezyki-hdl-chisel-spinalhdl.md) | Python / inne | — |
 
 ## Po tym module potrafisz
 
@@ -45,9 +45,9 @@ Kod tego modułu nie jest w `hdl/` (RTL w trzech językach), tylko w postaci, w 
 
 ## Postęp
 
-- [x] 28.01 Czym jest HLS i kiedy się opłaca
-- [x] 28.02 Pętle: potokowanie, rozwijanie i interwał inicjacji (II)
-- [x] 28.03 Interfejsy i pamięć w HLS
-- [x] 28.04 Narzędzia: Vitis HLS, oneAPI i Bambu
-- [x] 28.05 Akceleracja sieci neuronowych: hls4ml i FINN
-- [x] 28.06 Alternatywne języki HDL: Chisel, SpinalHDL, Amaranth, Clash
+- [ ] 28.01 Czym jest HLS i kiedy się opłaca
+- [ ] 28.02 Pętle: potokowanie, rozwijanie i interwał inicjacji (II)
+- [ ] 28.03 Interfejsy i pamięć w HLS
+- [ ] 28.04 Narzędzia: Vitis HLS, oneAPI i Bambu
+- [ ] 28.05 Akceleracja sieci neuronowych: hls4ml i FINN
+- [ ] 28.06 Alternatywne języki HDL: Chisel, SpinalHDL, Amaranth, Clash

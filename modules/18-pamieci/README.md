@@ -1,6 +1,6 @@
 # 18 — Pamięci w FPGA
 
-> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Wewnętrzne pamięci układu i struktury na nich zbudowane: RAM jedno- i dwuport
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 18.01 | [Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu](18.01-bloki-pamieci-tryby-jedno-i-dwuportowe-odczyt.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.02 | [ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)](18.02-rom-i-inicjalizacja-pamieci-z-pliku-mif-hex-mem.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.03 | [Synchroniczna kolejka FIFO i flagi](18.03-synchroniczna-kolejka-fifo-i-flagi.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 18.04 | [Bufory pierścieniowe, ping-pong i bufory linii](18.04-bufory-pierscieniowe-ping-pong-i-bufory-linii.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 18.05 | [Pamięć flash użytkownika w MAX 10 (UFM)](18.05-pamiec-flash-uzytkownika-w-max-10-ufm.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.06 | [ECC i ochrona danych w pamięci](18.06-ecc-i-ochrona-danych-w-pamieci.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 18.01 | [Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu](18.01-bloki-pamieci-tryby-jedno-i-dwuportowe-odczyt.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.02 | [ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)](18.02-rom-i-inicjalizacja-pamieci-z-pliku-mif-hex-mem.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.03 | [Synchroniczna kolejka FIFO i flagi](18.03-synchroniczna-kolejka-fifo-i-flagi.md) | VHDL · Verilog · SystemVerilog | — |
+| 18.04 | [Bufory pierścieniowe, ping-pong i bufory linii](18.04-bufory-pierscieniowe-ping-pong-i-bufory-linii.md) | VHDL · Verilog · SystemVerilog | — |
+| 18.05 | [Pamięć flash użytkownika w MAX 10 (UFM)](18.05-pamiec-flash-uzytkownika-w-max-10-ufm.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.06 | [ECC i ochrona danych w pamięci](18.06-ecc-i-ochrona-danych-w-pamieci.md) | VHDL · Verilog · SystemVerilog | — |
 
 ## Po tym module potrafisz
 

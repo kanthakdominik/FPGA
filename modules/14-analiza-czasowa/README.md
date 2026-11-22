@@ -1,6 +1,6 @@
 # 14 — Statyczna analiza czasowa (STA)
 
-> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Jak narzędzie sprawdza, czy projekt zadziała z zadaną częstotliwością, i j
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 14.01 | [Ścieżki czasowe, setup, hold i zapas (slack)](14.01-sciezki-czasowe-setup-hold-i-zapas-slack.md) | Python / inne | — | ✅ |
-| 14.02 | [Zegar w praktyce: skew, jitter i niepewność](14.02-zegar-w-praktyce-skew-jitter-i-niepewnosc.md) | Python / inne | — | ✅ |
-| 14.03 | [Ograniczenia SDC: zegary, zegary generowane, opóźnienia wejść i wyjść](14.03-ograniczenia-sdc-zegary-zegary-generowane.md) | Python / inne | 🛠️ | ✅ |
-| 14.04 | [Wyjątki: false path, multicycle, max/min delay](14.04-wyjatki-false-path-multicycle-max-min-delay.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 14.05 | [Czytanie raportów: Timing Analyzer i Vivado](14.05-czytanie-raportow-timing-analyzer-i-vivado.md) | Python / inne | 🛠️ | ✅ |
-| 14.06 | [Ograniczenia interfejsów źródłowo-synchronicznych](14.06-ograniczenia-interfejsow-zrodlowo.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 14.01 | [Ścieżki czasowe, setup, hold i zapas (slack)](14.01-sciezki-czasowe-setup-hold-i-zapas-slack.md) | Python / inne | — |
+| 14.02 | [Zegar w praktyce: skew, jitter i niepewność](14.02-zegar-w-praktyce-skew-jitter-i-niepewnosc.md) | Python / inne | — |
+| 14.03 | [Ograniczenia SDC: zegary, zegary generowane, opóźnienia wejść i wyjść](14.03-ograniczenia-sdc-zegary-zegary-generowane.md) | Python / inne | 🛠️ |
+| 14.04 | [Wyjątki: false path, multicycle, max/min delay](14.04-wyjatki-false-path-multicycle-max-min-delay.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 14.05 | [Czytanie raportów: Timing Analyzer i Vivado](14.05-czytanie-raportow-timing-analyzer-i-vivado.md) | Python / inne | 🛠️ |
+| 14.06 | [Ograniczenia interfejsów źródłowo-synchronicznych](14.06-ograniczenia-interfejsow-zrodlowo.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 

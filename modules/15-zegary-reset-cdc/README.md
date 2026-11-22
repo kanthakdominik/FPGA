@@ -1,6 +1,6 @@
 # 15 — Zegary, reset i przejścia między domenami (CDC)
 
-> **Część IV** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, weryfikacja, DECA · **Szacowany czas:** ok. 18 h · **Status:** ✅ pełny
+> **Część IV** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, weryfikacja, DECA · **Szacowany czas:** ok. 18 h
 
 ## Po co ten moduł
 
@@ -12,15 +12,15 @@ Najczęstsze źródło błędów, które przechodzą symulację i pojawiają si�
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 15.01 | [Generowanie zegarów: PLL, clock enable i dlaczego nie bramkować zegara](15.01-generowanie-zegarow-pll-clock-enable-i-dlaczego.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 15.02 | [Metastabilność i MTBF — rachunek](15.02-metastabilnosc-i-mtbf-rachunek.md) | Python / inne | — | ✅ |
-| 15.03 | [Synchronizatory jednobitowe i synchronizacja impulsów](15.03-synchronizatory-jednobitowe-i-synchronizacja.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 15.04 | [Przesyłanie słów: handshake, kod Graya i MCP](15.04-przesylanie-slow-handshake-kod-graya-i-mcp.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 15.05 | [Asynchroniczna kolejka FIFO](15.05-asynchroniczna-kolejka-fifo.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 15.06 | [Strategie resetu: synchronizator resetu i RDC](15.06-strategie-resetu-synchronizator-resetu-i-rdc.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 15.07 | [Ograniczenia i weryfikacja CDC](15.07-ograniczenia-i-weryfikacja-cdc.md) | Python / inne | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 15.01 | [Generowanie zegarów: PLL, clock enable i dlaczego nie bramkować zegara](15.01-generowanie-zegarow-pll-clock-enable-i-dlaczego.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 15.02 | [Metastabilność i MTBF — rachunek](15.02-metastabilnosc-i-mtbf-rachunek.md) | Python / inne | — |
+| 15.03 | [Synchronizatory jednobitowe i synchronizacja impulsów](15.03-synchronizatory-jednobitowe-i-synchronizacja.md) | VHDL · Verilog · SystemVerilog | — |
+| 15.04 | [Przesyłanie słów: handshake, kod Graya i MCP](15.04-przesylanie-slow-handshake-kod-graya-i-mcp.md) | VHDL · Verilog · SystemVerilog | — |
+| 15.05 | [Asynchroniczna kolejka FIFO](15.05-asynchroniczna-kolejka-fifo.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 15.06 | [Strategie resetu: synchronizator resetu i RDC](15.06-strategie-resetu-synchronizator-resetu-i-rdc.md) | VHDL · Verilog · SystemVerilog | — |
+| 15.07 | [Ograniczenia i weryfikacja CDC](15.07-ograniczenia-i-weryfikacja-cdc.md) | Python / inne | 🛠️ |
 
 ## Po tym module potrafisz
 

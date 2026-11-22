@@ -1,6 +1,6 @@
 # 16 — Wydajność, zasoby i pobór mocy
 
-> **Część IV** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h · **Status:** ✅ pełny
+> **Część IV** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Jak przyspieszyć projekt, zmieścić go w układzie i ograniczyć pobór mocy. 
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 16.01 | [Potokowanie i retiming](16.01-potokowanie-i-retiming.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 16.02 | [Współdzielenie zasobów i kompromis powierzchnia–szybkość](16.02-wspoldzielenie-zasobow-i-kompromis.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 16.03 | [Fanout, duplikacja rejestrów i głębokość logiki](16.03-fanout-duplikacja-rejestrow-i-glebokosc-logiki.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 16.04 | [Zamykanie timingu: metodyka krok po kroku](16.04-zamykanie-timingu-metodyka-krok-po-kroku.md) | Python / inne | 🛠️ | ✅ |
-| 16.05 | [Floorplanning i ograniczenia fizyczne](16.05-floorplanning-i-ograniczenia-fizyczne.md) | Python / inne | — | ✅ |
-| 16.06 | [Pobór mocy: statyczny i dynamiczny, szacowanie i redukcja](16.06-pobor-mocy-statyczny-i-dynamiczny-szacowanie-i.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 16.01 | [Potokowanie i retiming](16.01-potokowanie-i-retiming.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 16.02 | [Współdzielenie zasobów i kompromis powierzchnia–szybkość](16.02-wspoldzielenie-zasobow-i-kompromis.md) | VHDL · Verilog · SystemVerilog | — |
+| 16.03 | [Fanout, duplikacja rejestrów i głębokość logiki](16.03-fanout-duplikacja-rejestrow-i-glebokosc-logiki.md) | VHDL · Verilog · SystemVerilog | — |
+| 16.04 | [Zamykanie timingu: metodyka krok po kroku](16.04-zamykanie-timingu-metodyka-krok-po-kroku.md) | Python / inne | 🛠️ |
+| 16.05 | [Floorplanning i ograniczenia fizyczne](16.05-floorplanning-i-ograniczenia-fizyczne.md) | Python / inne | — |
+| 16.06 | [Pobór mocy: statyczny i dynamiczny, szacowanie i redukcja](16.06-pobor-mocy-statyczny-i-dynamiczny-szacowanie-i.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 

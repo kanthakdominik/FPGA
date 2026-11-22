@@ -2,8 +2,6 @@
 
 [← rozmowa kwalifikacyjna](README.md)
 
-> **Status:** ✅ pełny
-
 Dwanaście zadań, które na rozmowach technicznych na stanowiska FPGA i RTL padają najczęściej — od detektora zbocza po slave AXI4-Lite i filtr FIR. Każde ma: treść tak, jak ją zwykle słychać, pytania doprecyzowujące, które warto zadać przed pisaniem, rozwiązanie z omówieniem, testbench i typowe błędy kandydatów.
 
 Rozwiązania są w trzech językach w katalogu [hdl/](hdl/) — VHDL, Verilog i SystemVerilog — i każde ma samosprawdzający się testbench uruchamiany w GitHub Actions (GHDL, Icarus Verilog, Verilator), tak jak kod w modułach. W tekście pokazany jest jeden język na zadanie (na zmianę); pozostałe są pod linkami. Liczby w „Wynik w CI” pochodzą z Icarus Verilog (dla zadania 8 — z GHDL); w pozostałych symulatorach inne są tylko liczby zależne od generatora losowego, wynik jest taki sam.

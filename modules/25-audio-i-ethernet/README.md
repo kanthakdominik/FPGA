@@ -1,6 +1,6 @@
 # 25 — Audio i Ethernet
 
-> **Część V** · **Oznaczenia:** 🛠️ · **Ścieżki:** DECA · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🛠️ · **Ścieżki:** DECA · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Dźwięk i sieć na DECA: kodek audio przez I²S, przetwarzanie dźwięku w czas
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 25.01 | [I²S i kodek audio na DECA](25.01-i2s-i-kodek-audio-na-deca.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 25.02 | [Przetwarzanie dźwięku w czasie rzeczywistym](25.02-przetwarzanie-dzwieku-w-czasie-rzeczywistym.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 25.03 | [Ethernet 10/100: MII, PHY i MAC](25.03-ethernet-10-100-mii-phy-i-mac.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 25.04 | [Ramki Ethernet, ARP, IP i UDP w sprzęcie](25.04-ramki-ethernet-arp-ip-i-udp-w-sprzecie.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 25.05 | [Strumień UDP z FPGA do komputera](25.05-strumien-udp-z-fpga-do-komputera.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 25.01 | [I²S i kodek audio na DECA](25.01-i2s-i-kodek-audio-na-deca.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 25.02 | [Przetwarzanie dźwięku w czasie rzeczywistym](25.02-przetwarzanie-dzwieku-w-czasie-rzeczywistym.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 25.03 | [Ethernet 10/100: MII, PHY i MAC](25.03-ethernet-10-100-mii-phy-i-mac.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 25.04 | [Ramki Ethernet, ARP, IP i UDP w sprzęcie](25.04-ramki-ethernet-arp-ip-i-udp-w-sprzecie.md) | VHDL · Verilog · SystemVerilog | — |
+| 25.05 | [Strumień UDP z FPGA do komputera](25.05-strumien-udp-z-fpga-do-komputera.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -49,8 +49,8 @@ Dźwięk i sieć na DECA: kodek audio przez I²S, przetwarzanie dźwięku w czas
 
 ## Postęp
 
-- [x] 25.01 I²S i kodek audio na DECA
-- [x] 25.02 Przetwarzanie dźwięku w czasie rzeczywistym
-- [x] 25.03 Ethernet 10/100: MII, PHY i MAC
-- [x] 25.04 Ramki Ethernet, ARP, IP i UDP w sprzęcie
-- [x] 25.05 Strumień UDP z FPGA do komputera
+- [ ] 25.01 I²S i kodek audio na DECA
+- [ ] 25.02 Przetwarzanie dźwięku w czasie rzeczywistym
+- [ ] 25.03 Ethernet 10/100: MII, PHY i MAC
+- [ ] 25.04 Ramki Ethernet, ARP, IP i UDP w sprzęcie
+- [ ] 25.05 Strumień UDP z FPGA do komputera

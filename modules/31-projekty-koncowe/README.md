@@ -1,6 +1,6 @@
 # 31 — Projekty końcowe na DECA
 
-> **Część VII** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** DECA · **Szacowany czas:** ok. 60 h · **Status:** ✅ pełny
+> **Część VII** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** DECA · **Szacowany czas:** ok. 60 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Sześć większych projektów, które łączą wiedzę z całej bazy i nadają s
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 31.01 | [Projekt 1: zegar i stoper sterowany komendami przez UART](31.01-projekt-1-zegar-i-stoper-sterowany-komendami.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 31.02 | [Projekt 2: oscyloskop na wbudowanym ADC z obrazem przez HDMI](31.02-projekt-2-oscyloskop-na-wbudowanym-adc-z.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 31.03 | [Projekt 3: syntezator dźwięku sterowany przez UART lub MIDI](31.03-projekt-3-syntezator-dzwieku-sterowany-przez.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 31.04 | [Projekt 4: system z Nios V, DDR3 i strumieniem UDP](31.04-projekt-4-system-z-nios-v-ddr3-i-strumieniem-udp.md) | VHDL · Verilog · SystemVerilog · C | 🛠️ | ✅ |
-| 31.05 | [Projekt 5: przetwarzanie obrazu z kamery MIPI w czasie rzeczywistym](31.05-projekt-5-przetwarzanie-obrazu-z-kamery-mipi-w.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 31.06 | [Projekt 6: własny procesor RISC-V z peryferiami](31.06-projekt-6-wlasny-procesor-risc-v-z-peryferiami.md) | VHDL · Verilog · SystemVerilog · asembler | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 31.01 | [Projekt 1: zegar i stoper sterowany komendami przez UART](31.01-projekt-1-zegar-i-stoper-sterowany-komendami.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 31.02 | [Projekt 2: oscyloskop na wbudowanym ADC z obrazem przez HDMI](31.02-projekt-2-oscyloskop-na-wbudowanym-adc-z.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 31.03 | [Projekt 3: syntezator dźwięku sterowany przez UART lub MIDI](31.03-projekt-3-syntezator-dzwieku-sterowany-przez.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 31.04 | [Projekt 4: system z Nios V, DDR3 i strumieniem UDP](31.04-projekt-4-system-z-nios-v-ddr3-i-strumieniem-udp.md) | VHDL · Verilog · SystemVerilog · C | 🛠️ |
+| 31.05 | [Projekt 5: przetwarzanie obrazu z kamery MIPI w czasie rzeczywistym](31.05-projekt-5-przetwarzanie-obrazu-z-kamery-mipi-w.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 31.06 | [Projekt 6: własny procesor RISC-V z peryferiami](31.06-projekt-6-wlasny-procesor-risc-v-z-peryferiami.md) | VHDL · Verilog · SystemVerilog · asembler | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -52,9 +52,9 @@ Bloki z wcześniejszych modułów są skopiowane do `hdl/`, żeby każdy projekt
 
 ## Postęp
 
-- [x] 31.01 Projekt 1: zegar i stoper sterowany komendami przez UART
-- [x] 31.02 Projekt 2: oscyloskop na wbudowanym ADC z obrazem przez HDMI
-- [x] 31.03 Projekt 3: syntezator dźwięku sterowany przez UART lub MIDI
-- [x] 31.04 Projekt 4: system z Nios V, DDR3 i strumieniem UDP
-- [x] 31.05 Projekt 5: przetwarzanie obrazu z kamery MIPI w czasie rzeczywistym
-- [x] 31.06 Projekt 6: własny procesor RISC-V z peryferiami
+- [ ] 31.01 Projekt 1: zegar i stoper sterowany komendami przez UART
+- [ ] 31.02 Projekt 2: oscyloskop na wbudowanym ADC z obrazem przez HDMI
+- [ ] 31.03 Projekt 3: syntezator dźwięku sterowany przez UART lub MIDI
+- [ ] 31.04 Projekt 4: system z Nios V, DDR3 i strumieniem UDP
+- [ ] 31.05 Projekt 5: przetwarzanie obrazu z kamery MIPI w czasie rzeczywistym
+- [ ] 31.06 Projekt 6: własny procesor RISC-V z peryferiami
