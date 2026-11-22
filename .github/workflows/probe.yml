@@ -21,7 +21,7 @@ jobs:
         run: |
           python3 tools/run_hdl_tests.py modules/31-projekty-koncowe --strict 2>&1 | tail -150 || true
           python3 tools/lint_hdl.py modules/31-projekty-koncowe --strict 2>&1 | tail -40 || true
-          python3 tools/synteza_yosys.py modules/31-projekty-koncowe --strict 2>&1 | tail -20 || true
+          python3 tools/synteza_yosys.py modules/31-projekty-koncowe --strict 2>&1 | tail -45 || true
       - name: Programy modulu 31
         run: |
           python3 modules/31-projekty-koncowe/program/zloz.py --sprawdz
