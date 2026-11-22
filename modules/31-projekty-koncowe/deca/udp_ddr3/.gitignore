@@ -1,0 +1,6 @@
+system_udp/
+system_udp.qsys
+system_udp.sopcinfo
+*.sopcinfo
+software/bsp/
+software/app/
