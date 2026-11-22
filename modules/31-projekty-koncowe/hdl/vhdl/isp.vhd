@@ -35,12 +35,12 @@ begin
               rgb => d_rgb);
 
   process (clk)
-    variable s : unsigned(16 downto 0);
+    variable s : natural range 0 to 65535;
   begin
     if rising_edge(clk) then
-      s := 77 * resize(unsigned(d_rgb(23 downto 16)), 17) + 150 * resize(unsigned(d_rgb(15 downto 8)), 17)
-           + 29 * resize(unsigned(d_rgb(7 downto 0)), 17) + 128;
-      y8 <= std_logic_vector(s(15 downto 8));
+      s := 77 * to_integer(unsigned(d_rgb(23 downto 16))) + 150 * to_integer(unsigned(d_rgb(15 downto 8)))
+           + 29 * to_integer(unsigned(d_rgb(7 downto 0))) + 128;
+      y8 <= std_logic_vector(to_unsigned(s / 256, 8));
       y_de <= d_de; y_hs <= d_hs; y_vs <= d_vs;
     end if;
   end process;

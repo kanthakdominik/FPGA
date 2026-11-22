@@ -48,6 +48,7 @@ module wzor_bayer #(
     assign g_on = (pas <= 3'd3);
     logic        b_on;
     assign b_on = (pas == 3'd0 || pas == 3'd2 || pas == 3'd4 || pas == 3'd6);
+    /* verilator lint_off WIDTHEXPAND */
     logic        kwadrat;
     assign kwadrat = (x >= kx && x < kx + BOK && y >= ky + H / 2 && y < ky + H / 2 + BOK);
     logic  [7:0]  r, g, b;
@@ -60,6 +61,7 @@ module wzor_bayer #(
             r = grad; g = grad; b = grad;
         end
     end
+    /* verilator lint_on WIDTHEXPAND */
 
     always_ff @(posedge clk) begin
         o_de <= de; o_hs <= hs; o_vs <= vs;

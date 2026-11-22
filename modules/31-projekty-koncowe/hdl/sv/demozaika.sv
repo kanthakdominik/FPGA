@@ -77,6 +77,7 @@ module demozaika #(
         else if (de_p && !s2[2])   wier <= ~wier;          // koniec linii aktywnej
     end
 
+    /* verilator lint_off UNUSEDSIGNAL */          // najmłodsze bity — część ułamkowa średniej
     logic [9:0] krzyz;
     assign krzyz = {2'd0, p01} + {2'd0, p10} + {2'd0, p12} + {2'd0, p21} + 10'd2;
     logic [9:0] przek;
@@ -85,6 +86,7 @@ module demozaika #(
     assign poz = {1'b0, p10} + {1'b0, p12} + 9'd1;
     logic [8:0] pion;
     assign pion = {1'b0, p01} + {1'b0, p21} + 9'd1;
+    /* verilator lint_on UNUSEDSIGNAL */
 
     always_ff @(posedge clk) begin
         {o_de, o_hs, o_vs} <= s2;

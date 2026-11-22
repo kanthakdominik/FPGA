@@ -43,6 +43,7 @@ module wzor_bayer #(
     wire        r_on = (pas == 3'd0 || pas == 3'd1 || pas == 3'd4 || pas == 3'd5);
     wire        g_on = (pas <= 3'd3);
     wire        b_on = (pas == 3'd0 || pas == 3'd2 || pas == 3'd4 || pas == 3'd6);
+    /* verilator lint_off WIDTHEXPAND */
     wire        kwadrat = (x >= kx && x < kx + BOK && y >= ky + H / 2 && y < ky + H / 2 + BOK);
     reg  [7:0]  r, g, b;
     always @* begin
@@ -54,6 +55,7 @@ module wzor_bayer #(
             r = grad; g = grad; b = grad;
         end
     end
+    /* verilator lint_on WIDTHEXPAND */
 
     always @(posedge clk) begin
         o_de <= de; o_hs <= hs; o_vs <= vs;

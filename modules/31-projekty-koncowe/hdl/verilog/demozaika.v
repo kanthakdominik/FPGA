@@ -77,10 +77,12 @@ module demozaika #(
         else if (de_p && !s2[2])   wier <= ~wier;          // koniec linii aktywnej
     end
 
+    /* verilator lint_off UNUSEDSIGNAL */          // najmłodsze bity — część ułamkowa średniej
     wire [9:0] krzyz = {2'd0, p01} + {2'd0, p10} + {2'd0, p12} + {2'd0, p21} + 10'd2;
     wire [9:0] przek = {2'd0, p00} + {2'd0, p02} + {2'd0, p20} + {2'd0, p22} + 10'd2;
     wire [8:0] poz   = {1'b0, p10} + {1'b0, p12} + 9'd1;
     wire [8:0] pion  = {1'b0, p01} + {1'b0, p21} + 9'd1;
+    /* verilator lint_on UNUSEDSIGNAL */
 
     always @(posedge clk) begin
         {o_de, o_hs, o_vs} <= s2;
