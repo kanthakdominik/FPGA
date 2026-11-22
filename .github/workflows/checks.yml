@@ -333,6 +333,11 @@ jobs:
           set -o pipefail
           python3 modules/22-io-i-szybkie-interfejsy/kodowanie/kodowanie.py | tee wynik-kodowanie.txt
           { echo "## Kodowanie 8b/10b i 64b/66b (moduł 22)"; echo '```'; cat wynik-kodowanie.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: DSP — model Pythona i wektory testowe zgodne z repozytorium (moduł 26)
+        run: |
+          set -o pipefail
+          python3 modules/26-dsp-w-fpga/model/dsp_model.py --sprawdz | tee wynik-dsp.txt
+          { echo "## DSP — model bit w bit (moduł 26)"; echo '```'; cat wynik-dsp.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
       - name: Raporty OpenSTA i nextpnr do pobrania
         if: always()
         uses: actions/upload-artifact@v4
