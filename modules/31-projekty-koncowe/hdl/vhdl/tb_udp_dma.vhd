@@ -118,9 +118,17 @@ begin
       wait until falling_edge(clk);
       s_read <= '0'; odczyt := s_readdata;
     end procedure;
+    impure function bajty(k, n : natural) return std_logic_vector is
+      variable v : std_logic_vector(8 * n - 1 downto 0);
+    begin
+      for j in 0 to n - 1 loop
+        v(8 * (n - j) - 1 downto 8 * (n - j - 1)) := ramka(k + j);
+      end loop;
+      return v;
+    end function;
     impure function s16(k : natural) return natural is
     begin
-      return to_integer(unsigned(ramka(k) & ramka(k + 1)));
+      return to_integer(unsigned(bajty(k, 2)));
     end function;
     procedure sprawdz_ramke(adres, dl : natural) is
       variable oczek_dl, suma, bl_danych : natural;
@@ -130,16 +138,14 @@ begin
         pisz("FAIL: dlugosc ramki " & integer'image(dl_ost) & ", oczekiwana " & integer'image(oczek_dl));
         bledy := bledy + 1;
       end if;
-      if ramka(0) & ramka(1) & ramka(2) & ramka(3) & ramka(4) & ramka(5) /= MAC_PC or
-         ramka(6) & ramka(7) & ramka(8) & ramka(9) & ramka(10) & ramka(11) /= MAC_FPGA or s16(12) /= 16#0800# then
+      if bajty(0, 6) /= MAC_PC or bajty(6, 6) /= MAC_FPGA or s16(12) /= 16#0800# then
         pisz("FAIL: naglowek Ethernet"); bledy := bledy + 1;
       end if;
       suma := 0;
       for k in 0 to 9 loop suma := suma + s16(14 + 2 * k); end loop;
       suma := (suma mod 65536) + suma / 65536;
       if ramka(14) /= x"45" or s16(16) /= 28 + dl or ramka(23) /= x"11" or
-         ramka(26) & ramka(27) & ramka(28) & ramka(29) /= IP_FPGA or
-         ramka(30) & ramka(31) & ramka(32) & ramka(33) /= IP_PC or suma /= 16#FFFF# then
+         bajty(26, 4) /= IP_FPGA or bajty(30, 4) /= IP_PC or suma /= 16#FFFF# then
         pisz("FAIL: naglowek IPv4"); bledy := bledy + 1;
       end if;
       if s16(34) /= 5005 or s16(36) /= 5006 or s16(38) /= 8 + dl then

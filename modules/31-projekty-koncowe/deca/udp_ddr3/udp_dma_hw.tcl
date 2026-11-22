@@ -18,6 +18,7 @@ add_fileset_file udp_dma.v    VERILOG PATH ../../hdl/verilog/udp_dma.v TOP_LEVEL
 add_fileset_file udp_nad.v    VERILOG PATH ../../hdl/verilog/udp_nad.v
 add_fileset_file async_fifo.v VERILOG PATH ../../hdl/verilog/async_fifo.v
 add_fileset_file mii_tx.v     VERILOG PATH ../../hdl/verilog/mii_tx.v
+add_fileset_file sync_bit.v   VERILOG PATH ../../hdl/verilog/sync_bit.v
 
 add_interface zegar clock end
 add_interface_port zegar clk clk Input 1

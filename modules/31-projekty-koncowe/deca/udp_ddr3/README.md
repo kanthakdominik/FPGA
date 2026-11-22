@@ -1,6 +1,6 @@
 # Projekt DECA „udp_ddr3” (31.04)
 
-Nios V/m z własnym peryferium `udp_dma` z [31.04](../../31.04-projekt-4-system-nios-v-ddr3-strumien.md): procesor przygotowuje dane w buforze, a peryferium samo czyta je masterem Avalon-MM, buduje datagram UDP/IPv4 i wysyła przez PHY DP83620 (MII, 100 Mb/s).
+Nios V/m z własnym peryferium `udp_dma` z [31.04](../../31.04-projekt-4-system-z-nios-v-ddr3-i-strumieniem-udp.md): procesor przygotowuje dane w buforze, a peryferium samo czyta je masterem Avalon-MM, buduje datagram UDP/IPv4 i wysyła przez PHY DP83620 (MII, 100 Mb/s).
 
 ## Kroki
 
