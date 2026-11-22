@@ -1,6 +1,6 @@
 # 30 — Metodyka i warsztat inżyniera FPGA
 
-> **Część VII** · **Oznaczenia:** 💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 8 h · **Status:** ✅ pełny
+> **Część VII** · **Oznaczenia:** 💼 · **Ścieżki:** RTL, weryfikacja · **Szacowany czas:** ok. 8 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Umiejętności pozatechniczne, które odróżniają inżyniera od hobbysty: spec
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 30.01 | [Specyfikacja i dokumentacja: diagramy blokowe i czasowe (WaveDrom)](30.01-specyfikacja-i-dokumentacja-diagramy-blokowe-i.md) | Python / inne | — | ✅ |
-| 30.02 | [Zarządzanie rdzeniami IP producenta i własnymi](30.02-zarzadzanie-rdzeniami-ip-producenta-i-wlasnymi.md) | Python / inne | — | ✅ |
-| 30.03 | [Kontrola wersji: co commitować, a co generować](30.03-kontrola-wersji-co-commitowac-a-co-generowac.md) | — | — | ✅ |
-| 30.04 | [Praca w zespole: przeglądy kodu, standardy i sign-off](30.04-praca-w-zespole-przeglady-kodu-standardy-i-sign.md) | — | — | ✅ |
-| 30.05 | [Kariera w FPGA: role, branże i ścieżki rozwoju](30.05-kariera-w-fpga-role-branze-i-sciezki-rozwoju.md) | — | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 30.01 | [Specyfikacja i dokumentacja: diagramy blokowe i czasowe (WaveDrom)](30.01-specyfikacja-i-dokumentacja-diagramy-blokowe-i.md) | Python / inne | — |
+| 30.02 | [Zarządzanie rdzeniami IP producenta i własnymi](30.02-zarzadzanie-rdzeniami-ip-producenta-i-wlasnymi.md) | Python / inne | — |
+| 30.03 | [Kontrola wersji: co commitować, a co generować](30.03-kontrola-wersji-co-commitowac-a-co-generowac.md) | — | — |
+| 30.04 | [Praca w zespole: przeglądy kodu, standardy i sign-off](30.04-praca-w-zespole-przeglady-kodu-standardy-i-sign.md) | — | — |
+| 30.05 | [Kariera w FPGA: role, branże i ścieżki rozwoju](30.05-kariera-w-fpga-role-branze-i-sciezki-rozwoju.md) | — | — |
 
 ## Po tym module potrafisz
 
@@ -41,11 +41,3 @@ Moduł jest metodyczny, więc zamiast nowych bloków RTL zawiera narzędzia i sz
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [x] 30.01 Specyfikacja i dokumentacja: diagramy blokowe i czasowe (WaveDrom)
-- [x] 30.02 Zarządzanie rdzeniami IP producenta i własnymi
-- [x] 30.03 Kontrola wersji: co commitować, a co generować
-- [x] 30.04 Praca w zespole: przeglądy kodu, standardy i sign-off
-- [x] 30.05 Kariera w FPGA: role, branże i ścieżki rozwoju

@@ -1,6 +1,6 @@
 # 18 — Pamięci w FPGA
 
-> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🧩🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 14 h
 
 ## Po co ten moduł
 
@@ -12,14 +12,14 @@ Wewnętrzne pamięci układu i struktury na nich zbudowane: RAM jedno- i dwuport
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 18.01 | [Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu](18.01-bloki-pamieci-tryby-jedno-i-dwuportowe-odczyt.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.02 | [ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)](18.02-rom-i-inicjalizacja-pamieci-z-pliku-mif-hex-mem.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.03 | [Synchroniczna kolejka FIFO i flagi](18.03-synchroniczna-kolejka-fifo-i-flagi.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 18.04 | [Bufory pierścieniowe, ping-pong i bufory linii](18.04-bufory-pierscieniowe-ping-pong-i-bufory-linii.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 18.05 | [Pamięć flash użytkownika w MAX 10 (UFM)](18.05-pamiec-flash-uzytkownika-w-max-10-ufm.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 18.06 | [ECC i ochrona danych w pamięci](18.06-ecc-i-ochrona-danych-w-pamieci.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 18.01 | [Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu](18.01-bloki-pamieci-tryby-jedno-i-dwuportowe-odczyt.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.02 | [ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)](18.02-rom-i-inicjalizacja-pamieci-z-pliku-mif-hex-mem.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.03 | [Synchroniczna kolejka FIFO i flagi](18.03-synchroniczna-kolejka-fifo-i-flagi.md) | VHDL · Verilog · SystemVerilog | — |
+| 18.04 | [Bufory pierścieniowe, ping-pong i bufory linii](18.04-bufory-pierscieniowe-ping-pong-i-bufory-linii.md) | VHDL · Verilog · SystemVerilog | — |
+| 18.05 | [Pamięć flash użytkownika w MAX 10 (UFM)](18.05-pamiec-flash-uzytkownika-w-max-10-ufm.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 18.06 | [ECC i ochrona danych w pamięci](18.06-ecc-i-ochrona-danych-w-pamieci.md) | VHDL · Verilog · SystemVerilog | — |
 
 ## Po tym module potrafisz
 
@@ -46,19 +46,8 @@ Wewnętrzne pamięci układu i struktury na nich zbudowane: RAM jedno- i dwuport
 - [deca/pamieci/](deca/pamieci/) — „oddychające” diody: ROM sinusa w domenie 50 MHz, tablica jasności w `ram_sdp` przenoszona do domeny 10 MHz, PWM; `make raporty` zapisuje *RAM Summary* do `raporty/pamieci.txt`.
 - [deca/ufm/](deca/ufm/) — licznik naciśnięć zapamiętany w UFM; rdzeń `ufm_flash` generuje się raz w Quartusie ([instrukcja](deca/ufm/README.md)).
 - Projekty DECA: `deca_top` w trzech językach, `.sdc` i `utworz_projekt.tcl` z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- CI: testbenche, lint, synteza i kompilacja modułów DECA w zadaniach ogólnych; eksperyment wnioskowania w zadaniu *Analiza czasowa, CDC, wydajność i debug* w [checks.yml](../../.github/workflows/checks.yml).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 18.01 Bloki pamięci: tryby jedno- i dwuportowe, odczyt podczas zapisu
-- [ ] 18.02 ROM i inicjalizacja pamięci z pliku (.mif, .hex, .mem)
-- [ ] 18.03 Synchroniczna kolejka FIFO i flagi
-- [ ] 18.04 Bufory pierścieniowe, ping-pong i bufory linii
-- [ ] 18.05 Pamięć flash użytkownika w MAX 10 (UFM)
-- [ ] 18.06 ECC i ochrona danych w pamięci

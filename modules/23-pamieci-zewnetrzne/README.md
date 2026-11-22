@@ -1,6 +1,6 @@
 # 23 — Pamięci zewnętrzne
 
-> **Część V** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h · **Status:** ✅ pełny
+> **Część V** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 16 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Jak działają pamięci SDRAM i DDR i jak korzysta się z nich w FPGA. Na DECA u
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 23.01 | [SDRAM i DDR: jak działają, odświeżanie i opóźnienia](23.01-sdram-i-ddr-jak-dzialaja-odswiezanie-i.md) | — | — | ✅ |
-| 23.02 | [Kontroler DDR3 na MAX 10 (UniPHY)](23.02-kontroler-ddr3-na-max-10-uniphy.md) | — | 🛠️ | ✅ |
-| 23.03 | [Pamięci QSPI flash i HyperRAM](23.03-pamieci-qspi-flash-i-hyperram.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 23.04 | [Arbitraż dostępu do pamięci i DMA](23.04-arbitraz-dostepu-do-pamieci-i-dma.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 23.05 | [Karta microSD: tryb SPI i tryb SD](23.05-karta-microsd-tryb-spi-i-tryb-sd.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 23.01 | [SDRAM i DDR: jak działają, odświeżanie i opóźnienia](23.01-sdram-i-ddr-jak-dzialaja-odswiezanie-i.md) | — | — |
+| 23.02 | [Kontroler DDR3 na MAX 10 (UniPHY)](23.02-kontroler-ddr3-na-max-10-uniphy.md) | — | 🛠️ |
+| 23.03 | [Pamięci QSPI flash i HyperRAM](23.03-pamieci-qspi-flash-i-hyperram.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 23.04 | [Arbitraż dostępu do pamięci i DMA](23.04-arbitraz-dostepu-do-pamieci-i-dma.md) | VHDL · Verilog · SystemVerilog | — |
+| 23.05 | [Karta microSD: tryb SPI i tryb SD](23.05-karta-microsd-tryb-spi-i-tryb-sd.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
 
 ## Po tym module potrafisz
 
@@ -40,17 +40,8 @@ Jak działają pamięci SDRAM i DDR i jak korzysta się z nich w FPGA. Na DECA u
 - `hdl/` — moduły i samosprawdzające się testbenche w trzech językach (`vhdl/`, `verilog/`, `sv/`), uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)); `tb_qspi` z modelem pamięci flash (WREN, WIP, strony, quad), `tb_dma` z trzema masterami i losowym `waitrequest`, `tb_sd` z modelem karty SDHC i SDSC.
 - [deca/qspi/](deca/qspi/) — odczyt ID i porównanie odczytów 1-1-1 i 1-1-4 z pamięci QSPI płytki (bez zapisu); [deca/sd/](deca/sd/) — inicjalizacja karty microSD i odczyt bloku 0 z sygnaturą 0x55AA; `deca_top` w trzech językach, `.sdc`, `utworz_projekt.tcl` z przypisaniami z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
 - [deca/ddr3/](deca/ddr3/README.md) — kroki generacji kontrolera DDR3 (UniPHY) z projektem przykładowym i generatorem ruchu (bez kodu w repozytorium; wymaga Quartusa, poza CI).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [x] 23.01 SDRAM i DDR: jak działają, odświeżanie i opóźnienia
-- [x] 23.02 Kontroler DDR3 na MAX 10 (UniPHY)
-- [x] 23.03 Pamięci QSPI flash i HyperRAM
-- [x] 23.04 Arbitraż dostępu do pamięci i DMA
-- [x] 23.05 Karta microSD: tryb SPI i tryb SD

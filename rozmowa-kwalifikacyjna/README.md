@@ -2,8 +2,6 @@
 
 [← README](../README.md)
 
-> **Status:** ✅ pełny
-
 Ten katalog zbiera z całej bazy to, o co pytają na rozmowach technicznych na stanowiska: **FPGA Design Engineer**, **RTL Design Engineer**, **Design Verification Engineer** i **FPGA Engineer** w firmach z branży telekomunikacyjnej, motoryzacyjnej, lotniczej, obronnej, medycznej, pomiarowej i finansowej (handel wysokich częstotliwości).
 
 ## Zawartość

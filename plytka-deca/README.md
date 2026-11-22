@@ -2,7 +2,7 @@
 
 [← README](../README.md)
 
-> **Status:** 🟡 w trakcie — opis płytki, pełna mapa pinów i plik pinów dla Quartusa są gotowe; opisy peryferiów powstają razem z modułami, które z nich korzystają.
+> — opis płytki, pełna mapa pinów i plik pinów dla Quartusa są gotowe; opisy peryferiów powstają razem z modułami, które z nich korzystają.
 
 DECA to płytka ewaluacyjna firmy Arrow z układem Altera MAX 10, zaprojektowana i udokumentowana przez Terasic (2015). Jak na swoją cenę jest bardzo bogato wyposażona: pamięć DDR3, HDMI, Ethernet, kodek audio, złącze kamery MIPI, czujniki i wbudowany programator. Dzięki temu wystarcza na całą bazę — od pierwszej diody w [module 00](../modules/00-srodowisko-pracy/README.md) do projektów końcowych w [module 31](../modules/31-projekty-koncowe/README.md).
 

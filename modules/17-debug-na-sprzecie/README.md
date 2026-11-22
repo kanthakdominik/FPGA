@@ -1,6 +1,6 @@
 # 17 — Uruchamianie i debug na sprzęcie
 
-> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h · **Status:** ✅ pełny
+> **Część IV** · **Oznaczenia:** 🛠️💼 · **Ścieżki:** RTL, DECA · **Szacowany czas:** ok. 10 h
 
 ## Po co ten moduł
 
@@ -12,13 +12,13 @@ Co zrobić, gdy projekt działa w symulacji, a na płytce nie. Moduł uczy wbudo
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 17.01 | [Strategia uruchamiania: od diody do analizatora logicznego](17.01-strategia-uruchamiania-od-diody-do-analizatora.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.02 | [Wbudowany analizator logiczny: Signal Tap i ILA](17.02-wbudowany-analizator-logiczny-signal-tap-i-ila.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.03 | [In-System Sources and Probes, VIO i JTAG-to-Avalon](17.03-in-system-sources-and-probes-vio-i-jtag-to.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 17.04 | [Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów](17.04-pomiary-zewnetrzne-oscyloskop-analizator.md) | Python / inne | 🛠️ | ✅ |
-| 17.05 | [Działa w symulacji, nie działa na płytce — typowe przyczyny](17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md) | Python / inne | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 17.01 | [Strategia uruchamiania: od diody do analizatora logicznego](17.01-strategia-uruchamiania-od-diody-do-analizatora.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.02 | [Wbudowany analizator logiczny: Signal Tap i ILA](17.02-wbudowany-analizator-logiczny-signal-tap-i-ila.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.03 | [In-System Sources and Probes, VIO i JTAG-to-Avalon](17.03-in-system-sources-and-probes-vio-i-jtag-to.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 17.04 | [Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów](17.04-pomiary-zewnetrzne-oscyloskop-analizator.md) | Python / inne | 🛠️ |
+| 17.05 | [Działa w symulacji, nie działa na płytce — typowe przyczyny](17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md) | Python / inne | — |
 
 ## Po tym module potrafisz
 
@@ -40,18 +40,8 @@ Co zrobić, gdy projekt działa w symulacji, a na płytce nie. Moduł uczy wbudo
 - [deca/debug/](deca/debug/) — projekt DECA: `deca_top` w trzech językach (PLL 100 MHz, bicie serca z trzech zegarów, miernik częstotliwości, mini_ila, dwie instancje In-System Sources and Probes, sygnały testowe na złączu P8), [debug.sdc](deca/debug/debug.sdc) (trzy zegary, zegar JTAG), skrypty `quartus_stp`: [czestotliwosci.tcl](deca/debug/czestotliwosci.tcl) (`make czestotliwosci`) i [ila_odczyt.tcl](deca/debug/ila_odczyt.tcl) (`make ila` → `raporty/ila.vcd`), wspólne [issp.tcl](deca/debug/issp.tcl), test skryptów na atrapach poleceń JTAG [test_skryptow.tcl](deca/debug/test_skryptow.tcl) oraz `utworz_projekt.tcl` z przypisaniami pinów z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
 - [pulapki/](pulapki/) — pięć pułapek „działa w symulacji, nie działa na płytce” w wersji złej i poprawionej, [porownaj.py](pulapki/porownaj.py): synteza Yosysem i porównanie symulacji RTL z symulacją netlisty ([17.05](17.05-dziala-w-symulacji-nie-dziala-na-plytce-typowe.md)).
 - [pomiary/obliczenia.py](pomiary/obliczenia.py) — liczby do pomiarów oscyloskopem i analizatorem: pasmo, czas narastania, masa sondy, długość krytyczna ([17.04](17.04-pomiary-zewnetrzne-oscyloskop-analizator.md)).
-- CI: testbenche, lint i synteza w zadaniach ogólnych; pułapki, obliczenia i test skryptów JTAG w zadaniu *Analiza czasowa, CDC, wydajność i debug* w [checks.yml](../../.github/workflows/checks.yml).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń — sprawdzane w CI ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [ ] 17.01 Strategia uruchamiania: od diody do analizatora logicznego
-- [ ] 17.02 Wbudowany analizator logiczny: Signal Tap i ILA
-- [ ] 17.03 In-System Sources and Probes, VIO i JTAG-to-Avalon
-- [ ] 17.04 Pomiary zewnętrzne: oscyloskop, analizator logiczny, integralność sygnałów
-- [ ] 17.05 Działa w symulacji, nie działa na płytce — typowe przyczyny

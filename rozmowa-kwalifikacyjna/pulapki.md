@@ -2,8 +2,6 @@
 
 [← rozmowa kwalifikacyjna](README.md)
 
-> **Status:** ✅ pełny
-
 Pytania, na które kandydaci najczęściej odpowiadają szybko i źle — zwykle dlatego, że zapamiętali regułę bez powodu, dla którego obowiązuje. Format: pytanie · częsta błędna odpowiedź · jak jest naprawdę · temat w bazie, gdzie jest pełne wyjaśnienie z kodem.
 
 Jak tego używać: zasłoń dwie ostatnie linijki i odpowiedz na głos, jak na rozmowie — razem z uzasadnieniem i przykładem. Jeśli odpowiedź mieści się w jednym zdaniu, prawie na pewno jest za krótka.

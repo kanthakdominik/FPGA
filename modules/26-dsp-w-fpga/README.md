@@ -1,6 +1,6 @@
 # 26 — Cyfrowe przetwarzanie sygnałów w FPGA
 
-> **Część VI** · **Oznaczenia:** 🧩💼 · **Ścieżki:** RTL · **Szacowany czas:** ok. 20 h · **Status:** ✅ pełny
+> **Część VI** · **Oznaczenia:** 🧩💼 · **Ścieżki:** RTL · **Szacowany czas:** ok. 20 h
 
 ## Po co ten moduł
 
@@ -12,15 +12,15 @@ Implementacja algorytmów DSP w sprzęcie: filtry FIR i IIR, generatory NCO, dec
 
 ## Tematy
 
-| # | Temat | Kod | DECA | Status |
-|---|-------|-----|------|--------|
-| 26.01 | [Filtry FIR: struktury bezpośrednia, transponowana, symetryczna i systoliczna](26.01-filtry-fir-struktury-bezposrednia-transponowana.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 26.02 | [Filtry IIR i stabilność w arytmetyce stałoprzecinkowej](26.02-filtry-iir-i-stabilnosc-w-arytmetyce.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 26.03 | [Generatory NCO i DDS](26.03-generatory-nco-i-dds.md) | VHDL · Verilog · SystemVerilog | 🛠️ | ✅ |
-| 26.04 | [Decymacja i interpolacja: CIC i filtry wielofazowe](26.04-decymacja-i-interpolacja-cic-i-filtry.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 26.05 | [FFT w sprzęcie](26.05-fft-w-sprzecie.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 26.06 | [Przetwarzanie I/Q i radio programowalne](26.06-przetwarzanie-i-q-i-radio-programowalne.md) | VHDL · Verilog · SystemVerilog | — | ✅ |
-| 26.07 | [Od modelu w Pythonie do RTL — weryfikacja bit w bit](26.07-od-modelu-w-pythonie-do-rtl-weryfikacja-bit-w.md) | Python / inne | — | ✅ |
+| # | Temat | Kod | DECA |
+|---|-------|-----|------|
+| 26.01 | [Filtry FIR: struktury bezpośrednia, transponowana, symetryczna i systoliczna](26.01-filtry-fir-struktury-bezposrednia-transponowana.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 26.02 | [Filtry IIR i stabilność w arytmetyce stałoprzecinkowej](26.02-filtry-iir-i-stabilnosc-w-arytmetyce.md) | VHDL · Verilog · SystemVerilog | — |
+| 26.03 | [Generatory NCO i DDS](26.03-generatory-nco-i-dds.md) | VHDL · Verilog · SystemVerilog | 🛠️ |
+| 26.04 | [Decymacja i interpolacja: CIC i filtry wielofazowe](26.04-decymacja-i-interpolacja-cic-i-filtry.md) | VHDL · Verilog · SystemVerilog | — |
+| 26.05 | [FFT w sprzęcie](26.05-fft-w-sprzecie.md) | VHDL · Verilog · SystemVerilog | — |
+| 26.06 | [Przetwarzanie I/Q i radio programowalne](26.06-przetwarzanie-i-q-i-radio-programowalne.md) | VHDL · Verilog · SystemVerilog | — |
+| 26.07 | [Od modelu w Pythonie do RTL — weryfikacja bit w bit](26.07-od-modelu-w-pythonie-do-rtl-weryfikacja-bit-w.md) | Python / inne | — |
 
 ## Po tym module potrafisz
 
@@ -44,19 +44,8 @@ Implementacja algorytmów DSP w sprzęcie: filtry FIR i IIR, generatory NCO, dec
 - [model/dsp_model.py](model/dsp_model.py) — model bit w bit wszystkich układów (biblioteka standardowa Pythona): projekt i kwantyzacja współczynników, moduły ROM `sin_tab` i `tw_tab` generowane w trzech językach, wektory testowe w `hdl/dane/` i miary jakości (charakterystyka FIR, cykle graniczne, SFDR, błąd FFT); `--sprawdz` w CI kontroluje zgodność plików w repozytorium z modelem ([26.07](26.07-od-modelu-w-pythonie-do-rtl-weryfikacja-bit-w.md)).
 - `hdl/` — moduły i samosprawdzające się testbenche w trzech językach (`vhdl/`, `verilog/`, `sv/`), uruchamiane automatycznie w GitHub Actions ([zasady](../../docs/STYL-KODU.md)): `tb_fir`, `tb_iir`, `tb_nco`, `tb_dec`, `tb_fft`, `tb_ddc` — każdy czyta wektory z `hdl/dane/*.hex` i porównuje wyniki z modelem bit w bit, niezależnie od opóźnienia; w VHDL wspólne funkcje w `dsp_pkg` i czytanie plików w `wektory_pkg`.
 - [deca/dsp/](deca/dsp/) — NCO → filtr FIR → dwa przetworniki sigma-delta na złączu GPIO0 (sygnał po filtrze i przed filtrem), częstotliwości z KEY[1], przemiatanie i fala prostokątna z przełączników ([26.01](26.01-filtry-fir-struktury-bezposrednia-transponowana.md), [26.03](26.03-generatory-nco-i-dds.md)); `deca_top` w trzech językach, `.sdc`, `utworz_projekt.tcl` z przypisaniami z [plytka-deca/deca_piny.tcl](../../plytka-deca/deca_piny.tcl) ([opis płytki](../../plytka-deca/README.md)).
-- Lint: kod Verilog i SystemVerilog z `hdl/` przechodzi `verilator --lint-only -Wall` bez ostrzeżeń ([07.09](../07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
 
 ## Powtórka
 
 - [Ściąga modułu](SCIAGA.md) — reguły i liczby do zapamiętania na jednej stronie.
 - Pytania rekrutacyjne z tego modułu trafiają też do [rozmowa-kwalifikacyjna/pytania.md](../../rozmowa-kwalifikacyjna/pytania.md).
-
-## Postęp
-
-- [x] 26.01 Filtry FIR: struktury bezpośrednia, transponowana, symetryczna i systoliczna
-- [x] 26.02 Filtry IIR i stabilność w arytmetyce stałoprzecinkowej
-- [x] 26.03 Generatory NCO i DDS
-- [x] 26.04 Decymacja i interpolacja: CIC i filtry wielofazowe
-- [x] 26.05 FFT w sprzęcie
-- [x] 26.06 Przetwarzanie I/Q i radio programowalne
-- [x] 26.07 Od modelu w Pythonie do RTL — weryfikacja bit w bit
