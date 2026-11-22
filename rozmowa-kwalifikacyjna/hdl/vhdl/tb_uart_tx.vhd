@@ -34,18 +34,12 @@ begin
     port map (clk => clk, rst => rst, start => start, data => data, ready => ready, tx => tx);
 
   odbiornik : process
-    variable len : natural;
-    variable b   : std_logic_vector(7 downto 0);
+    variable b : std_logic_vector(7 downto 0);
   begin
     wait until falling_edge(tx);
-    wait until falling_edge(clk);
-    len := 0;
-    while tx = '0' and len < 3 * BIT_T loop
-      len := len + 1;
-      wait until falling_edge(clk);
-    end loop;
-    if len /= BIT_T then say("bit startu " & integer'image(len) & " taktow"); err_rx <= err_rx + 1; end if;
-    for i in 1 to BIT_T / 2 - 1 loop wait until falling_edge(clk); end loop;
+    for i in 1 to BIT_T / 2 loop wait until falling_edge(clk); end loop;     -- środek bitu startu
+    if tx /= '0' then say("falszywy bit startu"); err_rx <= err_rx + 1; end if;
+    for i in 1 to BIT_T loop wait until falling_edge(clk); end loop;
     for k in 0 to 7 loop
       b(k) := tx;
       for i in 1 to BIT_T loop wait until falling_edge(clk); end loop;

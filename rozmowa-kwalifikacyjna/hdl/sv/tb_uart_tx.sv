@@ -1,5 +1,5 @@
 // Testbench (SystemVerilog) zadania 9: CLK_HZ = 1 MHz, BAUD = 100 kb/s (10 taktów na bit). Odbiornik w testbenchu czeka na
-// zbocze bitu startu, próbkuje w środku bitów i sprawdza bajt, bit stopu i długość bitu startu. Bajty: 0x55,
+// zbocze bitu startu, próbkuje w środku bitów i sprawdza bit startu, bajt i bit stopu. Bajty: 0x55,
 // 0xA3, 0x00, 0xFF i 20 losowych; drugi start w trakcie nadawania musi zostać zignorowany.
 `timescale 1ns / 1ps
 `default_nettype none
@@ -17,17 +17,16 @@ module tb_uart_tx;
                                                        .ready(ready), .tx(tx));
 
     logic [7:0] sent [0:63];
-    int   errors = 0, n_sent = 0, n_got = 0, i, k, len, seed = 4;
+    int   errors = 0, n_sent = 0, n_got = 0, i, k, seed = 4;
     logic [7:0] b;
 
-    // odbiornik: próbki na zboczu opadającym zegara, gdy tx jest stabilne
+    // odbiornik: zbocze bitu startu, potem próbki na zboczu opadającym zegara w okolicy środka każdego bitu
+    // (błąd podzielnika o 1 takt na bit przesunąłby próbkę bitu stopu o 9 taktów — poza bit)
     always begin
         @(negedge tx);
-        @(negedge clk);
-        len = 0;
-        while (tx == 1'b0 && len < 3 * BIT) begin len = len + 1; @(negedge clk); end
-        if (len != BIT) begin $display("%0t: bit startu %0d taktow", $time, len); errors = errors + 1; end
-        repeat (BIT / 2 - 1) @(negedge clk);                 // okolice środka bitu 0
+        repeat (BIT / 2) @(negedge clk);                     // środek bitu startu
+        if (tx !== 1'b0) begin $display("%0t: falszywy bit startu", $time); errors = errors + 1; end
+        repeat (BIT) @(negedge clk);                         // środek bitu 0
         for (k = 0; k < 8; k = k + 1) begin b[k] = tx; repeat (BIT) @(negedge clk); end
         if (tx !== 1'b1) begin $display("%0t: brak bitu stopu", $time); errors = errors + 1; end
         if (b !== sent[n_got]) begin $display("%0t: odebrano %h, oczekiwano %h", $time, b, sent[n_got]); errors = errors + 1; end

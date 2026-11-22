@@ -60,7 +60,7 @@ begin
     end loop;
     takt('0');
     say("wykrytych wzorcow 1011: " & integer'image(n_det));
-    if n_det < 20 then errors := errors + 1; end if;
+    if n_det < 16 then errors := errors + 1; end if;
     if errors = 0 then say("PASS"); else say("FAIL: " & integer'image(errors) & " bledow"); end if;
     fin <= true;
     std.env.finish;

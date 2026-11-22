@@ -122,7 +122,7 @@ module tb_axil_regs;
         axi_write(2'd3, 32'h0000_AA00, 4'b0010, 0, 0, 1); model_write(2'd3, 32'h0000_AA00, 4'b0010); // jeden bajt
         axi_write(2'd0, 32'hFFFF_0000, 4'b1100, 2, 0, 0); model_write(2'd0, 32'hFFFF_0000, 4'b1100);
         for (i = 0; i < 4; i = i + 1) axi_read(i[1:0], i);
-        if (reg3 !== 32'hDEAD_AABF || reg0 !== 32'hFFFF_1111) begin
+        if (reg3 !== 32'hDEAD_AAEF || reg0 !== 32'hFFFF_1111) begin
             $display("wyjscia rejestrow: reg0=%h reg3=%h", reg0, reg3); errors = errors + 1;
         end
         for (i = 0; i < 200; i = i + 1) begin

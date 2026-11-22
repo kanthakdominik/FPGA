@@ -42,7 +42,7 @@ begin
         say("stan wysoki " & time'image(t_fall - t_rise)); errors := errors + 1;
       end if;
     end loop;
-    say("ostatni okres " & time'image(t_rise - t_prev) & ", stan wysoki " & time'image(t_fall - t_rise));
+    say("ostatni okres " & integer'image((t_rise - t_prev) / 1 ns) & " ns, stan wysoki " & integer'image((t_fall - t_rise) / 1 ns) & " ns");
     if errors = 0 then say("PASS"); else say("FAIL: " & integer'image(errors) & " bledow"); end if;
     fin <= true;
     std.env.finish;

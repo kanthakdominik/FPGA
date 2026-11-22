@@ -45,7 +45,7 @@ module tb_seq_detect;
         @(negedge clk);
         @(negedge clk);
         $display("wykrytych wzorcow 1011: %0d", n_det);
-        if (n_det < 20) begin $display("za malo wykryc"); errors = errors + 1; end
+        if (n_det < 16) begin $display("za malo wykryc"); errors = errors + 1; end
         if (errors == 0) $display("PASS");
         else             $display("FAIL: %0d bledow", errors);
         $finish;

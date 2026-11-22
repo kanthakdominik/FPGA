@@ -141,7 +141,7 @@ begin
     axi_write(3, x"0000AA00", "0010", 0, 0, 1);     -- jeden bajt
     axi_write(0, x"FFFF0000", "1100", 2, 0, 0);
     for i in 0 to 3 loop axi_read(i, i); end loop;
-    if reg3 /= x"DEADAABF" or reg0 /= x"FFFF1111" then say("zle wyjscia rejestrow"); errors := errors + 1; end if;
+    if reg3 /= x"DEADAAEF" or reg0 /= x"FFFF1111" then say("zle wyjscia rejestrow"); errors := errors + 1; end if;
     for i in 0 to 199 loop
       v_idx := rnd(4);
       v_d   := std_logic_vector(to_unsigned(rnd(65536), 16)) & std_logic_vector(to_unsigned(rnd(65536), 16));

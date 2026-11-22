@@ -11,23 +11,27 @@ module tb_clk_div3;
 
     clk_div3 dut (.clk(clk), .rst(rst), .clk_out(clk_out));
 
-    int errors = 0, n = 0;
+    int errors = 0, n = 0, n_rise = 0;
     time    t_rise = 0, t_fall = 0, t_prev = 0;
 
-    always @(posedge clk_out) begin
-        t_prev = t_rise;
-        t_rise = $time;
-        if (n > 0 && t_rise - t_prev != 30) begin
-            $display("%0t: okres %0d ns, oczekiwano 30", $time, t_rise - t_prev); errors = errors + 1;
+    // pomiar dopiero po resecie (przejście x -> 0 na początku symulacji to też „zbocze”)
+    always @(posedge clk_out)
+        if (!rst) begin
+            t_prev = t_rise;
+            t_rise = $time;
+            n_rise = n_rise + 1;
+            if (n_rise > 1 && t_rise - t_prev != 30) begin
+                $display("%0t: okres %0d ns, oczekiwano 30", $time, t_rise - t_prev); errors = errors + 1;
+            end
         end
-    end
-    always @(negedge clk_out) begin
-        t_fall = $time;
-        n = n + 1;
-        if (t_fall - t_rise != 15) begin
-            $display("%0t: stan wysoki %0d ns, oczekiwano 15", $time, t_fall - t_rise); errors = errors + 1;
+    always @(negedge clk_out)
+        if (!rst && n_rise > 0) begin
+            t_fall = $time;
+            n = n + 1;
+            if (t_fall - t_rise != 15) begin
+                $display("%0t: stan wysoki %0d ns, oczekiwano 15", $time, t_fall - t_rise); errors = errors + 1;
+            end
         end
-    end
 
     initial begin
         repeat (3) @(negedge clk);
