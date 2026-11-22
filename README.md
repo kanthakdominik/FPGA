@@ -40,7 +40,7 @@ Zasady:
 | **Zadania** | Obliczenia, „znajdź błąd w kodzie”, zadania projektowe |
 | **Źródła** | Konkretne rozdziały i sekcje dokumentacji |
 
-6. Do powtórki: każdy moduł ma **ściągę** (`SCIAGA.md`), a przed rozmową kwalifikacyjną jest [zbiór pytań](rozmowa-kwalifikacyjna/README.md). Nieznane słowo sprawdzisz w [słowniczku](SLOWNICZEK.md).
+6. Do powtórki: każdy moduł ma **ściągę** (`SCIAGA.md`), a przed rozmową kwalifikacyjną są [pytania, zadania projektowe z rozwiązaniami i pułapki](rozmowa-kwalifikacyjna/README.md). Nieznane słowo sprawdzisz w [słowniczku](SLOWNICZEK.md).
 7. Postęp odznaczaj w checklistach (`- [ ]` → `- [x]`) we własnym forku.
 
 ### Oznaczenia

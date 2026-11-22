@@ -23,13 +23,19 @@ module async_fifo #(
 );
     reg [W-1:0] mem [0:(1 << AW) - 1];
 
-    // ---------------------------------------------------------------- domena zapisu
+    // ---------------------------------------------------------------- wskaźniki (binarne i w kodzie Graya) i synchronizatory
     reg  [AW:0] wbin = {(AW + 1){1'b0}};
     reg  [AW:0] wgray = {(AW + 1){1'b0}};
     reg  [AW:0] rgray_w1 = {(AW + 1){1'b0}};
     reg  [AW:0] rgray_w2 = {(AW + 1){1'b0}};
     wire [AW:0] wbin_next = wbin + 1'b1;
+    reg  [AW:0] rbin = {(AW + 1){1'b0}};
+    reg  [AW:0] rgray = {(AW + 1){1'b0}};
+    reg  [AW:0] wgray_r1 = {(AW + 1){1'b0}};
+    reg  [AW:0] wgray_r2 = {(AW + 1){1'b0}};
+    wire [AW:0] rbin_next = rbin + 1'b1;
 
+    // ---------------------------------------------------------------- domena zapisu
     assign full = (wgray == {~rgray_w2[AW:AW-1], rgray_w2[AW-2:0]});
 
     always @(posedge wr_clk)
@@ -51,11 +57,6 @@ module async_fifo #(
         end
 
     // ---------------------------------------------------------------- domena odczytu
-    reg  [AW:0] rbin = {(AW + 1){1'b0}};
-    reg  [AW:0] rgray = {(AW + 1){1'b0}};
-    reg  [AW:0] wgray_r1 = {(AW + 1){1'b0}};
-    reg  [AW:0] wgray_r2 = {(AW + 1){1'b0}};
-    wire [AW:0] rbin_next = rbin + 1'b1;
 
     assign empty = (rgray == wgray_r2);
 
