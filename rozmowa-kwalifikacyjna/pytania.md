@@ -4710,7 +4710,161 @@ Wzorcem jest niezależny model zestawu instrukcji (ISS: własny, Spike albo Sail
 
 ## 28 — Synteza wysokiego poziomu (HLS) i akceleracja
 
-_Pytania pojawią się razem z treścią modułu ([28-hls-i-akceleracja](../modules/28-hls-i-akceleracja/README.md))._
+### [28.01 — Czym jest HLS i kiedy się opłaca](../modules/28-hls-i-akceleracja/28.01-czym-jest-hls-i-kiedy-sie-oplaca.md)
+
+1. **Co robi narzędzie HLS z pętlą `for` w C?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Domyślnie pętla staje się sekwencją stanów automatu: iteracje wykonują się jedna po drugiej, każda przez tyle taktów, ile trwa jej ciało, plus takt na sprawdzenie warunku — współdzielone jednostki, mało zasobów, długi czas. Z dyrektywą PIPELINE iteracje nakładają się: nowa zaczyna się co II taktów (interwał inicjacji), a ciało jest potokiem o pewnej głębokości — czas ≈ głębokość + (N − 1)·II. Z UNROLL (pełnym albo o współczynnik) ciało jest powielane — więcej sprzętu, mniej iteracji. Pętla o nieznanej liczbie iteracji też się syntezuje, ale raport nie poda opóźnienia bez LOOP_TRIPCOUNT.
+</details>
+
+2. **Czym różni się symulacja C od kosymulacji C/RTL i po co obie?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Symulacja C kompiluje funkcję i testbench zwykłym kompilatorem i uruchamia — trwa sekundy, sprawdza algorytm (i zakresy typów o stałej szerokości), ale nic nie mówi o sprzęcie. Kosymulacja używa tego samego testbencha, ale wywołania funkcji zamienia na pobudzenia wygenerowanego RTL w symulatorze HDL — sprawdza, że synteza zachowała funkcję (np. dyrektywa DEPENDENCE false nie była kłamstwem), że protokół interfejsów działa, i mierzy rzeczywistą liczbę taktów i II. Jest wolna, więc uruchamia się ją na mniejszych zbiorach testowych, a symulację C — na pełnych.
+</details>
+
+3. **Kiedy nie użyjesz HLS?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Gdy liczy się dokładne zachowanie co do taktu na interfejsach: kontrolery pamięci, PHY i MAC protokołów, obsługa I/O z ograniczeniami czasowymi, układy wielozegarowe i przejścia między domenami — RTL daje pełną kontrolę i przewidywalność. Gdy układ jest mały i sterujący (automat, licznik, rejestry), bo RTL jest krótszy i czytelniejszy niż kod z dyrektywami. Gdy projekt jest na granicy zasobów lub zegara i potrzebne są ręczne optymalizacje (dopasowanie do bloków DSP, kaskady, floorplanning). Wreszcie, gdy zespół nie ma doświadczenia w czytaniu raportów HLS — bez tego wyniki bywają przypadkowe.
+</details>
+
+### [28.02 — Pętle: potokowanie, rozwijanie i interwał inicjacji (II)](../modules/28-hls-i-akceleracja/28.02-petle-potokowanie-rozwijanie-i-interwal.md)
+
+1. **Raport HLS mówi: pętla sumowania float ma II = 5 zamiast 1. Dlaczego i co zrobisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Każda iteracja dodaje do akumulatora wynik poprzedniej, a sumator zmiennoprzecinkowy ma opóźnienie kilku taktów (tu 5) — zależność przenoszona przez pętlę daje RecMII = 5/1. Rozwiązania: kilka (≥ 5) akumulatorów częściowych używanych po kolei (`acc[i % 5] += a[i]`) i zsumowanie ich po pętli — odległość zależności 5, RecMII = 1; zmiana na arytmetykę stałoprzecinkową z 1-taktowym sumatorem; obniżenie zegara (krótsze opóźnienie sumatora). Akumulatory częściowe zmieniają kolejność dodawania, więc wynik float może różnić się w ostatnich bitach — trzeba to uwzględnić w testach.
+</details>
+
+2. **Rozwinąłeś pętlę o 16, a czas prawie się nie zmienił. Co sprawdzisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Porty pamięci: 16 kopii czyta tę samą tablicę, a blok pamięci ma 2 porty — ResMII = 8, więc zysk najwyżej 2×. Trzeba podzielić tablicę (ARRAY_PARTITION cyclic factor=16 albo complete dla wymiaru, po którym idzie rozwinięta pętla) albo przeorganizować dane (szersze słowa, ARRAY_RESHAPE). Druga przyczyna: zależność między kopiami (np. łańcuch sum), którą narzędzie realizuje szeregowo — sprawdzić głębokość i strukturę sumowania. Trzecia: interfejs zewnętrzny (AXI) nie dostarcza 16 elementów na takt — wtedy wąskim gardłem jest pamięć DDR, nie jądro.
+</details>
+
+3. **Co to jest II i jak wpływa na przepustowość i zasoby?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Interwał inicjacji — liczba taktów między rozpoczęciem kolejnych iteracji pętli potokowanej (albo kolejnych wywołań funkcji). Przepustowość = f_clk / II wyników na sekundę; opóźnienie jednej iteracji (głębokość) jest osobnym parametrem. Większe II pozwala współdzielić jednostki: przy II = 4 jedna mnożarka obsłuży 4 mnożenia z jednej iteracji, więc zasobów jest mniej — to podstawa kompromisu przepustowość–zasoby (w hls4ml nazywany *reuse factor*). II = 1 to maksymalna przepustowość i najwięcej zasobów.
+</details>
+
+### [28.03 — Interfejsy i pamięć w HLS](../modules/28-hls-i-akceleracja/28.03-interfejsy-i-pamiec-w-hls.md)
+
+1. **Jak HLS zrealizuje argument `int *x` i od czego to zależy?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Od dyrektywy INTERFACE i sposobu użycia w kodzie. Domyślnie (zależnie od narzędzia i trybu) wskaźnik do tablicy staje się portem pamięci (`ap_memory` — adres, dane, zapis) albo zarządcą AXI4 (`m_axi`) czytającym pamięć systemu, z adresem bazowym w rejestrze AXI4-Lite. Gdy kod czyta `x` dokładnie raz, sekwencyjnie, może to być strumień (`axis`/FIFO). Wskaźnik do skalaru używany tylko do odczytu staje się wejściem, tylko do zapisu — wyjściem (z sygnałem ważności `ap_vld`), do obu — parą portów. Ważne: dla `m_axi` wydajność zależy od burstów, więc wzorzec dostępu w kodzie decyduje o przepustowości.
+</details>
+
+2. **Jaki podział tablicy wybierzesz dla pętli rozwiniętej o 4, która czyta `t[4i]`, `t[4i+1]`, `t[4i+2]`, `t[4i+3]`?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+`ARRAY_PARTITION cyclic factor=4` — element o indeksie j trafia do banku j mod 4, więc cztery kolejne elementy są w czterech różnych bankach i można je przeczytać w jednym takcie (każdy bank ma jeszcze drugi port). `block factor=4` byłby zły: dzieli tablicę na cztery ciągłe kawałki, a kolejne elementy leżą w tym samym kawałku. Alternatywa: `ARRAY_RESHAPE cyclic factor=4` — cztery elementy w jednym szerokim słowie jednej pamięci, jeden dostęp czyta wszystkie (mniej bloków pamięci, ta sama przepustowość).
+</details>
+
+3. **Co daje dyrektywa DATAFLOW i kiedy nie zadziała?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Zamienia sekwencję funkcji lub pętli w potok zadań: każda działa jako osobny blok sprzętowy jednocześnie z pozostałymi, komunikując się przez FIFO (dostęp sekwencyjny) albo bufory ping-pong (tablice). Opóźnienie całości to suma, ale przepustowość — rytm najwolniejszego etapu, zamiast sumy czasów. Nie zadziała (albo narzędzie wycofa się do wykonania sekwencyjnego), gdy zmienna ma wielu producentów lub konsumentów, gdy etap czyta wynik późniejszego (sprzężenie zwrotne), gdy między etapami jest kod warunkowy omijający etap, albo gdy dane są przekazywane przez zmienne globalne. Trzeba też dobrać głębokość FIFO, żeby etapy o nierównym rytmie się nie zakleszczyły.
+</details>
+
+### [28.04 — Narzędzia: Vitis HLS, oneAPI i Bambu](../modules/28-hls-i-akceleracja/28.04-narzedzia-vitis-hls-oneapi-i-bambu.md)
+
+1. **Opisz przepływ pracy w Vitis HLS od kodu do IP.**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Funkcja główna w C++ z dyrektywami i testbench zwracający 0 przy sukcesie. Symulacja C (sprawdzenie algorytmu), synteza C (raport: opóźnienie, II pętli z przyczynami naruszeń, oszacowanie zegara, zasoby, interfejsy — iteracje z dyrektywami do osiągnięcia celu), kosymulacja C/RTL (ten sam testbench na wygenerowanym RTL — poprawność funkcji i protokołów, rzeczywiste takty), eksport jako IP do Vivado (albo jądro `.xo`), opcjonalnie z uruchomieniem implementacji dla rzeczywistych zasobów i zegara. Całość w skrypcie Tcl albo pliku konfiguracyjnym, żeby dało się powtórzyć w CI.
+</details>
+
+2. **Czym różni się szeregowanie statyczne od dynamicznego w HLS?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Statyczne ustala w czasie kompilacji, w którym takcie wykonuje się każda operacja; sprzęt to automat lub potok bez uzgadniania wewnątrz — mały i szybki, ale musi zakładać najgorszy przypadek: jeśli zależność przez pamięć może wystąpić, II jest zwiększane dla wszystkich iteracji. Dynamiczne (np. Dynamatic) buduje obwód sterowany przepływem danych: operacje komunikują się sygnałami valid/ready, a jednostka zgłoszeń pamięci rozstrzyga konflikty w czasie pracy — czeka tylko wtedy, gdy zależność naprawdę zachodzi. Zyskuje się na nieregularnych pętlach (histogramy, dostęp przez indeksy z danych), traci na zasobach i zegarze przez logikę uzgadniania.
+</details>
+
+3. **Raport HLS podaje zegar 300 MHz, a po implementacji jest 180 MHz. Dlaczego i co zrobisz?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Raport HLS szacuje opóźnienia operacji z bibliotek i nie zna rozmieszczenia ani połączeń: duże rozgałęzienia (rejestry zasilające wiele rozwiniętych kopii), długie multipleksery przy współdzieleniu, pamięci rozrzucone po układzie i łańcuchy operacji w jednym takcie wychodzą dopiero po implementacji. Działania: ustawić w HLS krótszy okres (zapas) albo niepewność zegara, żeby narzędzie dzieliło łańcuchy na więcej taktów; ograniczyć rozwinięcia i rozgałęzienia (powielanie rejestrów, mniejsze partycje); obejrzeć ścieżkę krytyczną w raporcie czasowym implementacji i odnaleźć ją w kodzie (nazwy sygnałów, Schedule Viewer); ewentualnie zostawić tę część w RTL.
+</details>
+
+### [28.05 — Akceleracja sieci neuronowych: hls4ml i FINN](../modules/28-hls-i-akceleracja/28.05-akceleracja-sieci-neuronowych-hls4ml-i-finn.md)
+
+1. **Jak zamienisz sieć wytrenowaną w float na wnioskowanie int8 w FPGA?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wyznaczam zakresy wag i aktywacji (na danych kalibracyjnych), dobieram skale (najprościej potęgi dwójki, żeby przeskalowanie było przesunięciem; ogólnie mnożenie przez stałą i przesunięcie), kwantyzuję wagi do int8 z zaokrągleniem i nasyceniem, biasy do int32 w skali iloczynu, wkładam normalizację wsadową w wagi. W sprzęcie: iloczyny int8 sumowane w int32, przeskalowanie z zaokrągleniem, aktywacja i nasycenie do int8 przed następną warstwą; na końcu argmax na logitach. Tworzę model całkowitoliczbowy w Pythonie jako wzorzec bitowy, porównuję dokładność z float na zbiorze testowym, a sprzęt (HLS lub RTL) testuję co do bitu względem modelu całkowitoliczbowego. Przy dużej utracie dokładności — trening z kwantyzacją (QAT).
+</details>
+
+2. **Co to jest reuse factor w hls4ml i jak wpływa na projekt?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+To liczba mnożeń przypadających na jedną fizyczną mnożarkę w warstwie: R = 1 oznacza pełną równoległość (każda waga ma mnożarkę, nowa próbka co takt, najmniejsze opóźnienie, najwięcej DSP/LUT), R = k — mnożarek k razy mniej, II i opóźnienie rosną proporcjonalnie. Dobiera się go, żeby zmieścić sieć w układzie przy wymaganej przepustowości: np. przy zegarze 200 MHz i 10 M próbek/s można przyjąć R ≈ 20. Wpływa też na czas syntezy (R = 1 dla dużych warstw to bardzo duży kod po rozwinięciu) i na sposób przechowywania wag (rejestry vs pamięci blokowe).
+</details>
+
+3. **Kiedy wybrać FINN, hls4ml, a kiedy nakładkę typu DPU?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+hls4ml — małe i średnie sieci (MLP, małe CNN) z wymaganiem minimalnego opóźnienia (ns–µs, np. wyzwalacze w fizyce), modele z Keras/PyTorch, różne back-endy HLS. FINN — sieci mocno kwantyzowane (1–4 bity, Brevitas) o dużej przepustowości, gdzie całą sieć da się rozwinąć w potok strumieniowy na układzie AMD. DPU/FPGA AI Suite — duże modele (ResNet, YOLO) i potrzeba podmiany modeli bez ponownej syntezy sprzętu: jeden zoptymalizowany procesor sieci, kompilator modeli, wyższe opóźnienie i zasoby, ale krótki czas wdrożenia. Decydują: rozmiar modelu, wymagane opóźnienie i przepustowość, precyzja, rodzina układu i to, jak często model się zmienia.
+</details>
+
+### [28.06 — Alternatywne języki HDL: Chisel, SpinalHDL, Amaranth, Clash](../modules/28-hls-i-akceleracja/28.06-alternatywne-jezyki-hdl-chisel-spinalhdl.md)
+
+1. **Czym Chisel różni się od HLS?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Chisel to język konstrukcji sprzętu: opisuje się rejestry, logikę kombinacyjną i połączenia, a o tym, co dzieje się w którym takcie, decyduje projektant — tak jak w Verilogu. Różnica względem Veriloga polega na tym, że opis tworzy program w Scali: pętle, funkcje, klasy, parametry i typy pozwalają pisać generatory (np. procesor z konfigurowalną liczbą rdzeni i pamięci podręcznych). HLS natomiast przyjmuje algorytm bez informacji o taktach i sam układa operacje w czasie, dobiera jednostki i generuje sterowanie — projektant wpływa na to dyrektywami. Chisel daje pełną kontrolę i przewidywalność, HLS — szybkość pisania algorytmów kosztem kontroli.
+</details>
+
+2. **Jakie są wady języków takich jak SpinalHDL czy Amaranth w projekcie przemysłowym?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Wygenerowany Verilog jest słabo czytelny, więc analiza czasowa, debugowanie na płytce i przeglądy kodu z osobami spoza projektu są trudniejsze. Dochodzi zależność od kompilatora i jego wersji (zmiany API, błędy generatora), mniejsza liczba specjalistów na rynku i potrzeba znajomości dwóch światów (język gospodarza i HDL/narzędzia producenta — ograniczenia, IP, CDC). Narzędzia weryfikacji przemysłowej (UVM, formalne, pokrycie) są zbudowane wokół SystemVerilog. Zalety (generatory, biblioteki, typy, testy w Pythonie/Scali) opłacają się przy dużych, parametrycznych projektach i w zespołach, które utrzymują własne biblioteki.
+</details>
+
+3. **Jak sprawdzisz, że układ wygenerowany w Amaranth jest równoważny ręcznemu RTL?**
+
+<details>
+<summary>Odpowiedź</summary>
+
+Najprościej — tymi samymi wektorami i tym samym wzorcem bitowym: symulacja w Amaranth porównana z modelem, a potem wygenerowany Verilog w symulatorze HDL z testbenchem używanym dla ręcznego RTL (tu `tb_fir_amaranth.v` na wektorach modułu 26 — 2048 próbek bez niezgodności). Mocniej: sprawdzenie równoważności formalnej (np. Yosys `equiv_*` albo SymbiYosys z miterem łączącym oba układy na wspólnych wejściach i porównaniem wyjść) — przy tych samych rejestrach i opóźnieniach dowodzi równoważności dla wszystkich wejść, nie tylko testowych.
+</details>
 
 ## 29 — Konfiguracja, bezpieczeństwo i niezawodność
 

@@ -115,7 +115,7 @@ Zasady:
 |---|-------|------------|---------|------|--------|
 | 26 | [Cyfrowe przetwarzanie sygnałów w FPGA](modules/26-dsp-w-fpga/README.md) | 🧩💼 | 7 | 20 h | ✅ pełny |
 | 27 | [Procesory w FPGA i systemy SoC](modules/27-procesory-i-soc/README.md) | 🧩🛠️💼 | 7 | 22 h | ✅ pełny |
-| 28 | [Synteza wysokiego poziomu (HLS) i akceleracja](modules/28-hls-i-akceleracja/README.md) | 🧩 | 6 | 14 h | 🔲 szkielet |
+| 28 | [Synteza wysokiego poziomu (HLS) i akceleracja](modules/28-hls-i-akceleracja/README.md) | 🧩 | 6 | 14 h | ✅ pełny |
 | 29 | [Konfiguracja, bezpieczeństwo i niezawodność](modules/29-konfiguracja-niezawodnosc/README.md) | 🛠️💼 | 5 | 12 h | 🔲 szkielet |
 
 ### VII. Warsztat i projekty

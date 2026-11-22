@@ -1,0 +1,6 @@
+tb_fir
+tb_histogram
+tb_macierz
+tb_mlp
+proj_*/
+*.log

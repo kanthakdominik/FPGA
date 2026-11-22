@@ -36,6 +36,19 @@ jobs:
           make -C modules/27-procesory-i-soc/program/c sym | tee wynik-rv-c.txt
           grep -q '^PASS' wynik-rv-c.txt
           { echo "## Program w C na rv_soc (moduł 27)"; echo '```'; cat wynik-rv-c.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Moduł 28 — jądra HLS w C++ (symulacja C w g++), sieć int8 i harmonogram II
+        run: |
+          set -o pipefail
+          python3 modules/28-hls-i-akceleracja/nn/mlp_model.py --sprawdz | tee wynik-hls.txt
+          make -s -C modules/28-hls-i-akceleracja/hls test | tee -a wynik-hls.txt
+          python3 modules/28-hls-i-akceleracja/narzedzia/harmonogram.py --test | tee -a wynik-hls.txt
+          { echo "## HLS w C++ i harmonogram (moduł 28)"; echo '```'; cat wynik-hls.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Moduł 28 — Amaranth (symulacja, eksport do Veriloga, test w Icarusie)
+        run: |
+          set -o pipefail
+          pip install -q -r modules/28-hls-i-akceleracja/amaranth/requirements.txt
+          make -s -C modules/28-hls-i-akceleracja/amaranth | tee wynik-amaranth.txt
+          grep -c '^PASS' wynik-amaranth.txt | grep -q 2
       - name: Moduł 09 — wektory testowe zgodne z generatorem
         run: python3 modules/09-symulacja-i-testbench/hdl/dane/gen_mavg4.py --sprawdz
       - name: Moduł 09 — regresja z Makefile i zapis przebiegów
