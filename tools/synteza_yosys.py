@@ -52,7 +52,7 @@ def podsumowanie(stat):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules")])
+    p.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules"), str(ROOT / "rozmowa-kwalifikacyjna")])
     p.add_argument("--strict", action="store_true")
     a = p.parse_args()
 

@@ -77,6 +77,8 @@ Skrypt [tools/run_hdl_tests.py](../tools/run_hdl_tests.py) wyszukuje wszystkie p
 | `hdl/verilog/` | Icarus Verilog | `iverilog -g2005 -o tb tb_x.v *.v && vvp tb` |
 | `hdl/sv/` | Verilator 5 | `verilator --binary --timing --top-module tb_x *.sv` |
 
+Ten sam układ katalogów (`hdl/vhdl`, `hdl/verilog`, `hdl/sv`) ma kod zadań projektowych w `rozmowa-kwalifikacyjna/hdl/` — skrypty CI obejmują go domyślnie.
+
 Moduły z `hdl/verilog/` są dodatkowo syntezowane w Yosysie ([tools/synteza_yosys.py](../tools/synteza_yosys.py)) — kod musi być syntezowalny, a moduł powinien nazywać się tak jak plik.
 
 Kod z `hdl/verilog/` i `hdl/sv/` przechodzi też przez lint Verilatora (`--lint-only -Wall`, [tools/lint_hdl.py](../tools/lint_hdl.py)). Od modułu 07 obowiązuje zero ostrzeżeń (CI w trybie ścisłym); ostrzeżenie celowe wyłącza się w kodzie komentarzem `/* verilator lint_off … */` w najmniejszym możliwym zakresie, z uzasadnieniem ([07.09](../modules/07-kodowanie-pod-synteze/07.09-styl-kodu-lint-i-przeglady-verilator-verible-vsg.md)).
