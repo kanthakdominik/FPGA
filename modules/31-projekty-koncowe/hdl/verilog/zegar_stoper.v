@@ -40,10 +40,12 @@ module zegar_stoper #(
     reg  [6:0] cs_z = 7'd0;                       // setne zegara (binarnie)
     wire [8:0] z_s = inc2(czas[7:0], 8'h59);
     wire [8:0] z_m = inc2(czas[15:8], 8'h59);
-    wire [8:0] z_h = inc2(czas[23:16], 8'h23);
+    /* verilator lint_off UNUSEDSIGNAL */
+    wire [8:0] z_h = inc2(czas[23:16], 8'h23);           // przeniesienie z godzin i minut stopera niepotrzebne
     wire [8:0] s_c = inc2(stoper[7:0], 8'h99);
     wire [8:0] s_s = inc2(stoper[15:8], 8'h59);
     wire [8:0] s_m = inc2(stoper[23:16], 8'h99);
+    /* verilator lint_on UNUSEDSIGNAL */
 
     always @(posedge clk) begin
         if (rst) begin

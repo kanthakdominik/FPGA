@@ -40,7 +40,7 @@ module komendy (
 
     logic        w_cyfrach = 1'b0;
     logic [2:0]  nc = 3'd0;
-    logic [23:0] cyfry = 24'h000000;
+    logic [19:0] cyfry = 20'h00000;
 
     logic [7:0] duza;
     assign duza = (rx_dane >= "a" && rx_dane <= "z") ? (rx_dane & 8'hDF) : rx_dane;
@@ -86,7 +86,7 @@ module komendy (
                         w_cyfrach <= 1'b0;
                         odpowiedz(T_ERR, 4'd5);
                     end else begin
-                        cyfry <= nowe;
+                        cyfry <= nowe[19:0];
                         nc    <= nc + 3'd1;
                         if (nc == 3'd5) begin
                             w_cyfrach <= 1'b0;

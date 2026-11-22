@@ -43,7 +43,7 @@ architecture rtl of komendy is
   signal txs     : std_logic := '0';
   signal w_cyfr  : std_logic := '0';
   signal nc      : natural range 0 to 5 := 0;
-  signal cyfry   : std_logic_vector(23 downto 0) := (others => '0');
+  signal cyfry   : std_logic_vector(19 downto 0) := (others => '0');
   signal pom     : std_logic := '0';
 begin
   tx_start  <= txs;
@@ -87,7 +87,7 @@ begin
               w_cyfr <= '0';
               odp := T_ERR; n_odp := 5;
             else
-              cyfry <= nowe;
+              cyfry <= nowe(19 downto 0);
               if nc = 5 then
                 w_cyfr <= '0';
                 if zakres then

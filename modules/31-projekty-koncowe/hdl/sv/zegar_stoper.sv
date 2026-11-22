@@ -42,14 +42,16 @@ module zegar_stoper #(
     assign z_s = inc2(czas[7:0], 8'h59);
     logic [8:0] z_m;
     assign z_m = inc2(czas[15:8], 8'h59);
+    /* verilator lint_off UNUSEDSIGNAL */
     logic [8:0] z_h;
-    assign z_h = inc2(czas[23:16], 8'h23);
+    assign z_h = inc2(czas[23:16], 8'h23);           // przeniesienie z godzin i minut stopera niepotrzebne
     logic [8:0] s_c;
     assign s_c = inc2(stoper[7:0], 8'h99);
     logic [8:0] s_s;
     assign s_s = inc2(stoper[15:8], 8'h59);
     logic [8:0] s_m;
     assign s_m = inc2(stoper[23:16], 8'h99);
+    /* verilator lint_on UNUSEDSIGNAL */
 
     always_ff @(posedge clk) begin
         if (rst) begin

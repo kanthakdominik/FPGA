@@ -78,12 +78,12 @@ begin
       for i in s'range loop wyslij(s(i)); end loop;
     end procedure;
     procedure czekaj_linie is
-      variable n0, t : natural := 0;
+      variable m0, t : natural := 0;
     begin
-      n0 := nlinii; t := 0;
-      while nlinii = n0 and t < 20_000 loop wait until rising_edge(clk); t := t + 1; end loop;
+      m0 := nlinii; t := 0;
+      while nlinii = m0 and t < 20_000 loop wait until rising_edge(clk); t := t + 1; end loop;
       wait for 0 ns;
-      if nlinii = n0 then pisz("FAIL: brak odpowiedzi"); bledy := bledy + 1; end if;
+      if nlinii = m0 then pisz("FAIL: brak odpowiedzi"); bledy := bledy + 1; end if;
     end procedure;
     procedure oczekuj(wzor : string; co : string) is
     begin
@@ -129,7 +129,12 @@ begin
     komenda("T125960");  oczekuj("ERR", "T125960");
     komenda("T1a");      oczekuj("ERR", "T1a");
     komenda("X");        oczekuj("ERR", "X");
-    komenda("?");        oczekuj("01:02:03", "? bez zmian");
+    komenda("?");        czekaj_linie;          -- minęły sekundy, godzina i minuta bez zmian
+    if dl_ost /= 8 or ostatnia(1 to 6) /= "01:02:" then
+      pisz("FAIL: ? po blednych komendach: """ & ostatnia(1 to dl_ost) & """"); bledy := bledy + 1;
+    else
+      pisz("? po blednych komendach -> " & ostatnia(1 to 8));
+    end if;
 
     t_s := takt; komenda("S"); oczekuj("OK", "S");
     if biegnie /= '1' then pisz("FAIL: stoper nie biegnie"); bledy := bledy + 1; end if;

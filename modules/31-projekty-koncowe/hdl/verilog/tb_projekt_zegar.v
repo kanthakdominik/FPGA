@@ -102,7 +102,11 @@ module tb_projekt_zegar;
         komenda("T125960", 7);   oczekuj("ERR", "T125960");
         komenda("T1a", 3);       oczekuj("ERR", "T1a");
         komenda("X", 1);         oczekuj("ERR", "X");
-        komenda("?", 1);         oczekuj("01:02:03", "? bez zmian");
+        komenda("?", 1);         czekaj_linie;                      // minęły sekundy, godzina i minuta bez zmian
+        if (ostatnia[127:64] != 64'd0 || ostatnia[63:16] != "01:02:") begin
+            $display("FAIL: ? po blednych komendach: \"%0s\"", ostatnia); errors = errors + 1;
+        end else
+            $display("? po blednych komendach -> %0s", ostatnia);
 
         t_s = takt; komenda("S", 1); oczekuj("OK", "S");
         if (!biegnie) begin $display("FAIL: stoper nie biegnie"); errors = errors + 1; end
