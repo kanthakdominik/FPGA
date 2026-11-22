@@ -21,7 +21,9 @@ module ekran_osc #(
     input  wire [11:0]   x,
     input  wire [11:0]   y,
     input  wire          nowa_ramka,
-    input  wire [11:0]   poziom,
+    /* verilator lint_off UNUSEDSIGNAL */
+    input  wire [11:0]   poziom,                 // linia rysowana z 8 najstarszych bitów
+    /* verilator lint_on UNUSEDSIGNAL */
     // zrzut z domeny akwizycji (stabilne, gdy przełącznik się zmienił)
     input  wire          gotowy_t,
     input  wire          bank_gotowy,
@@ -70,7 +72,9 @@ module ekran_osc #(
 
     wire        w_polu = (x >= X0_W) && (x < XK_W) && (y >= Y0_W) && (y < YK_W);
     wire [11:0] dx = x - X0_W;
-    wire [11:0] dy = y - Y0_W;
+    /* verilator lint_off UNUSEDSIGNAL */
+    wire [11:0] dy = y - Y0_W;                                  // w polu wystarcza 8 bitów
+    /* verilator lint_on UNUSEDSIGNAL */
     /* verilator lint_off WIDTHEXPAND */
     wire [7:0]  w_biez = 8'd255 - ram_dane;                    // wiersz próbki w polu (0 = góra)
     wire [7:0]  w_poprz = (dx == 12'd0) ? w_biez : 8'd255 - poprz;

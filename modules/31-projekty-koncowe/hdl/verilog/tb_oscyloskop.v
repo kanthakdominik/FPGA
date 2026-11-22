@@ -29,11 +29,11 @@ module tb_oscyloskop;
         .wyzwolony(wyzwolony), .clk_v(clk_v), .rst_v(rst), .rgb(rgb), .hs(hs), .vs(vs), .de(de),
         .nr_zrzutu(nr_zrzutu));
 
-    function integer tri(input integer n);
+    function integer trojkat(input integer n);
         integer k;
         begin
             k = ((n % 200) + 200) % 200;
-            tri = (k < 100) ? k * 40 : (200 - k) * 40;
+            trojkat = (k < 100) ? k * 40 : (200 - k) * 40;
         end
     endfunction
 
@@ -44,7 +44,7 @@ module tb_oscyloskop;
         faza <= ~faza;
         we   <= faza;
         if (faza) begin
-            probka <= stala ? 12'd1000 : tri(n);
+            probka <= stala ? 12'd1000 : trojkat(n);
             n      <= n + 1;
         end
     end
@@ -126,8 +126,8 @@ module tb_oscyloskop;
             for (i = 0; i < N; i = i + 1) begin
                 if (stala_wart >= 0) begin a = wiersz(stala_wart); b = a; end
                 else begin
-                    a = wiersz(tri(52 - PRZED + i));
-                    b = (i == 0) ? a : wiersz(tri(52 - PRZED + i - 1));
+                    a = wiersz(trojkat(52 - PRZED + i));
+                    b = (i == 0) ? a : wiersz(trojkat(52 - PRZED + i - 1));
                 end
                 e_min[i] = (a < b) ? a : b;
                 e_max[i] = (a < b) ? b : a;
