@@ -55,6 +55,10 @@ jobs:
           pip install -q -r modules/30-warsztat-inzyniera/narzedzia/requirements.txt
           bash modules/30-warsztat-inzyniera/narzedzia/sprawdz.sh | tee wynik-m30.txt
           { echo "## Warsztat inżyniera (moduł 30)"; echo '```'; cat wynik-m30.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - name: Moduł 31 — program mikrokontrolera zgodny z plikami pamięci, składnia programu C (Nios V)
+        run: |
+          python3 modules/31-projekty-koncowe/program/zloz.py --sprawdz
+          make -C modules/31-projekty-koncowe/deca/udp_ddr3 skladnia
       - name: Moduł 09 — wektory testowe zgodne z generatorem
         run: python3 modules/09-symulacja-i-testbench/hdl/dane/gen_mavg4.py --sprawdz
       - name: Moduł 09 — regresja z Makefile i zapis przebiegów
