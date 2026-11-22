@@ -5,6 +5,7 @@ Układ katalogów (docs/STYL-KODU.md):
     modules/<moduł>/hdl/vhdl/     tb_*.vhd  -> GHDL (VHDL-2008)
     modules/<moduł>/hdl/verilog/  tb_*.v    -> Icarus Verilog (Verilog-2005)
     modules/<moduł>/hdl/sv/       tb_*.sv   -> Verilator 5 (--binary --timing)
+    (domyślnie także rozmowa-kwalifikacyjna/hdl/ — zadania projektowe)
 
 Testbench zalicza się, gdy wypisze linię zaczynającą się od "PASS" i żadnej od "FAIL".
 
@@ -144,7 +145,7 @@ def zapisz_podsumowanie(podsumowanie, wyniki):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules")])
+    ap.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules"), str(ROOT / "rozmowa-kwalifikacyjna")])
     ap.add_argument("--strict", action="store_true")
     a = ap.parse_args()
 

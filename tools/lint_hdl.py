@@ -11,7 +11,8 @@ Ostrzeżenia, które świadomie dopuszczamy w kodzie, wyłącza się w pliku kom
 Użycie:
     python3 tools/lint_hdl.py [ścieżka ...] [--strict] [--strict-od NN]
     --strict        każde ostrzeżenie jest błędem
-    --strict-od NN  ostrzeżenie jest błędem w modułach o numerze >= NN, w starszych tylko raport (CI: --strict-od 7)
+    --strict-od NN  ostrzeżenie jest błędem w modułach o numerze >= NN i w katalogach bez numeru
+                    (rozmowa-kwalifikacyjna), w starszych modułach tylko raport (CI: --strict-od 7)
 Bez tych opcji skrypt tylko raportuje i kończy się kodem 0.
 """
 import argparse
@@ -32,7 +33,7 @@ def kolejnosc(pliki):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules")])
+    p.add_argument("sciezki", nargs="*", default=[str(ROOT / "modules"), str(ROOT / "rozmowa-kwalifikacyjna")])
     p.add_argument("--strict", action="store_true")
     p.add_argument("--strict-od", type=int, default=None)
     a = p.parse_args()
@@ -64,7 +65,7 @@ def main():
         else:
             problemy += n or 1
             numer = re.match(r"(\d+)-", katalog.parent.parent.name)
-            scisle = a.strict or (a.strict_od is not None and numer and int(numer.group(1)) >= a.strict_od)
+            scisle = a.strict or (a.strict_od is not None and (not numer or int(numer.group(1)) >= a.strict_od))
             if scisle:
                 bledy += n or 1
             print(f"  {'BŁĄD ' if scisle else 'UWAGA'} {n} komunikatów")
