@@ -215,6 +215,7 @@ def main():
     for f in ("mathjax.js", "extra.css"):
         shutil.copy(os.path.join(ROOT, "tools", "site", f), os.path.join(SRC, "javascripts", f))
     konfig = open(os.path.join(ROOT, "tools", "site", "mkdocs.base.yml"), encoding="utf-8").read()
+    nav += ['  - "← Wszystkie bazy wiedzy": https://kanthakdominik.github.io/']
     open(os.path.join(OUT, "mkdocs.yml"), "w", encoding="utf-8").write(konfig.rstrip() + "\n\n" + "\n".join(nav) + "\n")
     print(f"stron: {len(pliki)}, katalog: {SRC}")
 

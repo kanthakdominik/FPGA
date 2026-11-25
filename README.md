@@ -2,6 +2,8 @@
 
 **Wersja do czytania w przeglądarce (wzory, wyszukiwarka, menu modułów, kod w trzech językach przełączany zakładkami): [kanthakdominik.github.io/FPGA](https://kanthakdominik.github.io/FPGA/)**
 
+[← Wszystkie bazy wiedzy](https://kanthakdominik.github.io/)
+
 Otwarta baza wiedzy o projektowaniu układów FPGA, prowadząca od podstaw logiki cyfrowej do **poziomu zawodowego inżyniera FPGA**: projektowania RTL, weryfikacji (SystemVerilog, UVM, cocotb, metody formalne), analizy czasowej, przejść między domenami zegarowymi, interfejsów, systemów z procesorem i przygotowania do rozmowy kwalifikacyjnej.
 
 Repozytorium jest pomyślane jako darmowy materiał dla każdego: studenta elektroniki lub informatyki, programisty, który chce przejść do sprzętu, i inżyniera, który chce uporządkować praktykę.
